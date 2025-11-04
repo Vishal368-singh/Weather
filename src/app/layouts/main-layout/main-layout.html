@@ -1,0 +1,19 @@
+<div class="main-layout d-flex flex-column" style="height: 100vh;">
+
+  <div class="header-wrapper">
+    <app-header [isDashboard]="true"></app-header>
+  </div>
+
+  <div class="content-wrapper d-flex flex-grow-1">
+    
+
+    <div class="sidebar">
+      <app-left-panel></app-left-panel>
+    </div>
+
+
+    <div class="page-body flex-grow-1 p-3 overflow-auto">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

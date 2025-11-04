@@ -1,0 +1,443 @@
+<div style="position: relative; height: 100%">
+  <div class="map_container_div" id="map">
+    <div id="popup" class="ol-popup">
+      <div style="text-align: right">
+        <span id="popup-closer" style="cursor: pointer">
+          <i class="fas fa-times"></i>
+        </span>
+      </div>
+      <div id="popup-content"></div>
+    </div>
+  </div>
+  <div class="map-credit">Powered by ML Infomap</div>
+
+  <div
+    class="dropdown circle-dropdown-map"
+    [class.hideCircleOption]="isPanIndiaClicked"
+  >
+    <!-- Toggle Button -->
+    <button
+      class="btn stylish-btn w-100 dropdown-toggle"
+      type="button"
+      id="circleDropdownBtn"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      style="padding: 2px 0px 2px 0px"
+    >
+      <i class="fas fa-layer-group me-1"></i>
+      View Circle
+    </button>
+
+    <!-- Styled Dropdown Menu -->
+    <div
+      class="dropdown-menu show-dropdown shadow"
+      aria-labelledby="circleDropdownBtn"
+    >
+      <select
+        class="form-select stylish-select"
+        id="circleSelect"
+        (change)="onCircleLevelChange($event)"
+        multiple
+        size="6"
+      >
+        <option *ngFor="let circle of circleOptions" [value]="circle.value">
+          {{ circle.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="isIDWLayer" class="legend-container">
+    <ng-container *ngIf="isRainIDWLayer; else otherLegend">
+      <div class="label-gradient">
+        <span>100%</span>
+        <span>75%</span>
+        <span>50%</span>
+        <span>25%</span>
+        <span>0%</span>
+      </div>
+    </ng-container>
+
+    <ng-template #otherLegend>
+      <div class="label-gradient">
+        <span>{{ maxRange }}</span>
+        <span>{{ minRange }}</span>
+      </div>
+    </ng-template>
+
+    <div class="color-gradient"></div>
+  </div>
+
+  <!-- Lasso Tool Button -->
+  <!-- <button
+    class="lasso-btn"
+    title="Lasso Selection Tool"
+    (click)="enableLasso()"
+  >
+    <svg
+      width="20px"
+      height="20px"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="#545454"
+    >
+      <g id="SVGRepo_bgCarrier" stroke-width="0" />
+      <g
+        id="SVGRepo_tracerCarrier"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <g id="SVGRepo_iconCarrier">
+        <path
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M5.00001 10C5.00001 8.75523 5.7133 7.52938 7.06628 6.57433C8.41665 5.62113 10.3346 5 12.5 5C14.6654 5 16.5834 5.62113 17.9337 6.57433C19.2867 7.52938 20 8.75523 20 10C20 11.2448 19.2867 12.4706 17.9337 13.4257C16.5834 14.3789 14.6654 15 12.5 15C11.9849 15 11.4828 14.9648 10.9982 14.898C10.934 13.1045 9.18159 12 7.50001 12C6.92753 12 6.37589 12.1176 5.88506 12.3351C5.30127 11.6111 5.00001 10.8126 5.00001 10ZM12.5 17C11.7421 17 11.0036 16.9352 10.2949 16.8124C10.2111 16.9074 10.1215 16.9971 10.027 17.0814C10.0324 17.1351 10.0364 17.1937 10.0381 17.2566C10.0459 17.5458 10.0053 17.9424 9.80913 18.3641C9.38923 19.2667 8.42683 19.9562 6.7537 20.2187C4.68005 20.544 4.14608 21.1521 4.01748 21.3745C3.95033 21.4906 3.94254 21.5823 3.94406 21.6357C3.94468 21.6576 3.94702 21.6739 3.94861 21.6827C3.96296 21.7256 3.97448 21.7699 3.98295 21.8152C4.03316 22.0804 3.97228 22.3491 3.826 22.5638C3.74444 22.6836 3.63632 22.7865 3.50609 22.8627C3.40769 22.9205 3.29851 22.962 3.1823 22.9834C3.06521 23.0053 2.94748 23.0055 2.83406 22.9863C2.687 22.9617 2.55081 22.9051 2.43293 22.8238C2.31589 22.7434 2.21506 22.6375 2.13982 22.5103C2.1012 22.4453 2.06973 22.3756 2.0465 22.3023C2.04333 22.2927 2.04 22.2823 2.03655 22.2711C2.02484 22.2331 2.01167 22.1856 1.99902 22.1296C1.97383 22.0181 1.94991 21.8695 1.94487 21.6927C1.93466 21.3347 2.00276 20.8633 2.28609 20.3733C2.85846 19.3834 4.12384 18.6068 6.4437 18.2429C6.8529 18.1787 7.15489 18.0908 7.37778 17.9981C5.70287 17.9451 4.00001 16.8095 4.00001 15C4.00001 14.4998 4.14018 14.0417 4.37329 13.6452C3.52173 12.6101 3.00001 11.3665 3.00001 10C3.00001 7.93106 4.18951 6.15691 5.91292 4.94039C7.63895 3.72202 9.97098 3 12.5 3C15.029 3 17.3611 3.72202 19.0871 4.94039C20.8105 6.15691 22 7.93106 22 10C22 12.0689 20.8105 13.8431 19.0871 15.0596C17.3611 16.278 15.029 17 12.5 17ZM6.34227 14.3786C6.60474 14.1624 7.01132 14 7.50001 14C8.5482 14 9.00001 14.6444 9.00001 15C9.00001 15.0929 8.97952 15.185 8.9364 15.2772C8.85616 15.4487 8.687 15.6381 8.41217 15.7841C8.16534 15.9153 7.85219 16 7.50001 16C6.45182 16 6.00001 15.3556 6.00001 15C6.00001 14.8092 6.09212 14.5846 6.34227 14.3786Z"
+          fill="#545454"
+        />
+      </g>
+    </svg>
+  </button> -->
+
+  <!-- Lasso Tool Selected Tower list  -->
+  <!-- <div class="tower-list" *ngIf="isTowersSelected" #towerListRef>
+    <div class="tower-list-heading">
+      <span class="heading"
+        >Bad Weather Alert – {{ currentDate }}, {{ currentTime }} Hrs</span
+      >
+      <span class="tower-list-cls" (click)="closeTowerList()">X</span>
+    </div>
+
+    
+    <div class="tower-list-table-wrapper">
+      <table class="tower-list-table">
+        <thead>
+          <tr>
+            <th style="width: 10%">Site Count</th>
+            <th style="width: 25%">Area</th>
+            <th style="width: 25%">Circle</th>
+            <th style="width: 30%">AOM</th>
+            <th style="width: 10%">Send Alert</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let group of groupedTowerArray">
+            <td>{{ group.siteCount }}</td>
+            <td>{{ group.districts.join(', ') }}</td>
+            <td>{{ group.circle }}</td>
+            <td>
+              <ul style="list-style: none">
+                <li *ngFor="let user of group.users">{{ user.name }}</li>
+              </ul>
+            </td>
+            <td>
+              <input type="checkbox" (change)="onAlert(group, $event)" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div> -->
+
+  <!-- layer legend -->
+  <div id="layer-legend" class="layer-legend">
+    <h6 style="font-size: 14px">Map Layers</h6>
+    <ul id="legend-list" style="font-size: 12px"></ul>
+  </div>
+
+  <!-- Meter -->
+  <div *ngIf="isIDWLayer" class="timeline-wrapper">
+    <span
+      style="position: relative; left: 3px; font-size: 13px; font-weight: 600"
+      >Hourly</span
+    >
+    <div class="timeline-container">
+      <div class="hour-point" *ngFor="let hour of hours">
+        <input
+          type="radio"
+          name="hour"
+          [id]="'hour-' + hour"
+          [checked]="selectedHour === hour"
+          (change)="selectHour(hour)"
+        />
+        <label [for]="'hour-' + hour">
+          <div class="circle" [class.active]="selectedHour === hour"></div>
+          <span>{{ hour }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="today_tomorrow" *ngIf="!isCircleLabelClicked">
+    <div *ngFor="let day of days" class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="day"
+        [id]="day.value"
+        [value]="day.value"
+        [checked]="selectedDay === day.value"
+        (change)="onDayChange(day.value)"
+      />
+      <label class="form-check-label" [for]="day.value">
+        {{ day.label }}
+      </label>
+    </div>
+  </div>
+</div>
+<!-- Hidden Screenshot Container -->
+<div
+  #screenshotContainer
+  class="screenshot-container"
+  style="
+    position: absolute;
+    right: -99999px;
+    top: -99999px;
+    z-index: 1000;
+    background: white;
+  "
+>
+  <div class="screenshot-header">
+    <div class="left-header">
+      <div style="width: 70px; height: 65px">
+        <svg
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 59 118.3"
+          width="100%"
+          height="100%"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <style type="text/css">
+            .st0 {
+              fill: #007934;
+            }
+
+            .st1 {
+              clip-path: url(#SVGID_2_);
+              fill: #ffffff;
+            }
+
+            .st2 {
+              clip-path: url(#SVGID_4_);
+              fill: #007934;
+            }
+
+            .st3 {
+              fill: #404041;
+            }
+
+            .st4 {
+              clip-path: url(#SVGID_6_);
+              fill: #404041;
+            }
+
+            .st5 {
+              clip-path: url(#SVGID_8_);
+              fill: #404041;
+            }
+          </style>
+          <rect x="0.2" y="0.7" class="st0" width="58.4" height="76.1" />
+          <g>
+            <defs>
+              <rect id="SVGID_1_" y="0.7" width="58.6" height="116.5" />
+            </defs>
+            <clipPath id="SVGID_2_">
+              <use xlink:href="#SVGID_1_" style="overflow: visible" />
+            </clipPath>
+            <path
+              class="st1"
+              d="M26.5,46c-1.8-3.4,0.5-5.5,1.1-7.4c0.7-2-1-3.3-1-3.3c1.1,3-1.1,4.4-1.6,6.6C24.5,44.3,26.5,46,26.5,46"
+            />
+            <path
+              class="st1"
+              d="M33.5,36.3c0,0.1-0.2,0.3-1,0.3c-0.4,0-1.3-0.2-1.3-0.4c0-0.1,0.3-0.3,1-0.8c0.3-0.2,0.9-0.4,1.2,0
+		C33.7,35.8,33.5,36.2,33.5,36.3 M41.8,32.6c-3.7,0.1-5,1.1-7.3,1.1c0,0,0,0,0,0c-0.1,0-0.2,0-0.3,0h0c-0.4,0-0.9,0-1.4-0.1
+		c-0.7-0.2-1.8-1-1.8-3.4c0-0.1,0-0.1,0-0.2c-0.1-1.3-0.1-2.3-0.1-2.2c-0.2,0.3,0,0.3-1,1.9c-0.4,0.7-0.9,1.2-1.5,2
+		c-0.4,0.5-0.6,1-0.6,1.4c0,0.1,0,0.2,0,0.3c-0.9,0.1-1.3,0.4-1.7,0.7c0,0,3.1,1.2,2.1,4.2c-0.9,3.1-3.1,5.4-0.6,8.6
+		c0,0-3.8-0.8-3.5-4.6c0.3-3,2.3-3.4,2-6.2c-0.4-3.2-4.5-2-4.8-1.8c0,0,1.1-0.1,1.7,0.8c0,0-1.3-0.3-2.6,0.8c0,0,1.9-0.5,2.5,0.8
+		c0.2,0.5,0.3,2.5-4.3,3.7c-5.6,1.5-7,4.8-7.5,6.3c0,0,2.5-2.9,6.8-2c0,0,0,2-3.9,3.3c-3.4,1.2-5.7,4.1-5.3,7.5c0,0,2.1-4,7.8-4.9
+		c0,0-0.7,4.1-7.8,8.5c0,0,4.8,0.8,6.7-1.8c0,0,1.1,4.9-5.9,8.9c0,0,6,1.1,8.4-4c0,0,0.7,2.9-0.4,5.8c0,0,1-1.8,2.8-2.3
+		c0,0,1.4,1.5,0.7,6.8c0,0,4-15.1,16.9-14.7c0,0-4.3-3.3-5.2-8.9c-0.2-1.5-0.2-2.8-0.2-2.8s-2.6-1-2.6-4.6c0,0,0.9,3.8,4.2,3.8
+		c3.2,0,4.9-2.1,7.5-4.2c1.2-1,5.4-0.3,7-0.8v-1.4h-2v-0.8h2h0v-3.9C48.4,33.8,45.7,32.5,41.8,32.6"
+            />
+            <path
+              class="st1"
+              d="M27.9,30.3c0.1-0.4,0.3-0.6,1-1.6c0.4-0.7,1-1.5,1.3-2.4c0.3-0.8,0.4-1.7,0.4-2.4c0-0.4,0-2-0.1-1.9
+		c-0.1,0.1,0.1,0.3-0.6,1.6c-0.3,0.5-0.6,1.1-0.9,1.5c-0.5,0.7-0.8,1.4-0.8,1.9C28.2,27.3,27.8,30.5,27.9,30.3"
+            />
+            <path
+              class="st1"
+              d="M28.3,24c0.1-0.4,0.2-0.6,0.7-1.3c0.5-0.7,1-1.6,1.1-2.4c0.2-0.7,0.1-1.3,0.1-1.6c0-0.3,0-1.4-0.1-1.4
+		c0,0,0,0.4-0.3,0.8c-0.2,0.4-0.6,1.1-0.8,1.4c-0.2,0.4-0.5,0.9-0.5,1.3C28.6,21.4,28.2,24.3,28.3,24"
+            />
+            <path
+              class="st1"
+              d="M29.1,17.4c0.3-0.6,0.6-1,0.8-1.8c0.1-0.3,0.1-0.8,0.1-1c0-0.2-0.1-1.3-0.1-1.3c0,0,0,0.2-0.3,0.9
+		c-0.1,0.3-0.3,0.6-0.4,0.9c-0.2,0.3-0.4,0.7-0.4,1.1c0,0.3-0.2,2.3-0.2,2.2C28.7,18,28.9,17.8,29.1,17.4"
+            />
+            <path
+              class="st1"
+              d="M28.9,13.6c0.1-0.6,0.3-0.9,0.4-1.2c0.4-0.8,0.5-1.4,0.5-1.9c0-0.5-0.3-4.8-0.3-4.8s0-0.3-0.1-0.3
+		c-0.1,0-0.1,0.3-0.1,0.3S28.8,14.1,28.9,13.6"
+            />
+          </g>
+          <path
+            class="st0"
+            d="M0.1,100.2H2V87.5H0.1V100.2z M0,84.7h2.2v-2.1H0V84.7z"
+          />
+          <g>
+            <defs>
+              <rect id="SVGID_3_" y="0.7" width="58.6" height="116.5" />
+            </defs>
+            <clipPath id="SVGID_4_">
+              <use xlink:href="#SVGID_3_" style="overflow: visible" />
+            </clipPath>
+            <path
+              class="st2"
+              d="M5.8,87.5h1.9v2.2c0.8-1.4,2.2-2.5,4.3-2.5c3.1,0,4.9,2.1,4.9,5.1v7.9H15v-7.4c0-2.4-1.3-3.8-3.5-3.8
+		c-2.2,0-3.8,1.6-3.8,4v7.3H5.8V87.5z"
+            />
+            <path
+              class="st2"
+              d="M30.1,93.8L30.1,93.8c0-3-2.2-4.9-4.6-4.9c-2.5,0-4.5,1.8-4.5,4.9v0.1c0,3,2.1,4.9,4.5,4.9
+		C27.9,98.7,30.1,96.8,30.1,93.8 M19.1,93.9L19.1,93.9c0-4.2,3-6.6,6.1-6.6c2.4,0,3.9,1.3,4.9,2.7v-7.7h1.9v17.9H30v-2.5
+		c-1,1.5-2.5,2.8-4.9,2.8C22.1,100.4,19.1,98,19.1,93.9"
+            />
+            <path
+              class="st2"
+              d="M35.1,95.4v-7.9H37v7.4c0,2.4,1.3,3.8,3.5,3.8c2.2,0,3.8-1.6,3.8-4v-7.3h1.9v12.7h-1.9V98
+		c-0.9,1.4-2.2,2.5-4.3,2.5C36.9,100.4,35.1,98.4,35.1,95.4"
+            />
+            <path
+              class="st2"
+              d="M48.8,98.5l1-1.3c1.4,1,2.9,1.6,4.4,1.6c1.5,0,2.6-0.8,2.6-2v0c0-1.3-1.5-1.8-3.2-2.2c-2-0.6-4.2-1.3-4.2-3.6
+		v0c0-2.2,1.8-3.6,4.3-3.6c1.5,0,3.3,0.5,4.6,1.4l-0.9,1.4c-1.2-0.8-2.5-1.2-3.8-1.2c-1.5,0-2.5,0.8-2.5,1.8v0
+		c0,1.2,1.6,1.7,3.3,2.2c2,0.6,4.1,1.3,4.1,3.6v0c0,2.4-2,3.8-4.5,3.8C52.2,100.4,50.2,99.7,48.8,98.5"
+            />
+          </g>
+          <polygon
+            class="st3"
+            points="0,106 0,107.1 3.1,107.1 3.1,117 4.3,117 4.3,107.1 7.3,107.1 7.3,106 "
+          />
+          <g>
+            <defs>
+              <rect id="SVGID_5_" y="0.7" width="58.6" height="116.5" />
+            </defs>
+            <clipPath id="SVGID_6_">
+              <use xlink:href="#SVGID_5_" style="overflow: visible" />
+            </clipPath>
+            <path
+              class="st4"
+              d="M15.9,111.6v-0.1c0-2.7-1.5-4.5-3.5-4.5s-3.5,1.9-3.5,4.5v0.1c0,2.6,1.5,4.5,3.5,4.5
+		C14.4,116.1,15.9,114.2,15.9,111.6 M7.6,111.6v-0.1c0-3.2,1.9-5.6,4.7-5.6c2.8,0,4.7,2.4,4.7,5.6v0.1c0,3.2-1.9,5.6-4.7,5.6
+		C9.5,117.2,7.6,114.8,7.6,111.6"
+            />
+          </g>
+          <polygon
+            class="st3"
+            points="24.5,106 21.9,115 19.4,106 18.1,106 21.4,117.1 22.4,117.1 25,108.2 27.6,117.1 28.6,117.1 31.9,106 
+	30.7,106 28.1,115 25.5,106 "
+          />
+          <polygon
+            class="st3"
+            points="33.6,106 33.6,117 40.4,117 40.4,115.9 34.8,115.9 34.8,112 39.7,112 39.7,110.9 34.8,110.9 
+	34.8,107.1 40.3,107.1 40.3,106 "
+          />
+          <g>
+            <defs>
+              <rect id="SVGID_7_" y="0.7" width="58.6" height="116.5" />
+            </defs>
+            <clipPath id="SVGID_8_">
+              <use xlink:href="#SVGID_7_" style="overflow: visible" />
+            </clipPath>
+            <path
+              class="st5"
+              d="M46,111.7c1.8,0,2.8-0.9,2.8-2.3v0c0-1.4-1-2.2-2.6-2.2h-2.5v4.6H46z M42.5,106h3.7c1.3,0,2.3,0.4,2.9,1
+		c0.5,0.5,0.9,1.3,0.9,2.3v0c0,1.7-1.1,2.8-2.6,3.2l2.9,4.5h-1.4l-2.8-4.3h-2.5v4.3h-1.2V106z"
+            />
+            <path
+              class="st5"
+              d="M51.4,115.6l0.7-0.9c0.9,0.8,1.9,1.4,3.1,1.4c1.3,0,2.2-0.8,2.2-1.8v0c0-0.9-0.4-1.5-2.4-2.2
+		c-2.3-0.8-3.2-1.7-3.2-3.2v0c0-1.6,1.4-2.9,3.3-2.9c1.3,0,2.3,0.4,3.3,1.2l-0.7,0.9c-0.8-0.7-1.7-1.1-2.6-1.1
+		c-1.3,0-2.1,0.8-2.1,1.7v0c0,1,0.5,1.5,2.6,2.3c2.2,0.8,3,1.7,3,3.2v0c0,1.8-1.4,3-3.4,3C53.7,117.1,52.5,116.7,51.4,115.6"
+            />
+          </g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+          <g></g>
+        </svg>
+      </div>
+      <span class="left-header-districts"
+        >Weather Intelligence & Disaster Alert</span
+      >
+    </div>
+  </div>
+  <table class="template-table" style="background: white">
+    <thead>
+      <tr>
+        <th
+          colspan="4"
+          style="
+            width: 100%;
+            text-align: center;
+            background: #2b6642;
+            color: white;
+            font-weight: bold;
+          "
+        >
+          RF Deviation Alert - {{currentDistrict}} District ({{currentDate}},
+          updated {{currentTime}} hrs)
+        </th>
+      </tr>
+      <tr>
+        <th style="width: 10%; background: Silver">Site Count</th>
+        <th style="width: 30%; background: Silver">Area</th>
+        <th style="width: 30%; background: Silver">Circle</th>
+        <th style="width: 30%; background: Silver">AOM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let group of screenshotData" style="background: white">
+        <td>{{ group.siteCount }}</td>
+        <td>{{ group.circle}}</td>
+        <td>{{ group.circle }}</td>
+        <td>
+          <ul style="list-style: none">
+            <li *ngFor="let user of group.users">{{ user.name }}</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div
+    class="footer"
+    style="
+      width: 100%;
+      display: flex;
+      background: white;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 25px;
+    "
+  >
+    <div>
+      <span style="font-size: 13px">Powered by:</span>
+      <span style="font-size: 15px; font-weight: 600">ML INFOMAP PVT LTD</span>
+    </div>
+    <div style="font-size: 13px; margin-top: 4px">
+      124-A, Katwaria Sarai, New Delhi-110016; Email:post&#64;mlinfomap.com
+    </div>
+  </div>
+</div>

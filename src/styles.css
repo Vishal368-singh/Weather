@@ -1,0 +1,37 @@
+.main-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header-wrapper {
+  width: 100%;
+  z-index: 10;
+}
+
+body {
+  overflow: hidden !important;
+}
+
+.content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  height: calc(100vh - 70px);
+}
+
+.sidebar {
+  /* width: 250px; */
+  background-color: #e4e7eb;
+  /* or your preferred color */
+  border-right: 1px solid #ddd;
+}
+
+.page-body {
+  background-color: #ffffff;
+  overflow-y: auto;
+}
+
+:root {
+  --low-color: #ffff00;
+  --moderate-color: #ffaa00;
+  --high-color: #e53935;
+}

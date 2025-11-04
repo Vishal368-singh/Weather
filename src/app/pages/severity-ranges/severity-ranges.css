@@ -1,0 +1,95 @@
+.fixed-input {
+  height: 100%;
+  min-height: 28px;
+  box-sizing: border-box;
+}
+
+table.table,
+.table-severity {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Dropdown focus styling */
+select.form-select:focus {
+  box-shadow: none !important;
+  outline: rgb(155, 236, 155) !important;
+  border-color: inherit !important;
+}
+
+/* Dropdown option list styling */
+::ng-deep #circleSelect > option {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Color display box */
+.color-box {
+  width: 60px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin: auto;
+}
+
+/* Color input field */
+.color-edit {
+  width: 60px;
+  height: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 425px) {
+  .table-severity {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%; /* ensures table scrolls within full width */
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-severity {
+    width: 100%;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  .severity-row {
+    height: 60vh !important;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .table-severity {
+    width: 100%;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .table-severity {
+    width: 100%;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 16px;
+  }
+}

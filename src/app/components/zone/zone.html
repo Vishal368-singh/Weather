@@ -1,0 +1,22 @@
+<div class="zones-container">
+  <div *ngFor="let zone of zones" class="zone">
+    <div class="zone-header" [style.background-color]="zone.color" [style.color]="zone.headerColor">
+      {{ zone.title }}
+    </div>
+    <div class="zone-body">
+      <div *ngFor="let item of zone.items" class="category">
+        <div class="category-icon">
+          <img [src]="'assets/icons/' + item.categoryIcon" alt="Category Icon" />
+        </div>
+        <div class="boxes">
+          <div *ngFor="let box of item.boxes" class="box" [style.border-color]="box.color">
+            <div *ngFor="let icon of box.icons; let i = index" class="icon-value-pair">
+              <img [src]="'assets/icons/' + icon" alt="Icon" class="icon" />
+              <span class="value">{{ box.values[i] }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

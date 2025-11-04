@@ -1,0 +1,138 @@
+{
+  "type": "FeatureCollection",
+  "name": "Pincode-point",
+  "crs": {
+    "type": "name",
+    "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "110001",
+        "NAME": "Sansad Marg H.O",
+        "CITY": "NDMC",
+        "STATE_NAME": "Delhi",
+        "LEVEL": "Urban",
+        "Town_Name": "Delhi UA",
+        "Pincode ": 110001,
+        "HHld_pincode": 1351.2184752246317,
+        "Pop_pincode": 6070.7219351366875,
+        "TP_pincode": 601433.51455790061,
+        "per_cap_potential": 99.071168303207557,
+        "MSI_pincode": 92.139251131857037,
+        "PI_pincode": 182.39317595305852,
+        "Ward_Numnber": "081-089-090",
+        "Locality1": "Bal Bhawan, A-Block, Ram Leela Maidan, Delhi Gate, Shivaji Bridge, Govind Ballabh Pant Hospital",
+        "Locality2": "Chuna Mandi, Laddu Ghati Colony, Paharganj, New Delhi Railway Station",
+        "Locality3": "Kishan Ganj, Dori Walan, Motia Khan, Block A",
+        "Locality4": null,
+        "Locality5": null,
+        "Locality6": null,
+        "Locality7": null,
+        "Locality8": null,
+        "Locality9": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.215428674698785, 28.623650490000081]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "110002",
+        "NAME": "Indraprastha H.O",
+        "CITY": "Delhi",
+        "STATE_NAME": "Delhi",
+        "LEVEL": "Urban",
+        "Town_Name": "Delhi UA",
+        "Pincode ": 110002,
+        "HHld_pincode": 11691.985165758984,
+        "Pop_pincode": 56152.600943272686,
+        "TP_pincode": 5298260.5235973354,
+        "per_cap_potential": 94.354676980142429,
+        "MSI_pincode": 811.69031177882925,
+        "PI_pincode": 173.7099652217984,
+        "Ward_Numnber": "077-079-080-083-084-085-087",
+        "Locality1": "Mori Gate, Kashmere Gate, Delhi Junction, Ladakh Budha Vihar Colony, Chandrawa",
+        "Locality2": "Jama Masjit, Kucha Chelan, Daryaganj, Kabutar Market",
+        "Locality3": "Raj Ghat, Red Fort, ASI Power House, Vijay Ghat",
+        "Locality4": "Sheesh Mahal, National Cloth Market, Ghazipur Fish Market",
+        "Locality5": "Teliyan, Daryaganj Sunday Book Market, Kucha Lal Man",
+        "Locality6": "Star Market, Hazrat Khwaja Billah Naqshbandi, Lahori Gate Police Station",
+        "Locality7": "Ram Nagar Market, SikiGaran Bag Market, Neem Wala Chowk",
+        "Locality8": null,
+        "Locality9": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.240182670297514, 28.638266985000023]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "110003",
+        "NAME": "Lodi Road H.O",
+        "CITY": "NDMC",
+        "STATE_NAME": "Delhi",
+        "LEVEL": "Urban",
+        "Town_Name": "Delhi UA",
+        "Pincode ": 110003,
+        "HHld_pincode": 11938.642182461856,
+        "Pop_pincode": 53559.651050717323,
+        "TP_pincode": 5345969.8318416122,
+        "per_cap_potential": 99.81338053863243,
+        "MSI_pincode": 818.99934898284664,
+        "PI_pincode": 183.75961231561405,
+        "Ward_Numnber": null,
+        "Locality1": null,
+        "Locality2": null,
+        "Locality3": null,
+        "Locality4": null,
+        "Locality5": null,
+        "Locality6": null,
+        "Locality7": null,
+        "Locality8": null,
+        "Locality9": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.226449145206459, 28.589667975000104]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "110004",
+        "NAME": "Rashtrapati Bhawan S.O",
+        "CITY": "NDMC",
+        "STATE_NAME": "Delhi",
+        "LEVEL": "Urban",
+        "Town_Name": "Delhi UA",
+        "Pincode ": 110004,
+        "HHld_pincode": 11877.167957106079,
+        "Pop_pincode": 56675.270964869524,
+        "TP_pincode": 5068456.6634695567,
+        "per_cap_potential": 89.429773818130798,
+        "MSI_pincode": 776.48449922122995,
+        "PI_pincode": 164.64306165777251,
+        "Ward_Numnber": "081-089",
+        "Locality1": "Bal Bhawan, A-Block, Ram Leela Maidan, Delhi Gate, Shivaji Bridge, Govind Ballabh Pant Hospital",
+        "Locality2": "Chuna Mandi, Laddu Ghati Colony, Paharganj, New Delhi Railway Station",
+        "Locality3": null,
+        "Locality4": null,
+        "Locality5": null,
+        "Locality6": null,
+        "Locality7": null,
+        "Locality8": null,
+        "Locality9": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.196961641030157, 28.61468500500008]
+      }
+    }
+  ]
+}

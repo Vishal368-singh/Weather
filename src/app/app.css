@@ -1,0 +1,41 @@
+.pdf_cont {
+    background-color: #FAF2E9;
+    /* width: 210mm; */
+    padding: 5mm;
+    margin: 0 auto;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ol-viewport canvas {
+    border-bottom-left-radius: 15px !important;
+    border-bottom-right-radius: 15px !important;
+}
+
+.ol-attribution ul {
+    border-bottom-right-radius: 15px !important;
+}
+
+
+
+::ng-deep .custom-error-snackbar {
+    background-color: #860c04 !important;
+    /* Red */
+    z-index: 99999 !important;
+    color: white;
+    font-weight: bold;
+}
+
+::ng-deep .custom-info-snackbar {
+    background-color: #025294 !important;
+    z-index: 99999 !important;
+    color: white;
+    font-weight: bold;
+}
+
+::ng-deep .custom-success-snackbar {
+    background: rgb(3, 117, 18);
+    z-index: 99999 !important;
+    color: white;
+    font-weight: bold;
+}

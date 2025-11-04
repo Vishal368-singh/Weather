@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Avalanche hazard icon">
+  <!-- slope triangle -->
+  <polygon points="4,60 4,4 60,60" fill="black"/>
+ 
+  <!-- avalanche mass -->
+  <path d="M12 12 Q18 28 28 32 Q38 36 36 44" fill="white"/>
+ 
+  <!-- arrow -->
+  <line x1="34" y1="28" x2="50" y2="44" stroke="black" stroke-width="3"/>
+  <polyline points="44,44 50,44 50,38" fill="none" stroke="black" stroke-width="3"/>
+ 
+  <!-- snowflake -->
+  <g transform="translate(48,16) scale(0.6)">
+    <line x1="0" y1="-10" x2="0" y2="10" stroke="black" stroke-width="2"/>
+    <line x1="-10" y1="0" x2="10" y2="0" stroke="black" stroke-width="2"/>
+    <line x1="-7" y1="-7" x2="7" y2="7" stroke="black" stroke-width="2"/>
+    <line x1="-7" y1="7" x2="7" y2="-7" stroke="black" stroke-width="2"/>
+  </g>
+</svg>

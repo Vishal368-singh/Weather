@@ -1,0 +1,226 @@
+<div
+  class="sidebar d-flex flex-column justify-content-between p-3 align-items-center"
+>
+  <!-- Top Content -->
+  <div class="w-100 mobile-screen-bottom-panel">
+    <!-- DASHBOARD -->
+    <div class="menu-section text-center">
+      <div class="menu-title text-success fw-bold">DASHBOARD</div>
+      <a
+        class="menu-item d-block"
+        (click)="onDashboardClick()"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/dashboardIcon.svg" alt="Real-Time" />
+        <div class="menu-text">REAL-TIME</div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" />
+
+    <!-- REPORTS -->
+    <div class="menu-section-report text-center">
+      <div class="menu-title text-success fw-bold">REPORTS</div>
+
+      <a
+        class="menu-item d-block"
+        (click)="onCircleLevelClick()"
+        routerLink="/reports/circle-level"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/circleLevelReports.svg" alt="CIRCLE LEVEL" />
+        <div class="menu-text">CIRCLE LEVEL</div>
+      </a>
+
+      <!-- <a
+        class="menu-item d-block"
+        (click)="onPanIndiaClick()"
+        [class.isPanIndiaActive]="isPanIndiaEnabled"
+        [class.disabled]="!['Admin','MlAdmin'].includes(user.userrole)"
+        (click)="$event.preventDefault()"
+        title="Pan India Report"
+      >
+        <img src="assets/icons/PanIndia.svg" alt="PAN INDIA" />
+        <div class="menu-text">PAN INDIA</div>
+      </a> -->
+
+      <a
+        class="menu-item d-block"
+        (click)="onUsageClick()"
+        routerLink="/reports/usage"
+        routerLinkActive="active"
+        [class.disabled]="!['Admin','MlAdmin'].includes(user.userrole)"
+        title="Usage Report"
+        (click)="$event.preventDefault()"
+      >
+        <img src="assets/icons/reports.svg" alt="USAGE" />
+        <div class="menu-text">USAGE</div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" />
+
+    <!-- THVS -->
+    <!-- <div class="menu-section text-center">
+      <div class="menu-title text-success fw-bold">THVS</div>
+      <a
+        class="menu-item"
+        [class.disabled]="isTHVSDisabled"
+        (click)="onTHVScoreClick()"
+        [attr.title]="isTHVSDisabled ? 'Tower Hazard Vulnerability Score' : ''"
+        [routerLink]="isTHVSDisabled ? null : '/THVS'"
+        (click)="isTHVSDisabled ? $event.preventDefault() : null"
+      >
+        <img src="assets/icons/towerPanel.svg" alt="THV SCORE" />
+        <div class="menu-text">THV SCORE</div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" /> -->
+
+    <!-- Profile -->
+    <div
+      *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
+      class="menu-section text-center"
+    >
+      <div class="menu-title text-success fw-bold">MANAGE</div>
+      <a
+        class="menu-item d-block"
+        (click)="onProfileClick()"
+        routerLink="/profile"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/users.svg" alt="Real-Time" />
+        <div class="menu-text">USERS</div>
+      </a>
+      
+      <a
+        class="menu-item d-block"
+        (click)="onSeverityRangesClick()"
+        routerLink="/severity-ranges"
+        routerLinkActive="active"
+      >
+        <img
+          src="assets/icons/severity.svg"
+          alt="Real-Time"
+          style="width: 22px; height: 22px"
+        />
+        <div class="menu-text">SEVERITY</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Bottom: Profile -->
+  <div
+    (click)="toggleDropdown()"
+    class="profile-area position-relative mt-3"
+    title="Profile"
+    style="cursor: pointer"
+  >
+    <img
+      class="profileImg fancy-profile"
+      src="assets/icons/profile.svg"
+      alt="Profile"
+    />
+
+    <div
+      *ngIf="showDropdown"
+      appClickOutside
+      (appClickOutside)="showDropdown = false"
+      class="profileDropdown position-absolute start-0 translate-middle-x mt-2 p-3 bg-white border rounded shadow dropdown-animate"
+      style="z-index: 10; min-width: 140px; bottom: 50px; margin-left: 24px"
+    >
+      <div class="user-name fw-bold text-success m-1 text-center">
+        {{userName}}
+      </div>
+      <div class="profile-div">
+        <button
+          (click)="changePassword()"
+          class="btn-change-pass fw-bold text-success"
+        >
+          Password
+        </button>
+      </div>
+      <div
+        (click)="logout()"
+        class="logoutBtn logout-hover m-1 text-center"
+        style="cursor: pointer"
+      >
+        Logout
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div
+  id="changePasswordModal"
+  class="modal bg-dark bg-opacity-50 w-100 h-100"
+  style="display: none"
+>
+  <div
+    class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg"
+    style="width: 400px"
+  >
+    <div class="modal-content rounded-3 shadow">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Change Password</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeChangePasswordModal()"
+        ></button>
+      </div>
+
+      <!-- Form -->
+      <form
+        #passwordForm="ngForm"
+        (ngSubmit)="submitChangePassword(passwordForm)"
+      >
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="oldPassword"
+              ngModel
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="newPassword"
+              ngModel
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="confirmPassword"
+              ngModel
+            />
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeChangePasswordModal()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

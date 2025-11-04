@@ -1,0 +1,668 @@
+<div>
+  <!--weather alerts Marquee-->
+  <div class="news-ticker-wrapper" *ngIf="alertMessages.length > 0">
+    <div class="ticker-label">Recent Update's</div>
+    <div class="news-ticker">
+      <div class="ticker-content">
+        <!-- First set -->
+        <span *ngFor="let msg of alertMessages">
+          {{ msg }} <span class="spacer"></span>
+        </span>
+        <!-- Duplicate set for seamless loop -->
+        <span *ngFor="let msg of alertMessages">
+          {{ msg }} <span class="spacer"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+  <!-- Map Show -->
+  <div
+    class="container-fluid full-height-container"
+    style="margin-bottom: 20px"
+  >
+    <div class="data-map-div row g-4 align-items-stretch h-100">
+      <!-- Left Panel -->
+      <div class="weather-panel col-lg-5 col-md-5 col-sm-12 d-flex flex-column">
+        <div class="equal-height-panel">
+          <!-- source for the weather data  -->
+          <!-- <div class="source-div-css d-flex my-2">
+            @for (source of sources; track source.value) {
+            <div class="form-check me-4 cursor">
+              <input class="form-check-input" style="border: 2px solid #178755" type="radio" name="source"
+                [value]="source.value" [disabled]="!source.visibility" [(ngModel)]="selectedSource"
+                (change)="onSourceChange(source.value)" [id]="source.value" />
+              <label class="form-check-label" [for]="source.value">
+                {{ source.label }}
+              </label>
+            </div>
+            }
+          </div> -->
+          <h5 class="text-success mb-2" style="margin-left: 15px">
+            {{ current_forecast.location }}
+          </h5>
+
+          <div
+            class="mx-2 card flex-grow-1 p-3"
+            style="background-color: white; border: 1px solid #b2f0b2"
+          >
+            <p class="text-muted fw-bold mb-1">{{selectedDay}} WEATHER</p>
+            <p class="text-secondary solid mb-3">
+              {{ current_forecast.current_time }}
+              <!-- <p class="text-secondary solid mb-3">{{ current_forecast.current_time | date: 'EEE, dd MMM y, hh:mm a' }} -->
+            </p>
+
+            <div class="d-flex align-items-center mb-3">
+              <img
+                [src]="'https:' + current_forecast.icon"
+                alt="weather-icon"
+                width="48"
+                class="me-3"
+              />
+              <div style="display: flex; flex-direction: row; gap: 10px">
+                <div
+                  style="
+                    border-right: 2px solid rgb(141, 140, 140);
+                    padding: 0px 9px 0px 0px;
+                  "
+                >
+                  <h3
+                    class="display-5 fw-semibold mb-0"
+                    style="font-size: 32px"
+                  >
+                    {{currentHourRainPercent}}%
+                  </h3>
+                </div>
+                <div style="display: flex; flex-direction: column">
+                  <span style="font-size: 12px">Rain Probability</span>
+                  <span style="font-weight: 600">{{currentHourRainMM}} mm</span>
+                </div>
+              </div>
+              <!-- <span>{{ current_forecast.temp }}°C    </span> -->
+            </div>
+
+            <p class="lead mb-4">{{ current_forecast.condition }}</p>
+
+            <div
+              class="weather-info-card d-flex flex-column flex-wrap text-muted small"
+            >
+              <!-- Weather Stats -->
+              <div
+                class="weather-details-card d-flex flex-wrap justify-content-around"
+              >
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-temperature-half"></i>
+                  </div>
+                  <span> Temp:</span>
+                  <strong>{{ current_forecast.temp }}°C</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-temperature-half"></i>
+                  </div>
+                  <span>Feels Like:</span>
+                  <strong>{{ current_forecast.feels_like }}°C</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-wind"></i>
+                  </div>
+                  <span>Wind:</span>
+                  <strong>{{ current_forecast.wind_speed }} km/h</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-compass"></i>
+                  </div>
+                  <span>Wind Dir: </span>
+                  <strong>{{ current_forecast.wind_dir }}</strong>
+                </div>
+
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-gauge-high"></i>
+                  </div>
+                  <span>Pressure: </span>
+                  <strong>{{ current_forecast.pressure }} mb</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-eye"></i>
+                  </div>
+                  <span>Visibility:</span>
+                  <strong>{{ current_forecast.visibility }} km</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="-px-3 fa-solid fa-sun"></i>
+                  </div>
+                  <span>UV Index:</span>
+                  <strong>{{ current_forecast.uv_index }}</strong>
+                </div>
+                <div class="weather-detail">
+                  <div class="weather-icon">
+                    <i class="fa-solid fa-droplet"></i>
+                  </div>
+                  <span>Humidity: </span>
+                  <strong>{{ current_forecast.humidity }}%</strong>
+                </div>
+              </div>
+            </div>
+
+            <p class="small mt-4 text-start">
+              <strong>Refresh:</strong> {{ lastUpdatedTime | date: 'EEE, dd MMM
+              y, hh:mm a' }}
+              <i
+                class="fa-solid fa-rotate-right ms-2"
+                role="button"
+                style="cursor: pointer"
+                (click)="loadWeather()"
+                [class.fa-spin]="loading"
+              ></i>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="map-panel col-lg-7 col-md-7 col-sm-12 d-flex flex-column">
+        <div class="equal-height-panel" id="map-component-container">
+          
+          <div *ngIf="isSearchLoading" class="map-loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-text" style="font-size: 24px;">
+              Searching
+              <span class="dot dot1">.</span>
+              <span class="dot dot2">.</span>
+              <span class="dot dot3">.</span>
+            </p>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="row justify-content-center">
+            <div class="col-md-12">
+              <div class="mb-3">
+                <input
+                  type="text"
+                  class="form-control border border-success custom-col-md-11"
+                  [(ngModel)]="searchTerm"
+                  (change)="onSearchChange()"
+                  placeholder="🔍 Search places in India..."
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="weather-filters-button d-flex justify-content-between flex-wrap gap-2 mb-3 responsive-button-group"
+          >
+            <button
+              (click)="selectLayer('temperature');callToggleTempIDW()"
+              [class.active]="selectedLayer  === 'temperature'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fas fa-temperature-high"></i> Temperature
+            </button>
+            <button
+              (click)="selectLayer('rainfall');callToggleRainIDW()"
+              [class.active]="selectedLayer  === 'rainfall'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fas fa-cloud-showers-heavy"></i> Rainfall
+            </button>
+            <button
+              (click)="selectLayer('wind'); callToggleWindIDW()"
+              [class.active]="selectedLayer  === 'wind'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fas fa-wind"></i> Wind Speed
+            </button>
+            <button
+              (click)="selectLayer('humidity'); callToggleHumidityIDW()"
+              [class.active]="selectedLayer  === 'humidity'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fas fa-tint"></i> Humidity
+            </button>
+            <button
+              (click)="selectLayer('fog'); callToggleFogIDW()"
+              [class.active]="selectedLayer  === 'fog'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fa-solid fa-eye"></i> Visibility
+            </button>
+          </div>
+
+          <!-- Map Component -->
+          <div class="flex-grow-1" id="map-container">
+            <app-map-weather
+              (callParentFun)="hazardToggleOff()"
+            ></app-map-weather>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion" id="dashboardAccordion">
+    <!-- Hourly Weather Accordion Item -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingHourly">
+        <button
+          class="accordion-button"
+          [class.collapsed]="activeAccordion !== 'hourly'"
+          (click)="toggleAccordion('hourly')"
+          [attr.aria-expanded]="activeAccordion === 'hourly'"
+        >
+          Hourly Weather
+        </button>
+      </h2>
+
+      <!-- Accordion Collapsible Body -->
+      <div
+        id="collapseHourly"
+        class="accordion-collapse collapse"
+        [class.show]="activeAccordion === 'hourly'"
+        aria-labelledby="headingHourly"
+      >
+        <div
+          class="accordion-body position-relative"
+          style="background-color: white"
+        >
+          <!-- Hourly Timeline -->
+          <div class="position-relative" style="background-color: white">
+            <!-- Scroll Arrows -->
+            <button
+              *ngIf="activeAccordion === 'hourly' && !atScrollStart && hourlyForecastList?.length"
+              class="btn btn-light shadow-sm position-absolute top-50 start-0 translate-middle-y rounded-circle"
+              style="z-index: 10; border: 1px solid #1471ce"
+              (click)="scrollLeft()"
+            >
+              <i class="fas fa-chevron-left text-secondary"></i>
+            </button>
+
+            <!-- Right Scroll Button -->
+            <button
+              *ngIf="activeAccordion === 'hourly' && !atScrollEnd && hourlyForecastList?.length"
+              class="btn btn-light shadow-sm position-absolute top-50 end-0 translate-middle-y rounded-circle"
+              style="z-index: 10; border: 1px solid #f6f7f8"
+              (click)="scrollRight()"
+            >
+              <i class="fas fa-chevron-right text-secondary"></i>
+            </button>
+
+            <!-- Scrollable Timeline -->
+            <div
+              *ngIf="activeAccordion === 'hourly' && (hourlyForecastList?.length || 0) > 0"
+            >
+              <div
+                #scrollContainer
+                class="d-flex overflow-auto gap-2 px-2 pt-1 pb-2"
+                style="scroll-behavior: smooth"
+              >
+                <div
+                  *ngFor="let hour of hourlyForecastList"
+                  class="flex-shrink-0 bg-white p-3 text-center border shadow p-3 rounded-lg"
+                  style="min-width: 110px; border-radius: 0"
+                >
+                  <div class="text-success fw-semibold small mb-0">
+                    {{ hour.time }}
+                  </div>
+                  <img
+                    [src]="'https:' + hour.icon"
+                    alt="icon"
+                    width="60"
+                    height="60"
+                    class="mb-0"
+                  />
+                  <div class="fw-bold text-success mb-1">{{ hour.temp }}°C</div>
+                  <div class="text-muted small">
+                    <div class="text-muted small">
+                      🌧️ {{ hour.chance_of_rain }}% chance of rain
+                    </div>
+                    <i class="fas fa-cloud-showers-heavy me-1 text-primary"></i>
+                    {{ hour.rain_mm }} mm<br />
+                    <i class="fas fa-wind me-1 text-info"></i> {{ hour.wind_kph
+                    }} km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 7 Days Forecast -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingForecast">
+        <button
+          class="accordion-button collapsed"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseForecast"
+          aria-expanded="false"
+          aria-controls="collapseForecast"
+          (click)="toggleForecast('sevenDayForecast')"
+        >
+          7-Day Weather Forecast
+        </button>
+      </h2>
+      <div id="collapseForecast" class="accordion-collapse collapse">
+        <div class="accordion-body p-3" style="position: relative">
+          <!-- Scroll Arrows -->
+          <button
+            *ngIf="!atScrollStart7DayForecast && dayForecastList?.length"
+            class="btn btn-light shadow-sm position-absolute top-50 start-0 translate-middle-y rounded-circle"
+            style="z-index: 10; border: 1px solid #1471ce"
+            (click)="scrollLeft7DayForeCast()"
+          >
+            <i class="fas fa-chevron-left text-secondary"></i>
+          </button>
+
+          <!-- Right Scroll Button -->
+          <button
+            *ngIf="!atScrollEnd7DayForecast && dayForecastList?.length"
+            class="btn btn-light shadow-sm position-absolute top-50 end-0 translate-middle-y rounded-circle"
+            style="z-index: 10; border: 1px solid #f6f7f8"
+            (click)="scrollRight7DayForeCast()"
+          >
+            <i class="fas fa-chevron-right text-secondary"></i>
+          </button>
+
+          <!-- Scrollable Weather Cards -->
+          <div
+            class="d-flex overflow-auto gap-3 py-2 px-1"
+            *ngIf="dayForecastList && dayForecastList.length > 0"
+          >
+            <div
+              #scrollContainer7DayForecast
+              class="seven-day-container card text-center flex-shrink-0 shadow-sm"
+              style="border-color: green; background-color: #e7f3df"
+              *ngFor="let day of dayForecastList"
+            >
+              <div class="seven-day-weather-data card-body p-3">
+                <div class="fw-semibold mb-1">{{ day.date }}</div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-primary">min: {{ day.temp_min }}°C</span>
+                  <span class="text-primary">max: {{ day.temp_max }}°C</span>
+                </div>
+                <img
+                  [src]="'https:' + day.icon"
+                  [alt]="day.description"
+                  width="36"
+                  height="36"
+                  class="mb-2"
+                />
+
+                <div class="text-muted small">{{ day.condition_text }}</div>
+
+                <div class="text-muted small">
+                  🌧️ {{ day.chance_of_rain }}% chance of rain
+                </div>
+                <div class="text-muted small">
+                  <i class="fas fa-droplet" style="color: #3498db"></i>
+                  Humidity: {{ day.humidity }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Hazards / Bad Weather -->
+    <div class="accordion-item mb-3">
+      <h2 class="accordion-header" id="headingHazards">
+        <button
+          id="hazardsAccordionButton"
+          class="accordion-button collapsed"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseHazards"
+          aria-expanded="false"
+          aria-controls="collapseHazards"
+        >
+          Hazards / Bad Weather (Source - NDMA)
+        </button>
+      </h2>
+
+      <div
+        id="collapseHazards"
+        class="accordion-collapse collapse"
+        aria-labelledby="headingHazards"
+        data-bs-parent="#yourAccordionId"
+      >
+        <div class="accordion-body">
+          <div class="panel">
+            <!-- Dropdown Filters -->
+            <div class="container-fluid">
+              <div class="row mb-3">
+                <!-- Column 1: Hazard Type -->
+                <div class="col-7 col-md-5">
+                  <div class="hazard-tabs">
+                    <label class="form-label">Hazard Type</label>
+                    <div class="tab-buttons">
+                      <button
+                        *ngFor="let category of categoriesKeys"
+                        (click)="setActiveTab(category)"
+                        [class.active]="activeTab === category"
+                      >
+                        <i
+                          [ngClass]="getIcon(category)"
+                          [class.icon-active]="activeTab === category"
+                          class="hazard-fa-icon"
+                        ></i>
+                        {{ category }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Column 2: Severity -->
+                <div class="col-3 col-md-4">
+                  <label for="districtSelect" class="form-label"
+                    >Severity</label
+                  >
+                  <select
+                    id="districtSelect"
+                    class="form-select"
+                    style="height: 35px"
+                    [(ngModel)]="selectedSeverity"
+                    (change)="onchangeSeverityType()"
+                  >
+                    <option value="" disabled selected hidden>
+                      -- Select Severity --
+                    </option>
+                    <option
+                      *ngFor="let severity of severityTypes"
+                      [value]="severity"
+                    >
+                      {{ severity }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Column 3: Toggle Button -->
+                <div class="col-2 col-md-3">
+                  <div
+                    id="myDiv"
+                    style="padding: 10px; display: flex; flex-direction: column"
+                  >
+                    <span style="margin: 0 10px 10px 0">View on Map</span>
+                    <label class="switch">
+                      <input
+                        type="checkbox"
+                        id="toggleBtn"
+                        [(ngModel)]="isToggledHazardsOnMap"
+                        (change)="callHazardsAddOnMap()"
+                      />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table Section -->
+            <div
+              *ngIf="hazardsArray.length > 0"
+              class="table-container panel"
+              style="height: 27rem; overflow: scroll"
+            >
+              <table>
+                <thead style="position: sticky; top: 0">
+                  <tr>
+                    <th style="width: 5%">S.No.</th>
+                    <th style="width: 10%">State</th>
+                    <th style="width: 8%">Type</th>
+                    <th style="width: 8%">Severity</th>
+                    <th style="width: 5%">Effective</th>
+                    <th style="width: 5%">Onset</th>
+                    <th style="width: 5%">Expires</th>
+                    <th style="width: 35%; word-break: break-word">
+                      Description
+                    </th>
+                    <th style="width: 14%">Affected Areas</th>
+                    <th style="width: 5%">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let hazard of hazardsArray;let i=index;"
+                    [ngClass]="{
+                      'severity-severe': hazard.severity === 'Extreme',
+                      'severity-moderate': hazard.severity === 'Severe',
+                      'severity-low': hazard.severity === 'Moderate'
+                    }"
+                  >
+                    <td>{{ i+1 }}</td>
+                    <td>{{ hazard.state }}</td>
+                    <td>{{ hazard.event }}</td>
+                    <td>{{ hazard.severity }}</td>
+                    <td>{{ hazard.effective }}</td>
+                    <td>{{ hazard.onset }}</td>
+                    <td>{{ hazard.expires }}</td>
+                    <td style="width: 35%; word-break: break-word">
+                      {{ hazard.description }}
+                    </td>
+                    <td>{{ hazard.areaDesc }}</td>
+                    <td>
+                      <button
+                        (click)="viewSelectedHazardOnMap(hazard.id)"
+                        style="
+                          width: 50px;
+                          height: 50px;
+                          background: none;
+                          border: none;
+                        "
+                      >
+                        <img
+                          src="assets/icons/map.svg"
+                          alt="View on Map"
+                          title="View on map"
+                          style="cursor: pointer"
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- No Data Message -->
+            <p
+              *ngIf="(selectedHazard || selectedDistrict) && hazardsArray.length === 0"
+            >
+              No data found for selected filters.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Loading Overlay -->
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p class="loading-text">
+    Loading
+    <span class="dot dot1">.</span>
+    <span class="dot dot2">.</span>
+    <span class="dot dot3">.</span>
+  </p>
+</div>
+
+<!-- hazard-map.component.html -->
+<div class="modal" *ngIf="showHazardModal" style="z-index: 9999999">
+  <div class="modal-content">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 30px;
+      "
+    >
+      <h6 style="font-size: 18px">Hazard Map</h6>
+      <span class="close" (click)="closeModal()">&times;</span>
+    </div>
+    <div id="hazardMap" class="map-container"></div>
+    <div class="modal-hazard-details">
+      <h6 style="font-size: 18px" class="m-2">Hazard Details :</h6>
+      <table
+        style="
+          border-collapse: collapse;
+          width: 100%;
+          font-family: Arial;
+          font-size: 14px;
+        "
+      >
+        <tr>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Type
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Severity
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            State
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Affective
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Onset
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Expires
+          </th>
+          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+            Affected Area
+          </th>
+        </tr>
+        <tr>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.severity}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.event}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetailstate}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.effective}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.onset}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.expires}}
+          </td>
+          <td style="padding: 4px; border: 1px solid #ccc">
+            {{selectedHazardDetail.areaDesc}}
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

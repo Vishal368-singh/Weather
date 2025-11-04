@@ -1,0 +1,38 @@
+/* Severity Table Styles */
+.severity-table {
+  margin: 20px;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  width: 1400px;
+  margin: 10px auto;
+}
+
+.severity-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.severity-table th,
+.severity-table td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.severity-table th {
+  background-color: #002060;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.severity-table .extreme {
+  background-color: #f8d7da;
+}
+
+.severity-table .high {
+  background-color: #fff3cd;
+}
+
+.severity-table .moderate {
+  background-color: #d4edda;
+}

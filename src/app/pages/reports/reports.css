@@ -1,0 +1,1101 @@
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.fa,
+.fa-solid,
+.fas {
+  font-family: "Font Awesome 6 Free" !important;
+}
+
+.equal-height-panel {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  /* height: 100%; */
+  display: flex;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 1051px) and (max-width: 1350px) {
+  .map-panel {
+    width: 55%;
+  }
+
+  .equal-height-panel {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.weather-icon {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  text-align: start;
+
+  background-color: #157347;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: whitesmoke;
+}
+
+.weather-icon>i {
+  font-size: 17px;
+  padding: 2px;
+  color: whitesmoke;
+}
+
+/* ------------------- TABS ------------------- */
+.custom-tabs {
+  background-color: #f9f9f9;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.custom-tabs .nav-link {
+  border-radius: 20px;
+  padding: 8px 24px;
+  background-color: #e9ecef;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.custom-tabs .nav-link.active {
+  background-color: #bcf1d1;
+  color: #000;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.custom-tabs .nav-link:hover {
+  background-color: #d8fbe4;
+  color: #000;
+}
+
+/* ------------------- TABLE ------------------- */
+.table-responsive-2 {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table-responsive-2 .table {
+  min-width: 600px;
+  border-collapse: collapse;
+  margin: 0;
+  width: 100%;
+}
+
+.table-responsive-2 .table thead th {
+  background-color: #bcf1d1;
+  color: #000;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px;
+  vertical-align: middle;
+  border: 1px solid black;
+  white-space: nowrap;
+}
+
+.table-responsive-2 .table tbody td {
+  padding: 12px 10px;
+  border: 1px solid black;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.table-responsive-2>th>.weather-icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.table-responsive-2 td.extreme {
+  background-color: #f8d7da !important;
+  color: #721c24;
+}
+
+.table-responsive-2 td.high {
+  background-color: #ffeeba !important;
+  color: #856404;
+}
+
+.table-responsive-2 td.moderate {
+  background-color: #fff3cd !important;
+  color: #856404;
+}
+
+/* --- Responsive: Table --- */
+@media screen and (max-width: 768px) {
+  .table-responsive-2 {
+    margin-bottom: 25%;
+  }
+
+  .table-responsive-2 .table {
+    min-width: 600px;
+  }
+
+  .table-responsive-2 .table thead th,
+  .table tbody td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+
+  .table-responsive-2 .table thead th,
+  .table-responsive-2 .table tbody td {
+    font-size: 12px;
+    padding: 6px 4px;
+  }
+
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ------------------- KPI CARDS ------------------- */
+
+/* Weather Header */
+.weather-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Outer Circle - brighter background */
+.circle-layout {
+  position: relative;
+  width: 240px;
+  height: 201px;
+  border-radius: 50%;
+  margin: 44px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, #ffffff, #a9eeb1);
+  box-shadow: inset 0 2px 6px rgba(0, 123, 60, 0.18),
+    0 8px 24px rgba(0, 123, 60, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+/* KPI position - equal spacing */
+.circle-kpi {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.circle-kpi:nth-child(1) {
+  transform: translate(-50%, -50%) rotate(-90deg) translate(109px) rotate(90deg);
+}
+
+.circle-kpi:nth-child(2) {
+  transform: translate(-50%, -50%) rotate(-18deg) translate(109px) rotate(18deg);
+}
+
+.circle-kpi:nth-child(3) {
+  transform: translate(-50%, -50%) rotate(54deg) translate(109px) rotate(-54deg);
+}
+
+.circle-kpi:nth-child(4) {
+  transform: translate(-50%, -50%) rotate(126deg) translate(109px) rotate(-126deg);
+}
+
+.circle-kpi:nth-child(5) {
+  transform: translate(-50%, -50%) rotate(198deg) translate(109px) rotate(-198deg);
+}
+
+/* Inner KPI Circle - richer gradient */
+.circle-inner {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffffff, #92e99b);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 123, 60, 0.15),
+    inset 0 2px 6px rgba(255, 255, 255, 0.6);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.circle-inner:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 28px rgba(0, 123, 60, 0.25),
+    inset 0 3px 8px rgba(255, 255, 255, 0.8);
+}
+
+/* Icon */
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.circle-inner:hover .kpi-icon {
+  transform: scale(1.15);
+}
+
+/* Max/Min values */
+.max-value,
+.min-value {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.max-value {
+  color: #00994a;
+  text-shadow: 0 1px 2px rgba(0, 153, 74, 0.2);
+}
+
+.min-value {
+  color: #d18800;
+  text-shadow: 0 1px 2px rgba(209, 136, 0, 0.2);
+}
+
+/* Tooltip Label - stronger contrast */
+.circle-label {
+  position: absolute;
+  background: rgba(0, 123, 60, 0.95);
+  color: white;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 25px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.85);
+  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Show tooltip on hover */
+.circle-inner:hover+.circle-label {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Tooltip positions for top-start layout - closer to circles */
+.circle-kpi:nth-child(1) .circle-label {
+  top: -20px;
+  left: 40%;
+}
+
+.circle-kpi:nth-child(2) .circle-label {
+  top: 15%;
+  left: 125%;
+}
+
+.circle-kpi:nth-child(3) .circle-label {
+  top: 105%;
+  left: 110%;
+}
+
+.circle-kpi:nth-child(4) .circle-label {
+  top: 105%;
+  left: -10%;
+}
+
+.circle-kpi:nth-child(5) .circle-label {
+  top: 15%;
+  left: -18%;
+}
+
+/* ---------------------- TABLET (<= 1024px) ---------------------- */
+@media (max-width: 1024px) {
+  .circle-layout {
+    width: 120px;
+    height: 120px;
+    margin: 22px auto;
+  }
+
+  /* Adjust KPI translate distances — better to increase Y translation a bit */
+  .circle-kpi:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(-90deg) translate(60px) rotate(90deg);
+  }
+
+  .circle-kpi:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(-18deg) translate(60px) rotate(18deg);
+  }
+
+  .circle-kpi:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(54deg) translate(60px) rotate(-54deg);
+  }
+
+  .circle-kpi:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(126deg) translate(60px) rotate(-126deg);
+  }
+
+  .circle-kpi:nth-child(5) {
+    transform: translate(-50%, -50%) rotate(198deg) translate(60px) rotate(-198deg);
+  }
+
+  .circle-inner {
+    width: 60px;
+    height: 60px;
+    padding: 7px;
+  }
+
+  .kpi-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .max-value,
+  .min-value {
+    font-size: 10px;
+  }
+
+  .circle-label {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+}
+
+/* ---------------------- LARGE MOBILE (<= 768px) ---------------------- */
+@media (max-width: 768px) {
+  .row.align-items-stretch {
+    --bs-gutter-x: 0 !important;
+    --bs-gutter-y: 0 !important;
+    /* small uniform gap */
+    padding: 0 !important;
+  }
+
+  /* Make both panels same width */
+  .crpd,
+  .map-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Remove inner padding only from map so it aligns with weather card */
+  .map-panel .equal-height-panel {
+    padding: 16px !important;
+  }
+
+  /* Keep consistent padding on weather side */
+  .crpd .equal-height-panel {
+    padding: 0 !important;
+  }
+
+  /* Add spacing between stacked cards */
+  .equal-height-panel {
+    margin-bottom: 1rem;
+  }
+
+  /* Keep map credit inside the map container */
+  .map-panel,
+  .map-panel .equal-height-panel,
+  .map-panel app-map-weather {
+    height: 100% !important;
+    min-height: 100% !important;
+    display: block;
+  }
+
+  /* Circle layout smaller for mobile */
+  .circle-layout {
+    width: 180px;
+    height: 150px;
+    margin: 20px auto;
+  }
+
+  .circle-kpi:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(-90deg) translate(78px) rotate(90deg);
+  }
+
+  .circle-kpi:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(-18deg) translate(78px) rotate(18deg);
+  }
+
+  .circle-kpi:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(54deg) translate(78px) rotate(-54deg);
+  }
+
+  .circle-kpi:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(126deg) translate(78px) rotate(-126deg);
+  }
+
+  .circle-kpi:nth-child(5) {
+    transform: translate(-50%, -50%) rotate(198deg) translate(78px) rotate(-198deg);
+  }
+
+  .circle-inner {
+    width: 90px;
+    height: 90px;
+    padding: 8px;
+  }
+
+  .kpi-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .max-value,
+  .min-value {
+    font-size: 13px;
+  }
+
+  .circle-label {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
+
+/* ---------------------- SMALL MOBILE (<= 480px) ---------------------- */
+@media (max-width: 480px) {
+  .circle-layout {
+    width: 150px;
+    height: 125px;
+    margin: 15px auto;
+  }
+
+  .circle-kpi:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(-90deg) translate(65px) rotate(90deg);
+  }
+
+  .circle-kpi:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(-18deg) translate(65px) rotate(18deg);
+  }
+
+  .circle-kpi:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(54deg) translate(65px) rotate(-54deg);
+  }
+
+  .circle-kpi:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(126deg) translate(65px) rotate(-126deg);
+  }
+
+  .circle-kpi:nth-child(5) {
+    transform: translate(-50%, -50%) rotate(198deg) translate(65px) rotate(-198deg);
+  }
+
+  .circle-inner {
+    width: 75px;
+    height: 75px;
+    padding: 6px;
+  }
+
+  .kpi-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .max-value,
+  .min-value {
+    font-size: 11px;
+  }
+
+  .circle-label {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}
+
+/* ------------------- CHARTS ------------------- */
+
+.twochart {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.chart-box {
+  background-color: #fff;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-row {
+  gap: 1rem;
+  /* your custom spacing */
+}
+
+.responsive-title {
+  text-align: center;
+  margin-bottom: 17px;
+}
+
+.chart-row>.col-lg-6 {
+  width: 49% !important;
+}
+
+@media (min-width: 168px) and (max-width: 1020px) {
+  .chart-row>.col-lg-6 {
+    width: 100% !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .chart-box {
+    padding: 16px;
+  }
+
+  .chart-row>.col-lg-6 {
+    width: 100% !important;
+  }
+}
+
+/* ------------------- TOWER CARD ------------------- */
+.towerdiv {
+  display: flex;
+  flex-direction: row;
+  background-color: #367fb8;
+  padding: 20px;
+  gap: 10px;
+  justify-content: start;
+  align-items: center;
+  height: 180px;
+  width: 200px;
+}
+
+/* ------------------- FORECAST DASHBOARD ------------------- */
+.dashboard-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 10px;
+}
+
+.icon-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 0 auto;
+  margin-top: 12px;
+}
+
+.icon-cell {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-cell .weather-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 13px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.day-card {
+  flex: 0 0 auto;
+  width: 155px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.value-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.value-box {
+  width: 30px;
+  height: 25px;
+  font-size: 10px;
+  text-align: center;
+  line-height: 30px;
+  border-radius: 4px;
+}
+
+.red {
+  background-color: var(--high-color);
+}
+
+.orange {
+  background-color: var(--moderate-color);
+}
+
+.yellow {
+  background-color: var(--low-color);
+}
+
+.table {
+  --bs-table-bg: unset !important;
+}
+
+.severity-extreme-1 {
+  /* background-color: var(--high-color) !important; */
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.severity-high-1 {
+  /* background-color: var(--moderate-color) !important; */
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.severity-moderate-1 {
+  /* background-color: var(--low-color) !important; */
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+@media screen and (min-width: 1326px) {
+  .dashboard-container {
+    justify-content: space-between;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+    gap: 24px;
+  }
+
+  .cards-container {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 16px;
+    white-space: normal;
+  }
+
+  .day-card {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .towerdiv {
+    width: 220px;
+    height: 200px;
+    flex-shrink: 0;
+  }
+
+  .icon-column {
+    flex-shrink: 0;
+    margin-top: 10px;
+  }
+
+  .icon-cell {
+    width: 30px;
+    height: 30px;
+  }
+
+  .icon-cell img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .value-box {
+    width: 36px;
+    height: 30px;
+    font-size: 12px;
+    line-height: 30px;
+  }
+}
+
+.boxshadow1 {
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding-left: 20px;
+}
+
+/* ..........Prediction Table..............   */
+.summary-table {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================== Accordion Button ==================== */
+.accordion-button.bg-prediction {
+  background-color: #bcf1d1 !important;
+  color: #1f5135;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 21px;
+}
+
+/* Accordion container */
+.accordion-item {
+  border: none;
+  background-color: transparent;
+}
+
+/* ==================== Prediction Option Buttons ==================== */
+
+.summary-table-container .btn {
+  width: 150px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  transition: all 0.3s ease;
+}
+
+.summary-table-container .btn:hover,
+.summary-table-container .btn.active-btn {
+  background-color: #2b6642;
+  color: #fff;
+  border-color: #090e0b;
+}
+
+/* ==================== Prediction Table ==================== */
+.prediction-table h6 {
+  font-size: 1rem;
+  color: #1f5135;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.prediction-table table {
+  width: 100%;
+  overflow: hidden;
+}
+
+.prediction-table th,
+.prediction-table td {
+  text-align: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  width: 100px;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+/* ==================== Table Header Colors ==================== */
+.table-success th {
+  background-color: #bcf1d1 !important;
+  color: #1f5135;
+}
+
+.table-danger th {
+  background-color: #fddede !important;
+  color: #a94442;
+}
+
+.table-warning th {
+  background-color: #fff3cd !important;
+  color: #856404;
+}
+
+.table-info th {
+  background-color: #d1ecf1 !important;
+  color: #0c5460;
+}
+
+/* ==================== Responsive Layout ==================== */
+@media (max-width: 768px) {
+  .prediction-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .prediction-options .btn {
+    flex: 1 1 calc(50% - 10px);
+    font-size: 0.85rem;
+  }
+
+  .accordion-button.bg-prediction {
+    font-size: 0.95rem;
+    padding: 10px 14px;
+  }
+
+  .prediction-table h6 {
+    font-size: 0.95rem;
+  }
+
+  .prediction-table th,
+  .prediction-table td {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .rainfall-table-container thead th,
+  .temperature-table-container thead th,
+  .wind-table-container thead th,
+  .fog-table-container thead th {
+    font-size: 14px !important;
+    padding: 0.25rem !important;
+    /* optional: reduce padding */
+  }
+}
+
+@media (max-width: 480px) {
+  .prediction-options .btn {
+    flex: 1 1 100%;
+  }
+
+  .accordion-button.bg-prediction {
+    font-size: 14px !important;
+  }
+
+  .prediction-table th,
+  .prediction-table td {
+    font-size: 0.8rem;
+  }
+}
+
+/* ==================== Forecast Table Containers (Rainfall, Wind, Fog, Temperature) ==================== */
+.fog-table-container,
+.wind-table-container,
+.temperature-table-container,
+.rainfall-table-container {
+  margin-top: 1rem;
+  width: 100%;
+  overflow-x: auto;
+  background-color: #ffffff;
+  border: black;
+}
+
+.fog-table-container thead,
+.wind-table-container thead,
+.temperature-table-container thead,
+.rainfall-table-container thead {
+  border: #000;
+  border-radius: 2px solid black;
+}
+
+.fog-table-container table,
+.wind-table-container table,
+.temperature-table-container table,
+.rainfall-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  border: #000;
+  vertical-align: middle;
+}
+
+.fog-table-container th,
+.fog-table-container td,
+.wind-table-container th,
+.wind-table-container td,
+.temperature-table-container th,
+.temperature-table-container td,
+.rainfall-table-container th,
+.rainfall-table-container td {
+  padding: 10px 12px;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 400;
+}
+
+.fog-table-container th,
+.wind-table-container th,
+.temperature-table-container th,
+.rainfall-table-container th {
+  background-color: #bcf1d1;
+  color: black;
+  font-weight: 600;
+}
+
+.severity {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ------------------- CHARTS ------------------- */
+.chart-box {
+  padding: 20px;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-box>canvas {
+  width: 100%;
+  height: 100%;
+  max-height: 400px;
+}
+
+/* chart heading*/
+.chart-box .row.g-3>h1 {
+  text-align: center;
+  width: 100%;
+
+  font-weight: bold;
+}
+
+/*chart sub headings*/
+.chart-box>h4 {
+  text-align: center;
+  margin-bottom: 1rem;
+  /* optional spacing below the heading */
+  width: 100%;
+}
+
+/* Tablet 768px - 1200px */
+@media screen and (min-width: 768px) and (max-width: 1200px) {
+  .chart-box {
+    padding: 0px;
+  }
+
+  .chart-box>canvas {
+    max-height: 400px;
+  }
+
+  #weather-tab {
+    font-size: 12px;
+  }
+
+  #haz {
+    font-size: 12px;
+  }
+}
+
+/*------------------charts ends here------------------------------*/
+
+/* ==================== Responsive Forecast Table Font ==================== */
+@media (max-width: 768px) {
+
+  .fog-table-container table,
+  .wind-table-container table,
+  .temperature-table-container table,
+  .rainfall-table-container table {
+    font-size: 0.85rem;
+  }
+
+  .fog-table-container th,
+  .fog-table-container td,
+  .wind-table-container th,
+  .wind-table-container td,
+  .temperature-table-container th,
+  .temperature-table-container td,
+  .rainfall-table-container th,
+  .rainfall-table-container td {
+    padding: 8px;
+  }
+
+  .summary-table-container .btn {
+    width: 140px;
+  }
+}
+
+/* Mobile < 768px */
+@media (max-width: 768px) {
+  .chart-box {
+    padding: 0px;
+  }
+
+  .custom-tabs {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .fog-table-container table,
+  .wind-table-container table,
+  .temperature-table-container table,
+  .rainfall-table-container table {
+    font-size: 0.75rem;
+  }
+
+  .summary-table-container .btn {
+    width: 136px;
+  }
+}
+
+/* ...............Code By sANDEEP.............    */
+/* @media screen and (max-width: 768px){
+  .tab-content{
+    padding: 0 !important;
+  }
+}  */
+@media (max-width: 390px) {
+  .responsive-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 6px;
+    padding: 2px;
+  }
+
+  .chart-box h4 {
+    font-size: 12px;
+    margin: 0 0 8px 0;
+    /* ensure spacing stays inside */
+    text-align: center;
+    /* center heading inside chart */
+    word-wrap: break-word;
+    /* prevent overflow */
+  }
+
+  .day-card {
+    width: 230px;
+  }
+
+  .chart-box {
+    height: auto;
+    /* let content define height instead of fixed % */
+    padding: 12px;
+    /* ensure heading has breathing room */
+    min-height: 200px;
+  }
+
+  .line {
+    margin-top: 8px;
+  }
+
+  .chart-box canvas {
+    max-height: 250px !important;
+    /* smaller chart */
+  }
+
+  .dashboard-wrapper {
+    margin-bottom: -15px;
+  }
+
+  .gapcard {
+    margin-top: -25px;
+  }
+
+  .cardwidth {
+    width: 100%;
+    margin-right: 20px;
+  }
+}

@@ -1,0 +1,581 @@
+<!-- Tab Header -->
+<ul class="nav nav-pills custom-tabs mb-1" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button
+      class="nav-link active"
+      data-bs-toggle="tab"
+      data-bs-target="#weather"
+      type="button"
+      role="tab"
+    >
+      WEATHER
+    </button>
+  </li>
+  <!-- <li class="nav-item" role="presentation">
+    <button
+      class="nav-link disabled"
+      type="button"
+      disabled
+      title="Hazard tab is currently disabled"
+    >
+      HAZARD
+    </button>
+  </li> -->
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content">
+  <div class="tab-panel" id="weather" role="tabpanel">
+    <div class="container-fluid mt-1">
+      <div class="row align-items-stretch p-4 pe-0 gx-5 gy-3">
+        <!-- Left Panel -->
+        <div class="crpd col-lg-5 col-md-5 col-sm-12 equal-height-panel">
+          <div
+            class="bg-light d-flex flex-column justify-content-between w-100"
+          >
+            <h5 class="text-success mb-3">{{location}}</h5>
+
+            <div
+              class="card flex-grow-1 p-3 weather-card"
+              style="background-color: white; border: 1px solid #b2f0b2"
+            >
+              <div class="weather-header">
+                <p class="text-muted fw-bold mb-1">TODAY’S WEATHER</p>
+                <p class="text-secondary small mb-1">{{ currentTime }}</p>
+              </div>
+              <div class="mt-4 mb-4">
+                <div class="circle-layout mt-5">
+                  <div
+                    class="circle-kpi"
+                    *ngFor="let item of weatherKPIs; let i = index"
+                  >
+                    <div class="circle-inner">
+                      <div class="min-value">{{ item.max }}</div>
+                      <!-- <img class="kpi-icon" [src]="item.icon" alt="" /> -->
+                      <div class="weather-icon" [innerHTML]="item.icon"></div>
+                      <div class="max-value">{{ item.min }}</div>
+                    </div>
+                    <div class="circle-label">{{ item.label}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="col-lg-7 col-md-7 col-sm-12 map-panel">
+          <div class="equal-height-panel w-100 h-100">
+            <app-map-weather
+              class="w-100 h-100 d-block"
+              (callParentFun2)="hazardToggleOff2($event)"
+            ></app-map-weather>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <!-- Chart Section -->
+      <!-- Chart Section -->
+      <div class="twochart bg-light cardwidth" *ngIf="isBrowser">
+        <h1 class="responsive-title">Weather Parameter Breakdown</h1>
+
+        <div class="row g-3 chart-row">
+          <div class="col-12 col-lg-6 p-0 rounded border bg-light">
+            <div class="chart-box bg-white rounded">
+              <h4>Number of Weather Zone at Risk</h4>
+              <canvas
+                baseChart
+                [data]="barChartData1"
+                [options]="barChartOptions1"
+                [legend]="barChartLegend"
+                [type]="barChartType"
+              ></canvas>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-6 p-0 rounded border bg-light">
+            <div class="chart-box gapcard bg-white rounded">
+              <h4 class="line">Number of Towers at Risk</h4>
+              <canvas
+                baseChart
+                [data]="barChartData2"
+                [options]="barChartOptions2"
+                [legend]="barChartLegend"
+                [type]="barChartType"
+              ></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div class="dashboard-wrapper mt-4 shadow-sm p-3 bg-white rounded">
+        <div class="dashboard-container d-flex">
+          <!-- Icon Column -->
+          <div class="icon-column bg-light rounded shadow-sm me-3">
+            <span
+              class="d-inline-block mb-2"
+              style="
+                height: 30px;
+                line-height: 30px;
+                font-weight: 600;
+                font-size: 14px;
+              "
+              >Date</span
+            >
+
+            <div *ngFor="let icon of icons" class="icon-cell mb-2">
+              <!-- <img [src]="icon" alt="Icon" class="icon-size" /> -->
+              <div class="weather-icon p-2" [innerHTML]="icon"></div>
+            </div>
+          </div>
+
+          <!-- Cards -->
+          <div class="cards-container d-flex flex-wrap">
+            <div
+              *ngFor="let day of days; let i = index"
+              class="day-card p-3 bg-light rounded boxshadow"
+            >
+              <div class="card-header mb-2 d-flex justify-content-center">
+                <div>{{ day.name }}</div>
+                ,&nbsp;
+                <div>{{ day.date }}</div>
+              </div>
+
+              <!-- Loop for towers -->
+
+              <div
+                *ngFor="let tower of mappedTowerData?.[i+1]"
+                class="value-row d-flex justify-content-between"
+              >
+                <div
+                  class="value-box"
+                  [style.background-color]="tower.value1color"
+                >
+                  {{ tower.value1 }}
+                </div>
+                <div
+                  class="value-box"
+                  [style.background-color]="tower.value2color"
+                >
+                  {{ tower.value2 }}
+                </div>
+                <div
+                  class="value-box"
+                  [style.background-color]="tower.value3color"
+                >
+                  {{ tower.value3 }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ...........Prediction Table.......................... -->
+      <div
+        class="accordion mt-4 rounded prediction-table"
+        id="predictionAccordion"
+      >
+        <div class="accordion-item border-0">
+          <h2 class="accordion-header" id="headingPrediction">
+            <button
+              class="accordion-button fw-bold bg-prediction"
+              type="button collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapsePrediction"
+              aria-expanded="true"
+              aria-controls="collapsePrediction"
+              style="font-size: 20px"
+            >
+              7 Day - Weather Forecast
+            </button>
+          </h2>
+          <div
+            id="collapsePrediction"
+            class="accordion-collapse collapse show"
+            aria-labelledby="headingPrediction"
+            data-bs-parent="#predictionAccordion"
+          >
+            <div class="bg-white">
+              <!-- Buttons -->
+              <div
+                class="summary-table-container d-flex flex-wrap gap-3 mb-3 mt-2"
+              >
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'temperature' }"
+                  (click)="setActive('temperature')"
+                >
+                  <i class="fas fa-temperature-high"></i> Temperature
+                </button>
+                <button
+                  class="btn btn-outline-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2"
+                  [ngClass]="{ 'active': activeTab === 'rainfall' }"
+                  (click)="activeTab = 'rainfall'"
+                >
+                  <i class="fas fa-cloud-showers-heavy"></i> Rainfall
+                </button>
+
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'wind' }"
+                  (click)="setActive('wind')"
+                >
+                  <i class="fas fa-wind"></i> Wind
+                </button>
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'humidity' }"
+                  (click)="setActive('humidity')"
+                >
+                  <i class="fa-solid fa-droplet"></i> Humidity
+                </button>
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'fog' }"
+                  (click)="setActive('fog')"
+                >
+                  <i class="fa-solid fa-eye"></i> Visibility
+                </button>
+              </div>
+
+              <!-- Table Display Area -->
+              <div class="mt-3">
+                <!-- Rainfall Table -->
+                <div
+                  class="rainfall-table-container table-responsive"
+                  *ngIf="activeTab === 'rainfall'"
+                >
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-success text-center">
+                      <tr>
+                        <th rowspan="2" style="font-size: 20px">Severity</th>
+                        <th
+                          [attr.colspan]="rainfallHeaders.shortRange.length"
+                          style="font-size: 20px"
+                        >
+                          Short Range Prediction
+                        </th>
+                        <th
+                          [attr.colspan]="rainfallHeaders.longRange.length"
+                          style="font-size: 20px"
+                        >
+                          Long Range Prediction
+                        </th>
+                      </tr>
+                      <tr>
+                        <th *ngFor="let header of rainfallHeaders.shortRange">
+                          {{ header }}
+                        </th>
+                        <th *ngFor="let header of rainfallHeaders.longRange">
+                          {{ header }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of rainfallData" [class]="row.class">
+                        <td
+                          class="fw-bold"
+                          [style.background-color]="row.color"
+                        >
+                          {{ row.severity }}
+                        </td>
+                        <td *ngFor="let sr of row.shortRange">{{ sr }}</td>
+                        <td *ngFor="let lr of row.longRange">{{ lr }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Temperature Table -->
+                <div
+                  class="temperature-table-container table-responsive"
+                  *ngIf="activeTab === 'temperature'"
+                >
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-success text-center">
+                      <tr>
+                        <th rowspan="2" style="font-size: 20px">Severity</th>
+                        <th colspan="3" style="font-size: 20px">
+                          Short Range Prediction
+                        </th>
+                        <th colspan="4" style="font-size: 20px">
+                          Long Range Prediction
+                        </th>
+                      </tr>
+                      <tr>
+                        <th *ngFor="let date of temperatureDates.shortRange">
+                          {{ date }}
+                        </th>
+                        <th *ngFor="let date of temperatureDates.longRange">
+                          {{ date }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let row of temperatureSeverityData"
+                        [class]="row.class"
+                      >
+                        <td
+                          class="fw-bold"
+                          [style.background-color]="row.color"
+                        >
+                          {{ row.severity }}
+                        </td>
+                        <td *ngFor="let short of row.shortRange">
+                          {{ short }}
+                        </td>
+                        <td *ngFor="let long of row.longRange">{{ long }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Wind Table -->
+                <div
+                  class="wind-table-container table-responsive"
+                  *ngIf="activeTab === 'wind'"
+                >
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-success text-center">
+                      <tr>
+                        <th rowspan="2" style="font-size: 20px">Severity</th>
+                        <th colspan="3" style="font-size: 20px">
+                          Short Range Prediction
+                        </th>
+                        <th colspan="4" style="font-size: 20px">
+                          Long Range Prediction
+                        </th>
+                      </tr>
+                      <tr>
+                        <th *ngFor="let date of windDates.shortRange">
+                          {{ date }}
+                        </th>
+                        <th *ngFor="let date of windDates.longRange">
+                          {{ date }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let row of windSeverityData"
+                        [class]="row.class"
+                      >
+                        <td
+                          class="fw-bold"
+                          [style.background-color]="row.color"
+                        >
+                          {{ row.severity }}
+                        </td>
+                        <td
+                          *ngFor="let s of row.shortRange"
+                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
+                        >
+                          {{ s || 'NA' }}
+                        </td>
+                        <td
+                          *ngFor="let l of row.longRange"
+                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
+                        >
+                          {{ l || 'NA' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Fog Table -->
+                <div
+                  class="fog-table-container table-responsive"
+                  *ngIf="activeTab === 'fog'"
+                >
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-success text-center">
+                      <tr>
+                        <th rowspan="2" style="font-size: 20px">Severity</th>
+                        <th colspan="3" style="font-size: 20px">
+                          Short Range Prediction
+                        </th>
+                        <th colspan="4" style="font-size: 20px">
+                          Long Range Prediction
+                        </th>
+                      </tr>
+                      <tr>
+                        <th *ngFor="let date of fogDates.shortRange">
+                          {{ date }}
+                        </th>
+                        <th *ngFor="let date of fogDates.longRange">
+                          {{ date }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let row of fogSeverityData"
+                        [class]="row.class"
+                      >
+                        <td
+                          class="fw-bold"
+                          [style.background-color]="row.color"
+                        >
+                          {{ row.severity }}
+                        </td>
+                        <td
+                          *ngFor="let s of row.shortRange"
+                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
+                        >
+                          {{ s || 'NA' }}
+                        </td>
+                        <td
+                          *ngFor="let l of row.longRange"
+                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
+                        >
+                          {{ l || 'NA' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Humidity Table -->
+                <div
+                  class="fog-table-container table-responsive"
+                  *ngIf="activeTab === 'humidity'"
+                >
+                  <table
+                    class="table table-bordered table-sm"
+                    style="background-color: none"
+                  >
+                    <thead class="table-success text-center">
+                      <tr>
+                        <th rowspan="2" style="font-size: 20px">Severity</th>
+                        <th colspan="3" style="font-size: 20px">
+                          Short Range Prediction
+                        </th>
+                        <th colspan="4" style="font-size: 20px">
+                          Long Range Prediction
+                        </th>
+                      </tr>
+                      <tr>
+                        <th *ngFor="let date of humidityDates.shortRange">
+                          {{ date }}
+                        </th>
+                        <th *ngFor="let date of humidityDates.longRange">
+                          {{ date }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let row of humiditySeverityData"
+                        [class]="row.class"
+                      >
+                        <td
+                          class="fw-bold"
+                          [style.background-color]="row.color"
+                        >
+                          {{ row.severity }}
+                        </td>
+                        <td
+                          *ngFor="let s of row.shortRange"
+                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
+                        >
+                          {{ s || 'NA' }}
+                        </td>
+                        <td
+                          *ngFor="let l of row.longRange"
+                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
+                        >
+                          {{ l || 'NA' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="table-responsive-2 shadow-sm mt-4 pb-8">
+        <table class="table text-center align-middle">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>
+                <!-- <img src="assets/icons/temp.svg" class="icon-size me-1" /> -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="weather-icon me-2">
+                    <i class="fa-solid fa-temperature-half"></i>
+                  </div>
+                  Temperature
+                </div>
+              </th>
+              <th>
+                <!-- <img src="assets/icons/rainfall.svg" class="icon-size me-1" /> -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="weather-icon me-2">
+                    <i class="fas fa-cloud-showers-heavy"></i>
+                  </div>
+                  Rainfall
+                </div>
+              </th>
+
+              <th>
+                <!-- <img src="assets/icons/wind.svg" class="icon-size me-1" /> -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="weather-icon me-2">
+                    <i class="fa-solid fa-wind"></i>
+                  </div>
+                  Wind
+                </div>
+              </th>
+              <th>
+                <!-- <img src="assets/icons/Humidity.svg" class="icon-size me-1" /> -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="weather-icon me-2">
+                    <i class="fa-solid fa-droplet"></i>
+                  </div>
+                  Humidity
+                </div>
+              </th>
+              <th>
+                <!-- <img src="assets/icons/Fog.png" class="icon-size me-1" /> -->
+                <div class="d-flex justify-content-center align-items-center">
+                  <div class="weather-icon me-2">
+                    <i class="fas fa-solid fa-eye"></i>
+                  </div>
+                  Visibility
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody *ngIf="severityTable?.length">
+            <tr *ngFor="let severity of severityTable">
+              <td
+                class="fw-bold"
+                [style.background-color]="severity.temperatureColor"
+              >
+                {{ severity.label }}
+              </td>
+              <td>{{ severity.temperature }}</td>
+              <td>{{ severity.rainfall }}</td>
+              <td>{{ severity.wind }}</td>
+              <td>{{ severity.humidity }}</td>
+              <td>{{ severity.visibility }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="hazard" role="tabpanel">
+    <p class="mb-0">Hazard content...</p>
+  </div>
+</div>

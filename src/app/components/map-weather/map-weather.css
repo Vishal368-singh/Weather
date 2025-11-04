@@ -1,0 +1,750 @@
+.map_container_div {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-grow: 1;
+  position: relative;
+  /* 🔑 Required to position children absolutely */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ol-popup {
+  position: absolute;
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  width: 180px;
+  z-index: 999;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+}
+
+#popup-closer {
+  float: right;
+  font-size: 16px;
+  color: #dc3545;
+  padding: 2px;
+}
+
+#popup-closer:hover {
+  color: #a71d2a;
+}
+
+.map-credit {
+  position: absolute;
+  bottom: -1px;
+  right: 38%;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #157347;
+  padding: 4px 20px;
+  border-radius: 15px 15px 0px 0px;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.legend-container {
+  position: absolute;
+  bottom: 100px;
+  left: 9px;
+  z-index: 1;
+  display: flex;
+  gap: 2px;
+  flex-direction: row;
+  width: 50px;
+  height: 127px;
+  background: #ffffff;
+  padding: 4px;
+  box-shadow: 0px 0px 4px 0px gray;
+  border-radius: 4px;
+}
+
+.color-gradient {
+  width: 100%;
+  background-image: linear-gradient(to top, blue, cyan, lime, yellow, orange, red);
+  border-radius: 3px;
+}
+
+.label-gradient {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.label-gradient>span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clear-btn {
+  position: absolute;
+  bottom: 75px;
+  left: 9px;
+  height: 31px;
+  width: 52px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+::ng-deep .ol-zoom.ol-unselectable.ol-control {
+  position: absolute !important;
+  top: 2.4rem !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: 0.5rem !important;
+  z-index: 1000 !important;
+}
+
+/* .map-dropdown {
+  position: absolute;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  font-size: 14px;
+
+  select {
+    padding: 4px;
+    font-size: 14px;
+  }
+
+  label {
+    margin-left: 6px;
+  }
+} */
+/* Floating on Map */
+.circle-dropdown-map {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1050;
+  width: 142px;
+}
+
+/* Match button and dropdown widths */
+.dropdown-menu.show-dropdown {
+  width: 100%;
+  max-height: 240px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #cde8d0;
+  /* animation: fadeIn 0.3s ease; */
+  left: 0px !important;
+  top: 32px !important;
+  transform: none !important;
+}
+
+/* Smooth dropdown open */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button styling */
+.stylish-btn {
+  background-color: #fff;
+  /* light green bg */
+  color: #157347;
+  /* dark green text */
+  border: 1px solid #b4eba9;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.stylish-btn:hover {
+  background-color: #f1f7f3;
+  /* slightly darker on hover */
+  color: #157347;
+  border-color: #98dfb5;
+}
+
+/* Select box */
+.stylish-select {
+  width: 100%;
+  border: 1px solid #a8e2ba;
+  border-radius: 8px;
+  background: linear-gradient(to right, #f9fdfb, #ffffff);
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  color: #333;
+  height: auto;
+  min-height: 160px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Scroll styling */
+.stylish-select::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stylish-select::-webkit-scrollbar-thumb {
+  background-color: #90d5a4;
+  border-radius: 4px;
+}
+
+/* Hover and selection */
+.stylish-select option:hover {
+  background-color: #daf5dd !important;
+}
+
+.stylish-select option:checked {
+  background-color: #a5e6b3 !important;
+  color: #000;
+}
+
+::ng-deep .layer-toggle.ol-control {
+  position: absolute;
+  top: 6em;
+  /* position slightly below zoom buttons */
+  right: 0.5em;
+  z-index: 1000;
+}
+
+::ng-deep .layer-toggle button {
+  background-color: red;
+  border: none;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+::ng-deep .layer-toggle button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+::ng-deep .layer-toggle button:active {
+  transform: scale(0.95);
+}
+
+
+/* Meter */
+.timeline-wrapper {
+  position: absolute;
+  width: 100%;
+  bottom: 35px;
+}
+
+.timeline-container {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Gray base line */
+.timeline-container::before {
+  content: "";
+  position: absolute;
+  top: 13%;
+  left: 9px;
+  height: 4px;
+  width: 97%;
+  background-color: #a8a8a8;
+  z-index: 0;
+}
+
+.today_tomorrow {
+  width: max-content;
+  height: 31px;
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  display: flex;
+  background: rgb(255, 255, 255);
+  padding: 4px 6px;
+  box-shadow: 1px 1px 4px silver;
+  border-radius: 6px;
+  gap: 10px;
+}
+
+/* Green progress line */
+/* .timeline-container::after {
+  content: '';
+  position: absolute;
+  top: 13%;
+  left: 9px;
+  height: 4px;
+  background-color: #4CAF50;
+  width: var(--progress, 0%);
+  z-index: 1;
+  transition: width 0.3s ease;
+} */
+
+.hour-point {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  flex: 1 1 4%;
+}
+
+.hour-point input[type='radio'] {
+  display: none;
+}
+
+.hour-point label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.circle {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 3px solid #a8a8a8;
+  margin-bottom: 5px;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.circle.active {
+  background-color: #157347;
+  border-color: #157347;
+}
+
+.hour-point label span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* layer-legend css */
+.layer-legend {
+  position: absolute;
+  top: 130px;
+  right: 8px;
+  background: white;
+  padding: 10px;
+  z-index: 1000;
+  border: 1px solid #ccc;
+  max-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.layer-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.layer-legend li {
+  margin-bottom: 5px;
+}
+
+.layer_label {
+  margin-left: 4px !important;
+}
+
+
+/* -------- Lasso Btn Css And Selected Tower List ---------- */
+.lasso-btn {
+  position: absolute;
+  right: 10px;
+  top: 92px;
+  width: 30px;
+  height: 30px;
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  border: none;
+  box-shadow: 1px 1px 4px silver;
+}
+
+.tower-list {
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 250px;
+  /* limit height */
+  padding: 3px 5px;
+  position: absolute;
+  top: 150px;
+  right: 250px;
+  min-width: 300px;
+  min-height: 60px;
+  background: #fff;
+  box-shadow: 1px 1px 4px silver;
+  display: flex;
+  flex-direction: column;
+}
+
+.tower-list-table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.tower-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tower-list-table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 3;
+  border-bottom: 2px solid #666;
+}
+
+.tower-list-table th {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.tower-list-table td {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.tower-list-table td>button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ff5252;
+  border: none;
+  color: white;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lasso-btn:hover {
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+.tower-list-heading {
+  width: 100%;
+  height: max-content;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  border-bottom: 1px solid silver;
+}
+
+.tower-list-heading>.heading {
+  width: max-content;
+  height: max-content;
+  margin: 3px 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.tower-list-heading>.tower-list-cls {
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 3px 3px;
+  border: 1px solid silver;
+  cursor: pointer;
+}
+
+
+/* Screenshot container (kept hidden off-screen for capture) */
+.screenshot-container {
+  width: 700px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+.screenshot-header {
+  width: 100%;
+  height: 70px;
+  background: linear-gradient(90deg, #e6f0ea 51.44%, #a5f2c3 86.54%);
+  display: block;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-header {
+  width: 100%;
+  padding: 0 5px;
+  height: 100%;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
+
+
+
+.left-header-districts {
+  color: #000000;
+  font-size: 25px;
+  font-weight: bold;
+  font-family: sans-serif;
+  margin-left: 10px;
+}
+
+/* Table */
+.template-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 5px;
+  font-size: 14px;
+  background: white !important;
+}
+
+.template-table th,
+.template-table td {
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.template-table th {
+  font-weight: bold;
+}
+
+.template-table thead tr:first-child th {
+  background: #2b6642;
+  color: #fff;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Footer */
+.footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #444;
+}
+
+.footer span:first-child {
+  font-size: 13px;
+  margin-right: 4px;
+}
+
+/* ------------- CSS end here ------ */
+/* -------------- */
+
+
+@media screen and (max-width: 1050px) {
+  .map_container_div {
+    height: 28rem !important;
+  }
+
+}
+
+@media (min-width: 320px) and (max-width: 768px) {
+  .map-credit {
+    font-size: 8px;
+    padding: 4px 15px;
+    right: 35%;
+  }
+
+  .map_container_div {
+    height: 58vh !important;
+  }
+
+  .stylish-select {
+    height: 140px;
+    font-size: 8px;
+  }
+
+  .circle-dropdown-map {
+    width: 100px !important;
+  }
+
+  .stylish-btn {
+    font-size: 10px;
+  }
+
+  ::ng-deep .ol-control button {
+    margin-top: 2px;
+    width: 25px;
+    height: 25px;
+  }
+
+  .layer-legend {
+    top: 200px;
+    padding: 3px !important;
+  }
+
+  .layer-legend h6 {
+    font-size: 12px !important;
+  }
+
+  .layer-legend ul#legend-list {
+    font-size: 8px !important;
+  }
+
+  ::ng-deep #layer-legend input[type="checkbox"] {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+}
+
+/* ..........Vishal 18-08-2025...............  */
+@media (min-width: 1050px) and (max-width: 1350px) {
+  .legend-container {
+    bottom: 120px;
+  }
+
+  .today_tomorrow {
+    bottom: 30px;
+  }
+
+  .timeline-wrapper {
+    bottom: 60px;
+  }
+
+}
+
+@media (max-width: 600px) {
+
+
+  div:has(.timeline-wrapper) .map-credit {
+    bottom: 109px;
+  }
+
+  div:has(.timeline-wrapper) .legend-container {
+    bottom: 180px;
+  }
+
+  div:has(.timeline-wrapper) .timeline-container {
+    margin: 0;
+    top: -4;
+  }
+
+  .timeline-container::before {
+    width: 217%;
+    top: 22%;
+  }
+
+
+  .timeline-wrapper {
+    position: relative;
+    /* stays in parent flow */
+    margin: 36px 0;
+    /* space from map above and buttons below */
+    margin-bottom: -38px;
+    display: flex;
+    flex-direction: column;
+    z-index: 3;
+  }
+
+  .legend-container {
+    bottom: 140px;
+  }
+
+  .timeline-wrapper>span {
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .timeline-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 12px;
+    padding: 6px 4px;
+    width: 100%;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .timeline-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .timeline-container .hour-point {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+  }
+
+  .today_tomorrow {
+    position: relative;
+    /* take it out of map absolute flow */
+    bottom: auto;
+    /* reset any bottom positioning */
+    margin-top: 6px;
+    /* push it right below the map */
+    display: flex;
+    justify-content: center;
+    /* center under the map */
+    gap: 10px;
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    box-shadow: 1px 1px 4px silver;
+  }
+
+  .map-credit {
+    bottom: 38px;
+  }
+}
+
+@media(min-width:500px) and (max-width: 600px) {
+  .timeline-container::before {
+    width: 140%;
+    top: 22%;
+  }
+}
+
+@media(min-width:400px) and (max-width: 500px) {
+  .timeline-container::before {
+    width: 180%;
+    top: 22%;
+  }
+}
+
+@media(min-width:320px) and (max-width: 400px) {
+  .timeline-container::before {
+    width: 195%;
+    top: 22%;
+  }
+}
+
+
+/* ------- Pand India Clicked ---------- */
+.hideCircleOption {
+  display: none;
+}

@@ -1,0 +1,173 @@
+<div class="container-fluid">
+  <div class="row">
+    <div
+      class="d-flex justify-content-between align-items-center p-3 text-success fw-bold w-100"
+    >
+      <!-- Heading -->
+      <h3 class="mb-0">Configure KPI Severity Ranges</h3>
+
+      <!-- Circle Dropdown with Label -->
+      <div class="d-flex flex-column ms-3" style="width: 200px">
+        <label for="circleSelect" class="form-label mb-1 text-success fw-bold">
+          Select Circle
+        </label>
+        <select
+          id="circleSelect"
+          class="form-select"
+          [(ngModel)]="selectedCircle"
+          (change)="onCircleChange(selectedCircle)"
+        >
+          <option *ngFor="let circle of circles" [value]="circle">
+            {{ circle }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row severity-row">
+    <!-- Full Width Severity Table -->
+    <div class="col-12">
+      <table
+        class="table-severity table table-bordered align-start text-center w-100"
+      >
+        <thead class="table-light">
+          <tr>
+            <th>KPI</th>
+            <th>Extreme</th>
+            <th>High</th>
+            <th>Moderate</th>
+            <th>Low</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let kpi of kpiList; let i = index">
+            <td class="align-middle">{{ kpi.name }}</td>
+
+            <!-- Extreme -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.extreme }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.extreme"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.extreme"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.extreme"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- High -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.high }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.high"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.high"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.high"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Moderate -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.moderate }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.moderate"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.moderate"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.moderate"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Low -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.low }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.low"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.low"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.low"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <button
+                *ngIf="!kpi.editMode"
+                class="btn btn-sm btn-success"
+                (click)="editRow(i)"
+              >
+                Edit
+              </button>
+              <button
+                *ngIf="kpi.editMode"
+                class="btn btn-sm btn-success me-2"
+                (click)="saveRow(i)"
+              >
+                Save
+              </button>
+              <button
+                *ngIf="kpi.editMode"
+                class="btn btn-sm btn-secondary"
+                (click)="cancelEdit(i)"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
