@@ -30,7 +30,7 @@
         routerLinkActive="active"
       >
         <img src="assets/icons/circleLevelReports.svg" alt="CIRCLE LEVEL" />
-        <div class="menu-text">CIRCLE LEVEL</div>
+        <div class="menu-text">{{indus_circle}} Circle</div>
       </a>
 
       <!-- <a
@@ -46,11 +46,11 @@
       </a> -->
 
       <a
+        *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
         class="menu-item d-block"
         (click)="onUsageClick()"
         routerLink="/reports/usage"
         routerLinkActive="active"
-        [class.disabled]="!['Admin','MlAdmin'].includes(user.userrole)"
         title="Usage Report"
         (click)="$event.preventDefault()"
       >
@@ -94,9 +94,9 @@
         <img src="assets/icons/users.svg" alt="Real-Time" />
         <div class="menu-text">USERS</div>
       </a>
-      
+
       <a
-        class="menu-item d-block"
+        class="menu-item d-block mt-2"
         (click)="onSeverityRangesClick()"
         routerLink="/severity-ranges"
         routerLinkActive="active"
@@ -106,7 +106,7 @@
           alt="Real-Time"
           style="width: 22px; height: 22px"
         />
-        <div class="menu-text">SEVERITY</div>
+        <div class="menu-text">EDIT KPI SEVERITY</div>
       </a>
     </div>
   </div>

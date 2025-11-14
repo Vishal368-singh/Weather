@@ -83,7 +83,7 @@ export class CurrentLocationService {
         reject(new Error('Geolocation not supported'));
         return;
       }
-      debugger;
+     
       const watchId = navigator.geolocation.watchPosition(
         async (position) => {
           const lat = position.coords.latitude;
@@ -94,7 +94,7 @@ export class CurrentLocationService {
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
             );
             const data = await response.json();
-            debugger;
+        
             // Force check for India
             if (data.address.country_code === 'in') {
               let placeName =

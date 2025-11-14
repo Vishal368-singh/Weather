@@ -1,4 +1,3 @@
-<!-- Tab Header -->
 <ul class="nav nav-pills custom-tabs mb-1" role="tablist">
   <li class="nav-item" role="presentation">
     <button
@@ -11,29 +10,49 @@
       WEATHER
     </button>
   </li>
-  <!-- <li class="nav-item" role="presentation">
-    <button
-      class="nav-link disabled"
-      type="button"
-      disabled
-      title="Hazard tab is currently disabled"
-    >
-      HAZARD
-    </button>
-  </li> -->
 </ul>
 
-<!-- Tab Content -->
 <div class="tab-content">
-  <div class="tab-panel" id="weather" role="tabpanel">
+  <div class="tab-pane active show" id="weather" role="tabpanel">
     <div class="container-fluid mt-1">
-      <div class="row align-items-stretch p-4 pe-0 gx-5 gy-3">
-        <!-- Left Panel -->
+      <div class="row align-items-stretch p-4 pe-0 gx-5 gy-3 mapflex">
         <div class="crpd col-lg-5 col-md-5 col-sm-12 equal-height-panel">
           <div
             class="bg-light d-flex flex-column justify-content-between w-100"
           >
-            <h5 class="text-success mb-3">{{location}}</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="text-success mb-0">{{ location }}</h5>
+
+              <div class="dropdown circle-dropdown-map">
+                <button
+                  class="btn stylish-btn w-100 dropdown-toggle"
+                  type="button"
+                  id="exportPdfDropdownBtn"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="btn-success fas fa-file-pdf me-1"></i>
+                  Circle PDF
+                </button>
+
+                <div
+                  class="dropdown-menu show-dropdown shadow"
+                  aria-labelledby="exportPdfDropdownBtn"
+                >
+                  <select
+                    class="form-select stylish-select"
+                    id="exportPdfSelect"
+                    [value]="selectedPDFCircle"
+                    (change)="pdfdownload($event)"
+                    size="6"
+                  >
+                    <ng-container *ngFor="let option of circleOptions">
+                      <option [value]="option.value">{{ option.label }}</option>
+                    </ng-container>
+                  </select>
+                </div>
+              </div>
+            </div>
 
             <div
               class="card flex-grow-1 p-3 weather-card"
@@ -51,7 +70,6 @@
                   >
                     <div class="circle-inner">
                       <div class="min-value">{{ item.max }}</div>
-                      <!-- <img class="kpi-icon" [src]="item.icon" alt="" /> -->
                       <div class="weather-icon" [innerHTML]="item.icon"></div>
                       <div class="max-value">{{ item.min }}</div>
                     </div>
@@ -63,7 +81,6 @@
           </div>
         </div>
 
-        <!-- Right Panel -->
         <div class="col-lg-7 col-md-7 col-sm-12 map-panel">
           <div class="equal-height-panel w-100 h-100">
             <app-map-weather
@@ -74,148 +91,337 @@
         </div>
       </div>
 
-      <!-- Chart Section -->
-      <!-- Chart Section -->
-      <!-- Chart Section -->
-      <div class="twochart bg-light cardwidth" *ngIf="isBrowser">
-        <h1 class="responsive-title">Weather Parameter Breakdown</h1>
-
-        <div class="row g-3 chart-row">
-          <div class="col-12 col-lg-6 p-0 rounded border bg-light">
-            <div class="chart-box bg-white rounded">
-              <h4>Number of Weather Zone at Risk</h4>
-              <canvas
-                baseChart
-                [data]="barChartData1"
-                [options]="barChartOptions1"
-                [legend]="barChartLegend"
-                [type]="barChartType"
-              ></canvas>
-            </div>
-          </div>
-
-          <div class="col-12 col-lg-6 p-0 rounded border bg-light">
-            <div class="chart-box gapcard bg-white rounded">
-              <h4 class="line">Number of Towers at Risk</h4>
-              <canvas
-                baseChart
-                [data]="barChartData2"
-                [options]="barChartOptions2"
-                [legend]="barChartLegend"
-                [type]="barChartType"
-              ></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dashboard Section -->
-      <div class="dashboard-wrapper mt-4 shadow-sm p-3 bg-white rounded">
-        <div class="dashboard-container d-flex">
-          <!-- Icon Column -->
-          <div class="icon-column bg-light rounded shadow-sm me-3">
-            <span
-              class="d-inline-block mb-2"
-              style="
-                height: 30px;
-                line-height: 30px;
-                font-weight: 600;
-                font-size: 14px;
-              "
-              >Date</span
-            >
-
-            <div *ngFor="let icon of icons" class="icon-cell mb-2">
-              <!-- <img [src]="icon" alt="Icon" class="icon-size" /> -->
-              <div class="weather-icon p-2" [innerHTML]="icon"></div>
-            </div>
-          </div>
-
-          <!-- Cards -->
-          <div class="cards-container d-flex flex-wrap">
-            <div
-              *ngFor="let day of days; let i = index"
-              class="day-card p-3 bg-light rounded boxshadow"
-            >
-              <div class="card-header mb-2 d-flex justify-content-center">
-                <div>{{ day.name }}</div>
-                ,&nbsp;
-                <div>{{ day.date }}</div>
-              </div>
-
-              <!-- Loop for towers -->
-
-              <div
-                *ngFor="let tower of mappedTowerData?.[i+1]"
-                class="value-row d-flex justify-content-between"
-              >
-                <div
-                  class="value-box"
-                  [style.background-color]="tower.value1color"
-                >
-                  {{ tower.value1 }}
-                </div>
-                <div
-                  class="value-box"
-                  [style.background-color]="tower.value2color"
-                >
-                  {{ tower.value2 }}
-                </div>
-                <div
-                  class="value-box"
-                  [style.background-color]="tower.value3color"
-                >
-                  {{ tower.value3 }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ...........Prediction Table.......................... -->
-      <div
-        class="accordion mt-4 rounded prediction-table"
-        id="predictionAccordion"
-      >
-        <div class="accordion-item border-0">
-          <h2 class="accordion-header" id="headingPrediction">
+      <div class="accordion mt-3" id="dashboardAccordion">
+        <div class="accordion-item" *ngIf="isBrowser">
+          <h2 class="accordion-header" id="headingBarSection">
             <button
-              class="accordion-button fw-bold bg-prediction"
-              type="button collapsed"
+              class="accordion-button"
+              type="button"
               data-bs-toggle="collapse"
-              data-bs-target="#collapsePrediction"
+              data-bs-target="#barSection"
               aria-expanded="true"
-              aria-controls="collapsePrediction"
+              aria-controls="barSection"
+              style="font-size: 20px"
+            >
+              Weather Parameter Breakdown
+            </button>
+          </h2>
+
+          <div
+            id="barSection"
+            class="accordion-collapse collapse show"
+            aria-labelledby="headingBarSection"
+            data-bs-parent="#dashboardAccordion"
+          >
+            <div class="bg-white">
+              <div class="row g-0 chart-row">
+                <div class="col-12 p-0 border bg-light">
+                  <div class="chart-box bg-white">
+                    <h6 class="fw-bold">Number of Districts</h6>
+                    <canvas
+                      baseChart
+                      [data]="barChartData1"
+                      [options]="barChartOptions1"
+                      [legend]="barChartLegend"
+                      [type]="barChartType"
+                    ></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="shadow-sm p-3 bg-white rounded">
+              <h6 class="chart-box fw-bold">
+                Weather Intensity Breakdown by Category (Next 6-days) District
+                Count
+              </h6>
+              <div class="d-flex" style="overflow-x: auto">
+                <div class="icon-column bg-light rounded shadow-sm me-3">
+                  <span
+                    class="d-inline-block mb-2"
+                    style="
+                      height: 30px;
+                      line-height: 30px;
+                      font-weight: 600;
+                      font-size: 14px;
+                    "
+                    >Date</span
+                  >
+
+                  <div *ngFor="let icon of icons" class="icon-cell mb-2">
+                    <div class="weather-icon p-2" [innerHTML]="icon"></div>
+                  </div>
+                </div>
+
+                <div class="cards-container d-flex flex-wrap">
+                  <div
+                    *ngFor="let day of days; let i = index"
+                    class="day-card p-3 bg-light rounded boxshadow"
+                  >
+                    <div class="card-header mb-2 d-flex justify-content-center">
+                      <div>{{ day.name }}</div>
+                      ,&nbsp;
+                      <div>{{ day.date }}</div>
+                    </div>
+
+                    <div
+                      *ngFor="let tower of mappedTowerData?.[i+1]"
+                      class="value-row d-flex justify-content-between"
+                    >
+                      <div
+                        class="value-box"
+                        [style.background-color]="tower.value1color"
+                      >
+                        {{ tower.value1 }}
+                      </div>
+                      <div
+                        class="value-box"
+                        [style.background-color]="tower.value2color"
+                      >
+                        {{ tower.value2 }}
+                      </div>
+                      <div
+                        class="value-box"
+                        [style.background-color]="tower.value3color"
+                      >
+                        {{ tower.value3 }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingSeverity">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseSeverity"
+              aria-expanded="false"
+              aria-controls="collapseSeverity"
+              style="font-size: 20px"
+            >
+              Districts At Varying Risk On {{ currentDate }}
+            </button>
+          </h2>
+          <div
+            id="collapseSeverity"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingSeverity"
+            data-bs-parent="#dashboardAccordion"
+          >
+            <div class="bg-white">
+              <div class="weatherRisk-container">
+                <p class="weatherRisk-subtitle">
+                  The table provides the distribution of districts under varying
+                  weather risk category for {{currentDate}}.
+                </p>
+                <div class="weatherRisk-table-wrapper">
+                  <table class="weatherRisk-table">
+                    <thead>
+                      <tr>
+                        <th class="param-header">Weather Parameters</th>
+                        <th class="risk-extreme">Extreme</th>
+                        <th class="risk-high">High</th>
+                        <th class="risk-moderate">Moderate</th>
+                        <th class="risk-low">Low</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <i
+                              class="fas fa-cloud-showers-heavy weather-icon"
+                            ></i>
+                            <span>Rainfall</span>
+                          </div>
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Rainfall?.high_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Rainfall?.moderate_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Rainfall?.low_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-compass weather-icon"></i>
+                            Wind
+                          </div>
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Wind?.extreme_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Wind?.high_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Wind?.moderate_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Wind?.low_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <i
+                              class="fa-solid fa-temperature-half weather-icon"
+                            ></i>
+                            Temperature (Max)
+                          </div>
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Temperature?.extreme_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Temperature?.high_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Temperature?.moderate_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Temperature?.low_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-droplet weather-icon"></i>
+                            Humidity
+                          </div>
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Humidity?.extreme_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Humidity?.high_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Humidity?.moderate_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Humidity?.low_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-eye weather-icon"></i>
+                            Visibility
+                          </div>
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Visibility?.extreme_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Visibility?.high_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Visibility?.moderate_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{
+                          responseDataSeverityWise?.Visibility?.low_districts?.join(',
+                          ') || "Nil" }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingForecast">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseForecast"
+              aria-expanded="false"
+              aria-controls="collapseForecast"
               style="font-size: 20px"
             >
               7 Day - Weather Forecast
             </button>
           </h2>
           <div
-            id="collapsePrediction"
-            class="accordion-collapse collapse show"
-            aria-labelledby="headingPrediction"
-            data-bs-parent="#predictionAccordion"
+            id="collapseForecast"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingForecast"
+            data-bs-parent="#dashboardAccordion"
           >
             <div class="bg-white">
-              <!-- Buttons -->
               <div
-                class="summary-table-container d-flex flex-wrap gap-3 mb-3 mt-2"
+                class="summary-table-container d-flex flex-wrap gap-3 mb-4 mt-4"
               >
-                <button
-                  class="btn btn-outline-success"
-                  [ngClass]="{ 'active': activeTab === 'temperature' }"
-                  (click)="setActive('temperature')"
-                >
-                  <i class="fas fa-temperature-high"></i> Temperature
-                </button>
                 <button
                   class="btn btn-outline-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2"
                   [ngClass]="{ 'active': activeTab === 'rainfall' }"
-                  (click)="activeTab = 'rainfall'"
+                  (click)="setActive('rainfall')"
                 >
                   <i class="fas fa-cloud-showers-heavy"></i> Rainfall
+                </button>
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'accu_rainfall' }"
+                  (click)="setActive('accu_rainfall')"
+                >
+                  <i class="fas fa-cloud-showers-heavy"></i> Accu Rainfall
                 </button>
 
                 <button
@@ -234,348 +440,158 @@
                 </button>
                 <button
                   class="btn btn-outline-success"
-                  [ngClass]="{ 'active': activeTab === 'fog' }"
-                  (click)="setActive('fog')"
+                  [ngClass]="{ 'active': activeTab === 'visibility' }"
+                  (click)="setActive('visibility')"
                 >
                   <i class="fa-solid fa-eye"></i> Visibility
                 </button>
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeTab === 'temperature' }"
+                  (click)="setActive('temperature')"
+                >
+                  <i class="fas fa-temperature-high"></i> Temperature
+                </button>
               </div>
 
-              <!-- Table Display Area -->
               <div class="mt-3">
-                <!-- Rainfall Table -->
-                <div
-                  class="rainfall-table-container table-responsive"
-                  *ngIf="activeTab === 'rainfall'"
-                >
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-success text-center">
-                      <tr>
-                        <th rowspan="2" style="font-size: 20px">Severity</th>
-                        <th
-                          [attr.colspan]="rainfallHeaders.shortRange.length"
-                          style="font-size: 20px"
-                        >
-                          Short Range Prediction
-                        </th>
-                        <th
-                          [attr.colspan]="rainfallHeaders.longRange.length"
-                          style="font-size: 20px"
-                        >
-                          Long Range Prediction
-                        </th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let header of rainfallHeaders.shortRange">
-                          {{ header }}
-                        </th>
-                        <th *ngFor="let header of rainfallHeaders.longRange">
-                          {{ header }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let row of rainfallData" [class]="row.class">
-                        <td
-                          class="fw-bold"
-                          [style.background-color]="row.color"
-                        >
-                          {{ row.severity }}
-                        </td>
-                        <td *ngFor="let sr of row.shortRange">{{ sr }}</td>
-                        <td *ngFor="let lr of row.longRange">{{ lr }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <div class="rainfall-table-wrapper">
+                  <div class="legend" *ngIf="legendData">
+                    <div class="legend-item">
+                      <p class="rainfall-legend">Legend</p>
+                    </div>
+                    <div class="legend_center">
+                      <div class="wrap_extream_high">
+                        <div class="legend-item">
+                          <div class="legend-swatch Extreme"></div>
+                          Extreme ({{ legendData[activeTab]?.extreme }})
+                        </div>
+                        <div class="legend-item">
+                          <div class="legend-swatch High"></div>
+                          High ({{ legendData[activeTab]?.high }})
+                        </div>
+                      </div>
+                      <div class="wrap_modrate_low Moderate">
+                        <div class="legend-item">
+                          <div class="legend-swatch moderate"></div>
+                          Moderate ({{ legendData[activeTab]?.moderate }})
+                        </div>
+                        <div class="legend-item">
+                          <div class="legend-swatch Low"></div>
+                          Low ({{ legendData[activeTab]?.low }})
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <!-- Temperature Table -->
-                <div
-                  class="temperature-table-container table-responsive"
-                  *ngIf="activeTab === 'temperature'"
-                >
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-success text-center">
-                      <tr>
-                        <th rowspan="2" style="font-size: 20px">Severity</th>
-                        <th colspan="3" style="font-size: 20px">
-                          Short Range Prediction
-                        </th>
-                        <th colspan="4" style="font-size: 20px">
-                          Long Range Prediction
-                        </th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let date of temperatureDates.shortRange">
-                          {{ date }}
-                        </th>
-                        <th *ngFor="let date of temperatureDates.longRange">
-                          {{ date }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngFor="let row of temperatureSeverityData"
-                        [class]="row.class"
+                  <div class="district-table-wrapper">
+                    <table>
+                      <thead
+                        *ngIf="activeTab != 'temperature'; else otherHeader"
                       >
-                        <td
-                          class="fw-bold"
-                          [style.background-color]="row.color"
-                        >
-                          {{ row.severity }}
-                        </td>
-                        <td *ngFor="let short of row.shortRange">
-                          {{ short }}
-                        </td>
-                        <td *ngFor="let long of row.longRange">{{ long }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                        <tr>
+                          <th rowspan="3" class="district">Districts</th>
+                          <th colspan="3" class="group-header">Short Range</th>
+                          <th colspan="4" class="group-header">Long Range</th>
+                        </tr>
+                        <tr>
+                          <th>04 Jun, 25</th>
+                          <th>05 Jun, 25</th>
+                          <th>06 Jun, 25</th>
+                          <th>07 Jun, 25</th>
+                          <th>08 Jun, 25</th>
+                          <th>09 Jun, 25</th>
+                          <th>10 Jun, 25</th>
+                        </tr>
+                      </thead>
+                      <ng-template #otherHeader>
+                        <thead>
+                          <tr>
+                            <th
+                              rowspan="2"
+                              style="width: 80px"
+                              class="district"
+                            >
+                              Districts
+                            </th>
+                            <th colspan="2">04 Jun, 25</th>
+                            <th colspan="2">05 Jun, 25</th>
+                            <th colspan="2">06 Jun, 25</th>
+                            <th colspan="2">07 Jun, 25</th>
+                            <th colspan="2">08 Jun, 25</th>
+                            <th colspan="2">09 Jun, 25</th>
+                            <th colspan="2">10 Jun, 25</th>
+                          </tr>
+                          <tr>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                            <th style="width: 30px">Min</th>
+                            <th style="width: 30px">Max</th>
+                          </tr>
+                        </thead>
+                      </ng-template>
+                      <tbody>
+                        <tr *ngFor="let rec of responseDataDistrictWise;">
+                          <td class="district">{{rec.district}}</td>
 
-                <!-- Wind Table -->
-                <div
-                  class="wind-table-container table-responsive"
-                  *ngIf="activeTab === 'wind'"
-                >
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-success text-center">
-                      <tr>
-                        <th rowspan="2" style="font-size: 20px">Severity</th>
-                        <th colspan="3" style="font-size: 20px">
-                          Short Range Prediction
-                        </th>
-                        <th colspan="4" style="font-size: 20px">
-                          Long Range Prediction
-                        </th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let date of windDates.shortRange">
-                          {{ date }}
-                        </th>
-                        <th *ngFor="let date of windDates.longRange">
-                          {{ date }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngFor="let row of windSeverityData"
-                        [class]="row.class"
-                      >
-                        <td
-                          class="fw-bold"
-                          [style.background-color]="row.color"
-                        >
-                          {{ row.severity }}
-                        </td>
-                        <td
-                          *ngFor="let s of row.shortRange"
-                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
-                        >
-                          {{ s || 'NA' }}
-                        </td>
-                        <td
-                          *ngFor="let l of row.longRange"
-                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
-                        >
-                          {{ l || 'NA' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min1}} {{activeKPIUnit}}
+                          </td>
+                          <td>{{rec.day1}}{{activeKPIUnit}}</td>
 
-                <!-- Fog Table -->
-                <div
-                  class="fog-table-container table-responsive"
-                  *ngIf="activeTab === 'fog'"
-                >
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-success text-center">
-                      <tr>
-                        <th rowspan="2" style="font-size: 20px">Severity</th>
-                        <th colspan="3" style="font-size: 20px">
-                          Short Range Prediction
-                        </th>
-                        <th colspan="4" style="font-size: 20px">
-                          Long Range Prediction
-                        </th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let date of fogDates.shortRange">
-                          {{ date }}
-                        </th>
-                        <th *ngFor="let date of fogDates.longRange">
-                          {{ date }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngFor="let row of fogSeverityData"
-                        [class]="row.class"
-                      >
-                        <td
-                          class="fw-bold"
-                          [style.background-color]="row.color"
-                        >
-                          {{ row.severity }}
-                        </td>
-                        <td
-                          *ngFor="let s of row.shortRange"
-                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
-                        >
-                          {{ s || 'NA' }}
-                        </td>
-                        <td
-                          *ngFor="let l of row.longRange"
-                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
-                        >
-                          {{ l || 'NA' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min2}}{{activeKPIUnit}}
+                          </td>
+                          <td>{{rec.day2}}{{activeKPIUnit}}</td>
 
-                <!-- Humidity Table -->
-                <div
-                  class="fog-table-container table-responsive"
-                  *ngIf="activeTab === 'humidity'"
-                >
-                  <table
-                    class="table table-bordered table-sm"
-                    style="background-color: none"
-                  >
-                    <thead class="table-success text-center">
-                      <tr>
-                        <th rowspan="2" style="font-size: 20px">Severity</th>
-                        <th colspan="3" style="font-size: 20px">
-                          Short Range Prediction
-                        </th>
-                        <th colspan="4" style="font-size: 20px">
-                          Long Range Prediction
-                        </th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let date of humidityDates.shortRange">
-                          {{ date }}
-                        </th>
-                        <th *ngFor="let date of humidityDates.longRange">
-                          {{ date }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngFor="let row of humiditySeverityData"
-                        [class]="row.class"
-                      >
-                        <td
-                          class="fw-bold"
-                          [style.background-color]="row.color"
-                        >
-                          {{ row.severity }}
-                        </td>
-                        <td
-                          *ngFor="let s of row.shortRange"
-                          [ngClass]="{ 'text-muted': s === 'NA' || s === '' }"
-                        >
-                          {{ s || 'NA' }}
-                        </td>
-                        <td
-                          *ngFor="let l of row.longRange"
-                          [ngClass]="{ 'text-muted': l === 'NA' || l === '' }"
-                        >
-                          {{ l || 'NA' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min3}}{{activeKPIUnit}}
+                          </td>
+                          <td class="no-risk">{{rec.day3}}{{activeKPIUnit}}</td>
+
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min4}}{{activeKPIUnit}}
+                          </td>
+                          <td class="no-risk">{{rec.day4}}{{activeKPIUnit}}</td>
+
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min5}}{{activeKPIUnit}}
+                          </td>
+                          <td class="no-risk">{{rec.day5}}{{activeKPIUnit}}</td>
+
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min6}}{{activeKPIUnit}}
+                          </td>
+                          <td class="no-risk">{{rec.day6}}{{activeKPIUnit}}</td>
+
+                          <td *ngIf="activeTab === 'temperature'">
+                            {{rec.min7}}{{activeKPIUnit}}
+                          </td>
+                          <td>{{rec.day7}}{{activeKPIUnit}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Table Section -->
-      <div class="table-responsive-2 shadow-sm mt-4 pb-8">
-        <table class="table text-center align-middle">
-          <thead>
-            <tr>
-              <th>Severity</th>
-              <th>
-                <!-- <img src="assets/icons/temp.svg" class="icon-size me-1" /> -->
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="weather-icon me-2">
-                    <i class="fa-solid fa-temperature-half"></i>
-                  </div>
-                  Temperature
-                </div>
-              </th>
-              <th>
-                <!-- <img src="assets/icons/rainfall.svg" class="icon-size me-1" /> -->
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="weather-icon me-2">
-                    <i class="fas fa-cloud-showers-heavy"></i>
-                  </div>
-                  Rainfall
-                </div>
-              </th>
-
-              <th>
-                <!-- <img src="assets/icons/wind.svg" class="icon-size me-1" /> -->
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="weather-icon me-2">
-                    <i class="fa-solid fa-wind"></i>
-                  </div>
-                  Wind
-                </div>
-              </th>
-              <th>
-                <!-- <img src="assets/icons/Humidity.svg" class="icon-size me-1" /> -->
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="weather-icon me-2">
-                    <i class="fa-solid fa-droplet"></i>
-                  </div>
-                  Humidity
-                </div>
-              </th>
-              <th>
-                <!-- <img src="assets/icons/Fog.png" class="icon-size me-1" /> -->
-                <div class="d-flex justify-content-center align-items-center">
-                  <div class="weather-icon me-2">
-                    <i class="fas fa-solid fa-eye"></i>
-                  </div>
-                  Visibility
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody *ngIf="severityTable?.length">
-            <tr *ngFor="let severity of severityTable">
-              <td
-                class="fw-bold"
-                [style.background-color]="severity.temperatureColor"
-              >
-                {{ severity.label }}
-              </td>
-              <td>{{ severity.temperature }}</td>
-              <td>{{ severity.rainfall }}</td>
-              <td>{{ severity.wind }}</td>
-              <td>{{ severity.humidity }}</td>
-              <td>{{ severity.visibility }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   </div>
-
   <div class="tab-pane fade" id="hazard" role="tabpanel">
     <p class="mb-0">Hazard content...</p>
   </div>
 </div>
+```

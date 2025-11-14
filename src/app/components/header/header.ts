@@ -5,15 +5,16 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { MapExportService } from '../../shared/map-export.service';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { WeatherService } from '../../services/weather';
 import { DataService } from '../../data-service/data-service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
+import { HazardsFeed } from "../../pages/hazards-feed/hazards-feed";
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HazardsFeed, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.css',
   standalone: true,
@@ -36,7 +37,7 @@ export class Header implements OnInit, AfterViewInit {
   userName: string = '';
   userId: string = '';
   ngOnInit() {
-    const sessionUser: any = sessionStorage.getItem('user')
+    const sessionUser: any = localStorage.getItem('user')
     this.userData = JSON.parse(sessionUser)
     const username = this.userData.name;
     this.userId = this.userData.userid;

@@ -39,16 +39,24 @@ export class LeftPanel implements OnInit {
   userRole: string = '';
   userName: string = '';
   userId: string = '';
+  indus_circle: string = '';
   ngOnInit() {
-    const sessionUser: any = sessionStorage.getItem('user');
+    const sessionUser: any = localStorage.getItem('user');
     this.user = JSON.parse(sessionUser);
     const username = this.user.name;
     this.userId = this.user.userid;
     this.userName = username.split(' ')[0];
     this.userRole = this.user.userrole;
+    // this.indus_circle = this.user.indus_circle;
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
       this.cdr.detectChanges();
+    });
+    this.WeatherService.circleChangedIs$.subscribe((CircleLebel) => {
+     
+      if (CircleLebel) {
+        this.indus_circle = CircleLebel;
+      }
     });
   }
 
@@ -70,8 +78,8 @@ export class LeftPanel implements OnInit {
     this.weatherUpdateLog(payload);
     this.isCircleLevelActive = false;
     this.WeatherService.setCircleLabelClicked(false);
-    sessionStorage.removeItem('circleClicked');
-    sessionStorage.setItem(
+    localStorage.removeItem('circleClicked');
+    localStorage.setItem(
       'circleClicked',
       JSON.stringify(this.isCircleLevelActive)
     );
@@ -86,7 +94,7 @@ export class LeftPanel implements OnInit {
     };
     this.weatherUpdateLog(payload);
     this.isCircleLevelActive = true;
-    sessionStorage.setItem(
+    localStorage.setItem(
       'circleClicked',
       JSON.stringify(this.isCircleLevelActive)
     );
@@ -129,23 +137,33 @@ export class LeftPanel implements OnInit {
     };
     this.weatherUpdateLog(payload);
   }
+
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    const { formattedDate, formattedTime } =
-      this.dateTimeService.getCurrentDateTime();
     const payload = {
-      type: 'update',
-      id: this.logId,
-      data: {
-        logout_time: `${formattedDate} ${formattedTime}`,
-      },
+      logId: JSON.parse(localStorage.getItem('logId') || '{}'),
     };
-    this.weatherUpdateLog(payload);
-    this.router.navigate(['/']);
+
+    this.dataService
+      .postData('/user_logout', payload)
+      .pipe(
+        catchError((error) => {
+          const errorMessage =
+            error?.error?.message || 'User log insertion failed';
+          return throwError(() => `${error} \n ${errorMessage}`);
+        })
+      )
+      .subscribe((res: any) => {
+        if (res?.status === 'success') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          this.router.navigate(['/']);
+          return;
+        }
+      });
   }
+
   weatherUpdateLog(payload: object): void {
     this.dataService
       .sendWeatherUserLog(`weather_user_activity`, payload)

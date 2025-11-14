@@ -36,13 +36,14 @@
       <select
         class="form-select stylish-select"
         id="circleSelect"
+        [value]="selectedCircle"
         (change)="onCircleLevelChange($event)"
-        multiple
-        size="6"
+        [disabled]="circleOptions.length === 1"
+        [attr.size]="circleOptions.length > 6 ? 6 : circleOptions.length"
       >
-        <option *ngFor="let circle of circleOptions" [value]="circle.value">
-          {{ circle.label }}
-        </option>
+        <ng-container *ngFor="let option of circleOptions">
+          <option [value]="option.label">{{ option.label }}</option>
+        </ng-container>
       </select>
     </div>
   </div>

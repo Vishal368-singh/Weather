@@ -13,6 +13,7 @@ export class WeatherService {
   private panIndiaLocation = new BehaviorSubject<string>('');
   private isCircleLabelClicked = new BehaviorSubject<boolean>(false);
   private circleChanged = new BehaviorSubject<string>('');
+  private circleLocationChanged = new BehaviorSubject<string>('');
   private enableSearchLoader = new BehaviorSubject<boolean>(false);
 
   location$ = this.locationSubject.asObservable(); // observable for other components to subscribe
@@ -25,6 +26,7 @@ export class WeatherService {
   panIndia$ = this.panIndiaLocation.asObservable();
   circleLabelClicked$ = this.isCircleLabelClicked.asObservable();
   circleChangedIs$ = this.circleChanged.asObservable();
+  circleLocationChangedIs$ = this.circleLocationChanged.asObservable();
 
   setLocation(location: string): void {
     this.locationSubject.next(location);
@@ -68,6 +70,10 @@ export class WeatherService {
 
   setCircleChange(circle: string): void {
     this.circleChanged.next(circle);
+  }
+
+  setCircleLocationChange(circleLocation: string): void {
+    this.circleLocationChanged.next(circleLocation);
   }
 
   setSearchLoader(enabled: boolean): void {

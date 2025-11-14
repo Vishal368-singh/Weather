@@ -321,7 +321,6 @@ export class Dashboard implements OnInit, AfterViewInit {
         })
       )
       .subscribe((results) => {
-        debugger;
         this.isSearchLoading = false;
         if (results.length > 0) {
           this.showMarkers(results); // Will show empty or filtered markers
@@ -340,54 +339,53 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    let storedUser = sessionStorage.getItem('user');
+    let storedUser = localStorage.getItem('user');
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      if (this.user.circle === 'UP East') {
-        this.user.circle = 'Varanasi';
-      } else if (this.user.circle === 'UP West') {
-        this.user.circle = 'Dehradun';
-      } else if (this.user.circle === 'North East') {
-        this.user.circle = 'Meghalaya';
+
+      if (this.user.indus_circle && !this.user.circle) {
+        this.user.circle = this.user.indus_circle;
       }
-      this.selectedLocation = this.user.circle;
-      if (this.user.circle === '') {
-        this.getUserCurrentLocation();
+
+      if (this.user.location) {
+        this.selectedLocation = this.user.location;
       }
-      this.loadWeather();
+
+      if (this.user.indus_circle === 'All Circle') {
+        this.WeatherService.setCircleChange('M&G');
+      } else {
+        this.WeatherService.setCircleChange(this.user.indus_circle);
+      }
     }
+
+    this.WeatherService.setCircleLocationChange('18.9582,72.8321');
+    this.loadWeather();
+
     this.WeatherService.location$.subscribe((location: string) => {
+      if (!location) {
+        console.warn('location$ received empty value. Skipping loadWeather.');
+        return;
+      }
+
       if (this.selectedDay === 'TODAY') {
         this.selectedLocation = location;
         this.loadWeather();
       } else {
         this.isLoading = true;
-        this.dataService.getWeatherForecast(location).subscribe({
-          next: (response: any) => {
-            this.apiResponseOfWeatherData = response;
-            this.dayForecastWeatherData = response.forecast.forecastday;
-            const index = 1;
-            this.loadNextDayWeatherData(index);
-            this.isLoading = false;
-            this.activeAccordion = 'hourly';
-            this.cdr.detectChanges();
-          },
-          error: (err: any) => {
-            console.error('Error from weather_api', err);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-        });
+        this.dataService.getWeatherForecast(location).subscribe({});
       }
     });
+
     this.WeatherService.selectedLayer$.subscribe((layer) => {
       this.selectedLayer = layer;
       this.cdr.detectChanges();
     });
+
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
       this.cdr.detectChanges();
     });
+
     this.WeatherService.selectedDay$.subscribe((day: string) => {
       if (day === 'today') {
         this.selectedDay = 'TODAY';
@@ -400,15 +398,13 @@ export class Dashboard implements OnInit, AfterViewInit {
     });
 
     this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
-      if (circle.toLowerCase() === 'UP East'.toLowerCase()) {
-        this.selectedLocation = 'Varanasi';
-      } else if (circle.toLowerCase() === 'UP West'.toLowerCase()) {
-        this.selectedLocation = 'Dehradun';
-      } else if (circle.toLowerCase() === 'North East'.toLowerCase()) {
-        this.selectedLocation = 'Meghalaya';
-      } else {
-        this.selectedLocation = circle;
+      if (!circle) {
+        console.warn(
+          'circleChangedIs$ received empty value. Skipping loadWeather.'
+        );
+        return;
       }
+      this.selectedLocation = circle;
       this.loadWeather();
     });
 
@@ -423,14 +419,14 @@ export class Dashboard implements OnInit, AfterViewInit {
       .getSafeLocation()
       .then((pos: any) => {
         this.selectedLocation = pos;
-        let storedUser = sessionStorage.getItem('user');
+        let storedUser = localStorage.getItem('user');
         if (storedUser) {
           this.user = JSON.parse(storedUser);
 
           if (this.user.circle === '') {
             this.user.circle = pos;
-            sessionStorage.removeItem('user');
-            sessionStorage.setItem('user', JSON.stringify(this.user));
+            localStorage.removeItem('user');
+            localStorage.setItem('user', JSON.stringify(this.user));
           }
         }
         this.WeatherService.setCircleForUser(pos);
@@ -443,7 +439,7 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   onSearchChange() {
     if (this.searchTerm.trim()) {
-      // this.selectedLocation = this.searchTerm;
+      this.selectedLocation = this.searchTerm;
       this.WeatherService.setSearchLoader(true);
       // this.isLoading = true;
       this.isSearchLoading = true;
@@ -465,6 +461,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       const d_name = locations[0].display_name;
       let location = `${lat},${lon},${d_name}`;
       this.selectedLocation = `${lat},${lon}`;
+      this.WeatherService.setCircleLocationChange(this.selectedLocation);
       this.loadWeather();
       this.WeatherService.setSearchLocation(location);
       this.searchTerm = '';
@@ -829,12 +826,48 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.currentHourRainMM = currentHourData.rain_mm;
   }
 
-  // Call this to load based on selected source
   loadWeather(): void {
-    let location = this.selectedLocation
-      ? this.selectedLocation
-      : this.user.circle;
+    let location: any;
+    this.WeatherService.circleLocationChangedIs$.subscribe((loc: string) => {
+      if (loc) {
+        location = loc;
+      }
+    });
+
+    // if (this.selectedLocation) {
+    //   location = this.selectedLocation;
+    // } else if (this.user && this.user.location) {
+    //   location = this.user.location;
+    // } else if (this.user && (this.user.circle || this.user.indus_circle)) {
+    //   let userCircle = this.user.circle || this.user.indus_circle;
+    //   if (userCircle === 'UP East') {
+    //     location = 'Varanasi';
+    //   } else if (userCircle === 'UP West') {
+    //     location = 'Dehradun';
+    //   } else if (userCircle === 'North East') {
+    //     location = 'Meghalaya';
+    //   } else if (userCircle === 'All Circle') {
+    //     location = 'Delhi';
+    //   } else {
+    //     location = userCircle;
+    //   }
+    // } else {
+    //   console.log('loadWeather: No user/location');
+    //   this.getUserCurrentLocation();
+    //   return;
+    // }
+
+    if (location == '') {
+      console.error('loadWeather: Location is still undefined.');
+      this.getUserCurrentLocation();
+      return;
+    }
+
+    // Save the resolved location
+    this.selectedLocation = location;
+
     this.isLoading = true; // Start loader
+
     if (this.selectedSource === 'weather_api') {
       this.dataService.getWeatherForecast(location).subscribe({
         next: (response: any) => {
@@ -863,7 +896,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         },
         error: (err: any) => {
           console.error('Error from cross_visual', err);
-          this.isLoading = false; // Stop loader on error
+          this.isLoading = false;
           this.cdr.detectChanges();
         },
       });
@@ -1281,7 +1314,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         // collect only the categories that exist
         this.categoriesKeys = Object.keys(categories);
 
-        // ✅ set first tab active only once
+        //  set first tab active only once
         if (this.categoriesKeys.length > 0 && this.activeTab === '') {
           this.activeTab = this.categoriesKeys[0];
           this.selectedHazard = this.activeTab;

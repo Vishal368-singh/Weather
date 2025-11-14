@@ -15,10 +15,11 @@
           id="circleSelect"
           class="form-select"
           [(ngModel)]="selectedCircle"
+          aria-placeholder="select circle"
           (change)="onCircleChange(selectedCircle)"
         >
-          <option *ngFor="let circle of circles" [value]="circle">
-            {{ circle }}
+          <option *ngFor="let circle of circles" [value]="circle.value">
+            {{ circle.value }}
           </option>
         </select>
       </div>

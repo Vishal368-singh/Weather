@@ -47,42 +47,9 @@ import { Circle as CircleGeom } from 'ol/geom';
 import * as turf from '@turf/turf';
 import { catchError, throwError } from 'rxjs';
 import { CurrentLocationService } from '../../services/current-location-service';
+import { visibility } from 'html2canvas/dist/types/css/property-descriptors/visibility';
 
 declare const ol: any;
-class LayerToggleControl extends Control {
-  constructor(layer: VectorLayer<any>) {
-    const button = document.createElement('button');
-
-    const img = document.createElement('img');
-    img.src = 'assets/icons/ToggleTowerWhite.svg'; // path to your icon
-    img.alt = 'Tower';
-    img.style.width = '20px';
-    img.style.height = '20px';
-    img.style.filter = 'invert(1)';
-    button.appendChild(img);
-
-    // Initial background color based on visibility
-    button.style.backgroundColor = layer.getVisible() ? '#157347' : 'red';
-
-    button.title = 'Tower On/Off ';
-
-    const element = document.createElement('div');
-    element.className = 'layer-toggle ol-unselectable ol-control';
-    element.appendChild(button);
-    button.style.display = 'None';
-
-    super({ element });
-
-    // Toggle event
-    button.addEventListener('click', () => {
-      const visible = layer.getVisible();
-      layer.setVisible(!visible);
-
-      // Update button background based on new visibility
-      button.style.backgroundColor = !visible ? 'green' : 'red';
-    });
-  }
-}
 
 @Component({
   selector: 'app-map-weather',
@@ -97,18 +64,21 @@ export class MapWeather implements AfterViewInit {
   @ViewChild('towerListRef') towerListRef!: ElementRef;
   @Output() callParentFun = new EventEmitter<void>();
   @Output() callParentFun2 = new EventEmitter<void>();
+
   callParentFunction() {
     this.callParentFun.emit();
   }
-  callParentFunction2(circle: any) {
-    this.callParentFun2.emit(circle);
+
+  callParentFunction2(circleName: any) {
+    this.callParentFun2.emit(circleName);
   }
 
+  public selectedCircle: string = '';
   logo_path: string = '../../../assets';
-  indiaExtent3857 = [
-    ...fromLonLat([68.1766451354, 6.5546079]), // [minX, minY]
-    ...fromLonLat([97.4025614766, 37.097]), // [maxX, maxY]
-  ];
+  // indiaExtent3857 = [
+  //   ...fromLonLat([68.1766451354, 6.5546079]), // [minX, minY]
+  //   ...fromLonLat([97.4025614766, 37.097]), // [maxX, maxY]
+  // ];
   screenshotData: any[] = [];
   currentDate: string = '';
   currentTime: string = '';
@@ -123,17 +93,20 @@ export class MapWeather implements AfterViewInit {
   popupCloser!: HTMLElement;
   popupOverlay!: any;
   map!: Map;
+
   public riskData: any = {
     Rain: {
       VeryHeavy: { Name: 0, State: 0 },
       Heavy: { Name: 0, State: 0 },
       Moderate: { Name: 0, State: 0 },
     },
+
     Temperature: {
       VeryHeavy: { Name: 0, State: 0 },
       Heavy: { Name: 0, State: 0 },
       Moderate: { Name: 0, State: 0 },
     },
+
     Wind: {
       VeryHeavy: { Name: 0, State: 0 },
       Heavy: { Name: 0, State: 0 },
@@ -171,45 +144,16 @@ export class MapWeather implements AfterViewInit {
     private dataService: DataService,
     private WeatherService: WeatherService,
     private locationService: CurrentLocationService
-  ) {}
+  ) {
+    // Listen for source load completion
+  }
+
   logId: String = '';
   weatherApiData: any = {};
   newTowerLayer!: VectorLayer<any>;
   newtowerSource = new VectorSource();
 
   hazardsSource = new VectorSource();
-
-  teleconServicesSource = new VectorSource({
-    format: new GeoJSON(),
-    url: 'https://mlinfomap.org/geoserver/Telecom/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Telecom%3ARegions&outputFormat=application%2Fjson&maxFeatures=1000',
-    // url: 'https://www.aajkabharatweb.com/geoserver/Telecom/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Telecom%3ARegions&maxFeatures=1000&outputFormat=application%2Fjson',
-  });
-
-  // teleconServices = new VectorLayer({
-  //   source: this.teleconServicesSource,
-  //   properties: {
-  //     title: 'Weather Zone',
-  //     fixed: true,
-  //   },
-  //   style: function (feature) {
-  //     return new Style({
-  //       text: new Text({
-  //         text: feature.get('RegionName'), // Change 'name' to the attribute you want to label
-  //         font: '15px Calibri,sans-serif',
-  //         fill: new Fill({ color: '#fff' }),
-  //         stroke: new Stroke({ color: '#000', width: 8 }),
-  //         overflow: true,
-  //       }),
-  //       stroke: new Stroke({
-  //         color: '#0f370dff',
-  //         width: 2,
-  //       }),
-  //       fill: new Fill({
-  //         color: 'rgba(200, 231, 255, 0)',
-  //       }),
-  //     });
-  //   },
-  // });
 
   showZoneListDropdown: boolean = false;
   towerWeatherInfo: {
@@ -236,42 +180,299 @@ export class MapWeather implements AfterViewInit {
       dataTimeStamp: string;
     };
   } = {};
+
   zoneArray: any[] = ['All', 'East', 'West', 'North', 'South'];
   selectedZoneArray: any[] = [];
-  // selectedCircleLayers: VectorLayer[] = [];
-  // selectedDistrictLayers: VectorLayer[] = [];
 
-  circleLayerSource = new VectorSource();
-  districtLayerSource = new VectorSource();
-
-  circleLayer = new VectorLayer({
-    source: this.circleLayerSource,
-    style: new Style({
-      stroke: new Stroke({ color: '#157347', width: 2 }),
-    }),
-    properties: {
-      title: 'Circle Layer',
-      legendFixed: true, // From our last fix
-    },
-    visible: false, // Start hidden
+  // Source of District
+  districtVectorSource: any = new VectorSource({
+    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3AIndusDistrict&outputFormat=application%2Fjson&maxFeatures=1000',
+    format: new GeoJSON(),
   });
 
-  districtLayer = new VectorLayer({
-    source: this.districtLayerSource,
-    style: new Style({
-      stroke: new Stroke({ color: '#0ace72ff', width: 1 }),
-    }),
-    properties: {
-      title: 'District Layer',
-      legendFixed: true, // From our last fix
-    },
-    visible: false, // Start hidden
+  // Source of Circle
+  circleVectorSource: any = new VectorSource({
+    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3ATelecom_Circle&outputFormat=application%2Fjson&maxFeatures=100',
+    format: new GeoJSON(),
   });
+
+  // Source of Weather_location
+  Weather_LocationsVectorSource: any = new VectorSource({
+    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3Aweather_locations&outputFormat=application%2Fjson&maxFeatures=10000',
+    format: new GeoJSON(),
+  });
+
+  //Layer of District
+  districtVectorLayer: any = new VectorLayer({
+    properties: {
+      title: 'Districts',
+      legendFixed: true,
+    },
+    style: (feature) => this.styleFunctionDistrictLayer(feature),
+    source: this.districtVectorSource,
+  });
+
+  //Layer of Circle
+  circleVectorLayer = new VectorLayer({
+    source: this.circleVectorSource,
+    style: (feature) => this.styleFunctionCircleLayer(feature),
+    properties: {
+      title: 'Circles',
+      legendFixed: true,
+    },
+  });
+
+  //Layer of Weather_Locations
+  Weather_LocationsVectorLayer = new VectorLayer({
+    source: this.Weather_LocationsVectorSource,
+    // visible: false,
+    style: (feature) => this.styleFunctionWeather_LocationsLayer(feature),
+    properties: {
+      title: 'Weather Locations',
+      legendFixed: true,
+    },
+  });
+
+  // Features added of circles, district, Weather_Locations
+  loadLayersFeatures = () => {
+    //Load Features Of Circle Layers
+    this.circleVectorSource.on('featuresloadend', () => {
+      this.allCircleFeatures = this.circleVectorSource.getFeatures();
+      // console.log('Circle features loaded:', this.allCircleFeatures);
+    });
+
+    //Load Features Of District Layers
+    this.districtVectorSource.on('featuresloadend', () => {
+      this.allDistrictFeatures = this.districtVectorSource.getFeatures();
+      // console.log('District features loaded:', this.allDistrictFeatures);
+    });
+
+    //Load Features Of Weather_Locations Layers
+    this.Weather_LocationsVectorSource.on('featuresloadend', () => {
+      this.allWeather_LocationsFeatures =
+        this.Weather_LocationsVectorSource.getFeatures();
+      // console.log('District features loaded:', this.allDistrictFeatures);
+    });
+  };
+
+  // Flag for zoom once at the time of map load
+  private initialLoad = true;
+
+  // For Filter the
+  filterVectorLayerCircleName = () => {
+    this.clearSearchMarker();
+    if (this.selectedCircle !== 'All Circle') {
+      // Filter Indus Circle Layer
+      this.circleVectorLayer.getSource().clear();
+      let vectorSource = this.circleVectorLayer.getSource();
+      vectorSource.addFeatures(this.allCircleFeatures);
+      let filteredFeatures: any = [];
+      let features = vectorSource.getFeatures();
+      features.forEach((feature: any) => {
+        if (feature.get('indus_circ') === this.selectedCircle) {
+          filteredFeatures.push(feature);
+          // this.styleFunctionCircleLayer(feature);
+          let extent = feature.values_.geometry.extent_;
+          // this.map.getView().fit(extent, this.map.getSize());
+          this.map.getView().fit(extent, { duration: 500 });
+        }
+      });
+      vectorSource.clear();
+      vectorSource.addFeatures(filteredFeatures);
+      // this.vectorStateLayer.setVisible(true)
+
+      // Filter District  Layer
+      this.districtVectorLayer.getSource().clear();
+      let vectorSourceDis = this.districtVectorLayer.getSource();
+      vectorSourceDis.addFeatures(this.allDistrictFeatures);
+      let filteredFeat: any = [];
+      let feat = vectorSourceDis.getFeatures();
+
+      feat.forEach((feature: any) => {
+        if (feature.get('indus_circ') === this.selectedCircle) {
+          filteredFeat.push(feature);
+        }
+      });
+      vectorSourceDis.clear();
+      vectorSourceDis.addFeatures(filteredFeat);
+
+      // Filter Weather Locations
+      this.Weather_LocationsVectorLayer.getSource().clear();
+      let vectorSourceWea = this.Weather_LocationsVectorLayer.getSource();
+      vectorSourceWea.addFeatures(this.allWeather_LocationsFeatures);
+      let filteredFeatWea: any = [];
+      let featWea = vectorSourceWea.getFeatures();
+
+      featWea.forEach((feature: any) => {
+        if (feature.get('indus_circ') === this.selectedCircle) {
+          filteredFeatWea.push(feature);
+        }
+      });
+      vectorSourceWea.clear();
+      vectorSourceWea.addFeatures(filteredFeatWea);
+      this.Weather_LocationsVectorLayer.setVisible(true);
+    } else {
+      this.circleVectorLayer.getSource().clear();
+      let vectorSource = this.circleVectorLayer.getSource();
+      vectorSource.addFeatures(this.allCircleFeatures);
+      this.circleVectorLayer.setStyle(this.styleFunctionCircleLayer);
+
+      this.districtVectorLayer.getSource().clear();
+      let vectorSourceDis = this.districtVectorLayer.getSource();
+      vectorSourceDis.addFeatures(this.allDistrictFeatures);
+      this.districtVectorLayer.setStyle(this.styleFunctionDistrictLayer);
+      this.districtVectorLayer.setVisible(false);
+
+      this.Weather_LocationsVectorLayer.getSource().clear();
+      this.Weather_LocationsVectorLayer.setVisible(true);
+      let vectorSourceWea = this.Weather_LocationsVectorLayer.getSource();
+      vectorSourceWea.addFeatures(this.allWeather_LocationsFeatures);
+      this.Weather_LocationsVectorLayer.setStyle(
+        this.styleFunctionWeather_LocationsLayer
+      );
+      this.Weather_LocationsVectorLayer.setVisible(false);
+
+      // this.zoomToIndiaExtent();
+      if (this.initialLoad) {
+        // zoom on India
+        this.initialLoad = false;
+      } else {
+        const extent = this.circleVectorLayer.getSource().getExtent();
+        this.map.getView().fit(extent, { duration: 500 });
+      }
+    }
+    this.districtVectorLayer.setVisible(true);
+
+    // --- Sync Weather Locations legend checkbox with "All Circle" ---
+    const labels = document.querySelectorAll('label.layer-label');
+    labels.forEach((label: any) => {
+      if (label.innerText.trim() === 'Weather Locations') {
+        const checkbox = label.previousSibling as HTMLInputElement;
+
+        if (checkbox) {
+          if (this.selectedCircle === 'All Circle') {
+            checkbox.checked = false; // Uncheck
+            this.Weather_LocationsVectorLayer.setVisible(false);
+          } else {
+            checkbox.checked = true; // Check
+            this.Weather_LocationsVectorLayer.setVisible(true);
+          }
+        }
+      }
+    });
+  };
+
+  styleFunctionCircleLayer = (feature: any) => {
+    const circleName = feature.get('indus_circ') || 'Unnamed Circle';
+    const zoom: any = this.map.getView().getZoom();
+
+    const style: any = new Style({
+      stroke: new Stroke({ color: '#010e09ff', width: 2 }),
+      fill: new Fill({ color: 'rgba(21, 115, 71, 0.05)' }),
+    });
+
+    if (zoom < 8) {
+      const fontSize = Math.max(4, zoom * 3);
+
+      style.setText(
+        new Text({
+          text: circleName.toUpperCase(),
+          font: `900 ${fontSize}px Calibri, sans-serif`,
+          textAlign: 'center',
+          placement: 'point',
+          overflow: true,
+          fill: new Fill({ color: '#000000' }),
+          stroke: new Stroke({
+            color: '#ffffff',
+            width: Math.max(1, fontSize / 5),
+          }),
+        })
+      );
+
+      const allFeatures = this.circleVectorSource.getFeatures();
+      const firstFeature = allFeatures.find(
+        (f: any) => f.get('indus_circ') === circleName
+      );
+
+      if (firstFeature) {
+        if (feature.getId() !== firstFeature.getId()) {
+          style.setText(null);
+        }
+      }
+    } else {
+      style.setText(null);
+    }
+
+    return style;
+  };
+
+  styleFunctionDistrictLayer = (feature: any) => {
+    // Get the district name (adjust property name if different)
+    const districtName =
+      feature.get('district') || feature.get('SITE_NAME') || 'Unknown';
+    const zoom: any = this.map.getView().getZoom();
+
+    const style: any = new Style({
+      stroke: new Stroke({ color: '#07e67eff', width: 1 }),
+      fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
+    });
+    if (zoom > 11) {
+      style.setText(
+        new Text({
+          text: districtName,
+          font: ' 600 14px "Segoe UI", Arial, sans-serif',
+          textAlign: 'center',
+          placement: 'point',
+          overflow: true,
+          // Slightly darker text color for better visibility
+          fill: new Fill({ color: '#222222' }), // Dark gray/blackish text
+          stroke: new Stroke({
+            color: 'rgba(255,255,255,0.7)', // light white outline for contrast
+            width: 4,
+          }),
+          offsetY: -1,
+        })
+      );
+
+      const source = this.districtVectorSource;
+      const allFeatures = source.getFeatures() as OlFeature<Geometry>[];
+
+      const firstFeatureForDistrict = allFeatures.find(
+        (f: OlFeature<Geometry>) =>
+          (f.get('district') || f.get('SITE_NAME')) === districtName
+      );
+
+      if (
+        firstFeatureForDistrict &&
+        districtName !==
+          (firstFeatureForDistrict.get('district') ||
+            firstFeatureForDistrict.get('SITE_NAME'))
+      ) {
+        style.setText(null);
+      }
+    } else {
+      style.setText(null);
+    }
+
+    return style;
+  };
+
+  styleFunctionWeather_LocationsLayer = (feature: any) => {
+    return new Style({
+      image: new Icon({
+        src: 'assets/icons/Weather_Locations.png',
+        scale: 0.02,
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+      }),
+    });
+  };
 
   circleOptions: { value: string; label: string }[] = [];
   allCircleFeatures: any[] = [];
-  allDistrictFeatures: any[] = [];
-  //selectedCircleLayers: ol.layer.Vector[] = [];
+  allDistrictFeatures: Feature<Geometry>[] = [];
+  allWeather_LocationsFeatures: Feature<Geometry>[] = [];
   showCircleListDropdown: boolean = false;
   zoneWiseState: { [zone: string]: string[] } = {
     East: ['Kolkata', 'Bhubaneswar', 'Patna', 'Guwahati'],
@@ -279,12 +480,13 @@ export class MapWeather implements AfterViewInit {
     North: ['Delhi', 'Chandigarh', 'Lucknow', 'Dehradun'],
     South: ['Chennai', 'Bangalore', 'Hyderabad', 'Thiruvananthapuram'],
   };
+
   isIDWLayer: boolean = false;
   circleArray: any[] = [];
   selectedCircleArray: any[] = [];
   indiaExtent: any;
   initialCenter = fromLonLat([82.8320187, 25.4463565]);
-  initialZoom = 10;
+  initialZoom = 4;
 
   minTemp: any;
   minRain: any;
@@ -435,22 +637,26 @@ export class MapWeather implements AfterViewInit {
     this.popupCloser?.addEventListener('click', () => {
       this.popupOverlay.setPosition(undefined);
     });
+
+    this.cdr.detectChanges();
   }
 
   async ngOnInit(): Promise<void> {
-    await this.initializeMap();
-    const storedUser = sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
+
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      await this.loadCircleGeoJson();
-      await this.loadDistrictGeoJson();
-      const circles = [`${this.user.circle}`];
-      if (circles.length > 0) {
-        this.showSelectedDistrictOnMap(circles);
-      }
+      this.selectedCircle = this.user.indus_circle;
+
+      this.initialLoad = true;
+
+      this.loadLayersFeatures();
+      await this.initializeMap();
+      await this.loadCircleListForDropdown();
+      this.filterVectorLayerCircleName();
     }
 
-    const circleClicked = sessionStorage.getItem('circleClicked');
+    const circleClicked = localStorage.getItem('circleClicked');
     if (circleClicked) {
       const clicked = JSON.parse(circleClicked);
       this.WeatherService.setCircleLabelClicked(clicked);
@@ -473,17 +679,18 @@ export class MapWeather implements AfterViewInit {
         }
         this.zoomOnLocationSearch(location);
       } else {
-        // console.log('Zooming to user circle:', this.user.circle);
-        this.showSelectedDistrictOnMap([`${this.user.circle}`]);
+        // this.showSelectedDistrictOnMap([`${this.user.circle}`]);
         this.isPanIndiaClicked = false;
       }
     });
 
     this.WeatherService.searchLocation$.subscribe((location: string) => {
+
       if (location) {
         this.zoomOnLocationSearch(location);
       }
     });
+    this.clearSearchMarker();
 
     this.WeatherService.selectedSource$.subscribe((source: string) => {
       if (source) {
@@ -497,15 +704,58 @@ export class MapWeather implements AfterViewInit {
       this.logId = id;
       this.cdr.detectChanges();
     });
+    this.circleVectorLayer.setStyle(this.styleFunctionCircleLayer);
+  }
+  // Add this new function inside your MapWeather class
 
-    this.loadNewTowerData(
-      'https://mlinfomap.org/geoserver/weather_postgres/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=weather_postgres%3Atower_locations&outputFormat=application%2Fjson&maxFeatures=10000'
-    ),
-      this.generateRegionWiseWeatherIDW();
-    this.fetchUserList();
+  async loadCircleListForDropdown() {
+    try {
+      let apiPayload: { circle: string };
+      if (['Admin', 'MLAdmin'].includes(this.user.userrole)) {
+        apiPayload = { circle: 'All Circle' };
+      } else {
+        apiPayload = { circle: this.user.indus_circle };
+      }
+
+      const res: any = await this.dataService
+        .postData('get_circle_list', apiPayload)
+        .toPromise();
+      if (res && res.status && Array.isArray(res.data)) {
+        let circles = res.data;
+
+        //  Exclude "All Circle" only for user role
+        if (this.user.userrole === 'User') {
+          circles = circles.filter(
+            (item: { circle: string }) => item.circle !== 'All Circle'
+          );
+        }
+
+        this.circleOptions = circles
+          .map((circleName: { circle: string; location: string }) => ({
+            value: circleName.location,
+            label: circleName.circle,
+          }))
+          .sort(
+            (
+              a: { label: string; value: string },
+              b: { label: string; value: string }
+            ) => a.label.localeCompare(b.label)
+          );
+      } else {
+        console.error(
+          'Failed to load circle list: Invalid API response format'
+        );
+        this.circleOptions = [];
+      }
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('❌ Failed to load circle list from API:', error);
+      this.circleOptions = [];
+    }
   }
 
   zoomOnLocationSearch = (location: string) => {
+
     const existing = this.map
       .getLayers()
       .getArray()
@@ -514,7 +764,7 @@ export class MapWeather implements AfterViewInit {
     if (existing) {
       this.map.removeLayer(existing);
     }
-    console.log(' Zooming to location:', location);
+
     if (location === 'India') {
       const indiaExtent: Extent = [
         fromLonLat([68.176645, 6.747139]), // Southwest corner (approx. Gujarat/Kerala)
@@ -571,6 +821,18 @@ export class MapWeather implements AfterViewInit {
     }
   };
 
+  clearSearchMarker() {
+    const existing = this.map
+      .getLayers()
+      .getArray()
+      .find((l: any) => l.id === 'search-point-marker');
+
+    if (existing) {
+      this.map.removeLayer(existing);
+      this.WeatherService.setSearchLocation('');
+    }
+  }
+
   loadNewTowerData(geoJsonDataURL: string) {
     this.http.get(geoJsonDataURL).subscribe((geojson: any) => {
       const features = new GeoJSON().readFeatures(geojson, {
@@ -579,183 +841,43 @@ export class MapWeather implements AfterViewInit {
       this.newtowerSource.addFeatures(features);
     });
   }
-  //#region circle Data
-  toTitleCase(text: string): string {
-    const exceptions = ['UP', 'UPE', 'UPW', 'NE', 'J&K']; // exceptions in full caps
-
-    // If the whole string is an exception, return as is
-    if (exceptions.includes(text.toUpperCase())) {
-      return text.toUpperCase();
-    }
-
-    // Otherwise convert to Title Case
-    return text
-      .toLowerCase()
-      .split(' ')
-      .map((word) => {
-        return exceptions.includes(word.toUpperCase())
-          ? word.toUpperCase()
-          : word.charAt(0).toUpperCase() + word.slice(1);
-      })
-      .join(' ');
-  }
-  async loadCircleGeoJson() {
-    try {
-      const response = await fetch('assets/geojson/Telecom_circle.geojson');
-      if (!response.ok) throw new Error('Network response was not ok');
-
-      const geojsonData = await response.json();
-      const format = new ol.format.GeoJSON();
-      const features = format.readFeatures(geojsonData, {
-        featureProjection: 'EPSG:3857',
-      });
-      // console.log(' Features:', features);
-      this.allCircleFeatures = features;
-      this.circleOptions = features
-        .map((f: any, i: number) => {
-          const raw = f.get('indus_circ'); // extract telecom_ci from each feature
-          // .filter((ci: string | null | undefined) => !!ci) //
-          // const raw = f.get('Telecom N');
-          // console.log(' Raw Circle Name:', raw);
-          return {
-            value: raw,
-            label: raw || `Circle ${i + 1}`,
-          };
-        })
-        .sort(
-          (
-            a: { label: string; value: string },
-            b: { label: string; value: string }
-          ) => a.label.localeCompare(b.label)
-        );
-      if (!['Admin', 'MLAdmin'].includes(this.user.userrole)) {
-        this.circleOptions = this.circleOptions.filter(
-          (circle: any) => circle.label === this.user.circle
-        );
-      }
-      this.cdr.detectChanges();
-    } catch (error) {
-      console.error('❌ Failed to load geojson:', error);
-      this.circleOptions = [];
-    }
-  }
-
-  // ............Load District GeoJson............
-  async loadDistrictGeoJson() {
-    try {
-      const response = await fetch('assets/geojson/IndusDistrict.geojson');
-      if (!response.ok) throw new Error('Network response was not ok');
-
-      const geojsonData = await response.json();
-      const format = new ol.format.GeoJSON();
-      const features = format.readFeatures(geojsonData, {
-        featureProjection: 'EPSG:3857',
-      });
-      // console.log(' Features:', features);
-      this.allDistrictFeatures = features;
-    } catch (error) {
-      console.error('❌ Failed to load geojson:', error);
-      this.circleOptions = [];
-    }
-  }
 
   onCircleLevelChange(event: Event): void {
     const selectEl = event.target as HTMLSelectElement;
     const selectedValues = Array.from(selectEl.selectedOptions).map(
-      (opt) => opt.value
+      (opt) => opt.label
+    );
+    const filterCircle: any = this.circleOptions.filter(
+      (option) => option.label == selectedValues[0]
     );
 
-    this.WeatherService.setCircleChange(selectedValues[0]);
-    this.showSelectedCirlceOnMap(selectedValues);
-    // console.log(' Selected Circles:', selectedValues);
-    this.callParentFunction2(selectedValues);
-    sessionStorage.setItem('selectedCircle', JSON.stringify(selectedValues));
-  }
+    this.selectedCircle = selectedValues[0] || '';
+    let selectedCircleLocation = filterCircle[0]?.value;
 
-  showSelectedCirlceOnMap(selectedValues: any) {
-    // 🧹 Clear previous features from the single source
-    this.circleLayerSource.clear();
+    let circleLabel = selectedValues[0] || '';
 
-    const allFeatures: OlFeature<Geometry>[] = []; // To calculate combined extent
-    let allTelecomCis: string[] = []; // To pass to the district function
+    if (circleLabel === 'All Circle') {
+      this.WeatherService.setCircleChange('M&G');
+    } else {
+      this.WeatherService.setCircleChange(circleLabel);
+    }
 
-    selectedValues.forEach((circleName: any) => {
-      const features = this.allCircleFeatures.filter(
-        (f) =>
-          f.get('indus_circ') === circleName ||
-          f.get('telecom_ci') === circleName
+    this.WeatherService.setCircleLocationChange(selectedCircleLocation);
+
+    if (this.selectedCircle === 'All Circle') {
+      this.callParentFunction2(['M&G']);
+      localStorage.setItem('selectedCircle', JSON.stringify(['M&G']));
+    } else {
+      this.selectedCircleArray = [this.selectedCircle];
+      this.WeatherService.setCircleChange(this.selectedCircle);
+      this.callParentFunction2([this.selectedCircle]);
+      localStorage.setItem(
+        'selectedCircle',
+        JSON.stringify([this.selectedCircle])
       );
-      // console.log(' Selected Circle Features:', features);
-
-      if (features.length > 0) {
-        allFeatures.push(...features); // Add features for extent calculation
-
-        const telecom_ci = features[0].get('indus_circ');
-        if (telecom_ci) {
-          allTelecomCis.push(telecom_ci);
-        }
-        // console.log(' Telecom CI for Zooming:', telecom_ci);
-      } else {
-        console.warn(`⚠️ No feature found for: ${circleName}`);
-      }
-    });
-
-    // Show districts for all selected circles
-    if (allTelecomCis.length > 0) {
-      this.showSelectedDistrictOnMap(allTelecomCis);
-    } else {
-      // No circles selected/found, hide district layer
-      this.districtLayerSource.clear();
-      this.districtLayer.setVisible(false);
     }
 
-    // Add all found features to the source at once
-    if (allFeatures.length > 0) {
-      this.circleLayerSource.addFeatures(allFeatures);
-      this.circleLayer.setVisible(true); // Make the layer visible
-
-      // 🗺️ Zoom to feature extent
-      const extent = this.circleLayerSource.getExtent();
-      this.map
-        .getView()
-        .fit(extent, { padding: [50, 50, 50, 50], duration: 1000 });
-    } else {
-      this.circleLayer.setVisible(false); // Hide layer if no features
-    }
-  }
-
-  showSelectedDistrictOnMap(selectedValues: any) {
-    // 🧹 Clear previous features from the single source
-    this.districtLayerSource.clear();
-
-    const allFeatures: OlFeature<Geometry>[] = []; // To calculate combined extent
-    // console.log(' Selected Districts:', this.allDistrictFeatures);
-
-    selectedValues.forEach((circleName: any) => {
-      const features = this.allDistrictFeatures.filter(
-        (f) => f.get('indus_circ') === circleName
-      );
-
-      if (features.length > 0) {
-        allFeatures.push(...features);
-      } else {
-        console.warn(`⚠️ No feature found for district: ${circleName}`);
-      }
-    });
-
-    // Add all found features to the source at once
-    if (allFeatures.length > 0) {
-      this.districtLayerSource.addFeatures(allFeatures);
-      this.districtLayer.setVisible(true); // Make the layer visible
-
-      // 🗺️ Zoom to feature extent
-      const extent = this.districtLayerSource.getExtent();
-      this.map
-        .getView()
-        .fit(extent, { padding: [50, 50, 50, 50], duration: 1000 });
-    } else {
-      this.districtLayer.setVisible(false); // Hide if no features
-    }
+    this.filterVectorLayerCircleName();
   }
 
   //#endregion
@@ -921,58 +1043,16 @@ export class MapWeather implements AfterViewInit {
     }
   }
 
-  // private async fetchWeatherData(): Promise<any[]> {
-  //   try {
-  //     const response = await fetch(
-  //       'https://mlinfomap.biz/WeatherAPI/api/WeatherData'
-  //     );
-  //     if (!response.ok)
-  //       throw new Error(`Error fetching weather data: ${response.status}`);
-  //     const result = await response.json();
-  //     if (result.message === 'Result found' && result.data?.recordsets?.[0]) {
-  //       return result.data.recordsets[0].map((item: any) => ({
-  //         latitude: item.Latitude,
-  //         longitude: item.Longitude,
-  //         temperature: parseFloat(item.CurrentTemp.replace('°C', '').trim()),
-  //         location: item.Location,
-  //       }));
-  //     }
-  //     return [];
-  //   } catch (error) {
-  //     console.error('Error fetching weather data:', error);
-  //     return [];
-  //   }
-  // }
-
-  private async fetchRiskData(): Promise<void> {
-    try {
-      const response = await fetch(
-        'http://localhost:8083/api/WeatherDataPlaceName'
-      );
-      const result = await response.json();
-      if (result.message === 'Result found') {
-        const records = result.data.recordsets[0];
-        records.forEach((item: any) => {
-          const type = item.Data_Type;
-          const cat = item.Category.replace(/\s/g, '');
-          // this.riskData[type][cat] = { Name: item.Name_Count, State: item.State_Count };
-        });
-      }
-      this.cdr.detectChanges();
-    } catch (error) {
-      console.error('Failed to fetch risk data:', error);
-    }
-  }
   getWeatherIconUrl(condition: string, time?: string): string {
     const iconMatch = this.uniqueConditionsWithIcons.find(
       (entry: any) => entry.name === condition
     );
     return iconMatch.dayUrl;
   }
+
   async getWeatherFromLatLong(lat: number, lon: number): Promise<any> {
     let apiUrl = '';
     const weatherApiKey = '76458ac302254ce6a1e44038253107';
-
     const WeatherApiUrl = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${lat},${lon}&days=7&aqi=no&alerts=no`;
 
     const CrossVisualApiKey = 'U97UPL62GH9FWVHVX9Q8Y36QE';
@@ -997,6 +1077,7 @@ export class MapWeather implements AfterViewInit {
           const currentHour = now.getHours();
           const currentWeather = data.current;
           let rain6Dyas = [];
+          let location_name = data.location.name;
           const forecastweather =
             data.forecast.forecastday[0].hour[currentHour];
           let hoursGap = 23 - currentHour;
@@ -1011,7 +1092,6 @@ export class MapWeather implements AfterViewInit {
             };
             rain6Dyas.push(obj);
           }
-
           const resultData: any = {
             time: `${currentHour}:00`,
             temp: currentWeather.temp_c,
@@ -1020,6 +1100,7 @@ export class MapWeather implements AfterViewInit {
             condition_text: currentWeather.condition.text,
             icon: currentWeather.condition.icon,
             rain6Dyas: rain6Dyas,
+            location_name: location_name,
           };
           return resultData;
         } else {
@@ -1065,14 +1146,6 @@ export class MapWeather implements AfterViewInit {
     }
   }
 
-  // Assuming this.map is your OpenLayers map instance
-  zoomToNewTowerLayerFeatures(layer: any): void {
-    const varanasiCoordinates = fromLonLat([82.9739, 25.3176]); // [lon, lat]
-
-    this.map.getView().setCenter(varanasiCoordinates);
-    this.map.getView().setZoom(10);
-  }
-
   closePopup() {
     if (this.popupContent && this.popupOverlay) {
       this.popupContent.innerHTML = '';
@@ -1082,31 +1155,6 @@ export class MapWeather implements AfterViewInit {
 
   //#region initialize map
   private async initializeMap(): Promise<void> {
-    // this.dataPoints = await this.fetchWeatherData();
-
-    const upBoundary = [77.0, 23.8, 84.6, 30.4];
-    const upExtent = transformExtent(upBoundary, 'EPSG:4326', 'EPSG:3857');
-    const upBoundaryGeometry = new Polygon([
-      [
-        [77.0, 23.8],
-        [84.6, 23.8],
-        [84.6, 30.4],
-        [77.0, 30.4],
-        [77.0, 23.8],
-      ].map(([lon, lat]) => fromLonLat([lon, lat])),
-    ]);
-
-    const features = this.dataPoints.map(
-      (dataPoint) =>
-        new Feature({
-          geometry: new Point(
-            fromLonLat([dataPoint.longitude, dataPoint.latitude])
-          ),
-          value: dataPoint.temperature,
-          location: dataPoint.location,
-        })
-    );
-
     // Define base map layer
     const baseMap = new TileLayer({
       source: new ol.source.XYZ({
@@ -1118,55 +1166,37 @@ export class MapWeather implements AfterViewInit {
         fixed: true,
       },
     });
-    const upLayer = new TileLayer({
-      source: new TileWMS({
-        url: 'http://mlinfomap.org/geoserver/weather/wms?',
-        params: {
-          LAYERS: 'weather:UP BND',
-          FORMAT: 'image/png',
-          TRANSPARENT: true,
-        },
-        serverType: 'geoserver',
-        crossOrigin: 'anonymous',
-      }),
-      opacity: 0.8,
-    });
-    // const newTowerLayer = new VectorLayer({
-    //   source: this.newtowerSource,
-    //   properties: {
-    //     title: 'Tower Layer',
-    //     fixed: true,
-    //   },
-    //   style: new Style({
-    //     image: new Icon({
-    //       anchor: [0.5, 1],
-    //       src: this.towerIconUrl,
-    //       scale: 0.5,
-    //     }),
-    //   }),
-    //   visible: true,
-    //   // minZoom: 1,
-    // });
+
     //#region Map tile
     this.map = new Map({
       target: 'map',
       layers: [
         baseMap,
+
+        // this.districtLayer,
+        this.districtVectorLayer,
+        this.circleVectorLayer,
+        this.Weather_LocationsVectorLayer,
+
         this.imgIDWTempLayer,
         this.imgIDWRainFallLayer,
         this.imgIDWWindLayer,
         this.imgIDWHumidityLayer,
         this.imgIDWFogLayer,
-        // this.teleconServices,
-        // newTowerLayer,
-        this.circleLayer,
-        this.districtLayer,
       ],
+
+      // ...
       view: new View({
         projection: 'EPSG:3857',
-        center: fromLonLat([25.446356542436767, 82.83201876568786]),
-        zoom: 5.5,
+
+        // Center of India [lon, lat] and a zoom level to see the country on load
+        center: this.initialCenter,
+        zoom: this.initialZoom,
+        minZoom: 4,
+        maxZoom: 11,
       }),
+      // ...
+
       controls: olDefaultControls({ zoom: false }).extend([
         new FullScreen({ source: 'map-component-container' }),
         new Zoom(),
@@ -1174,8 +1204,19 @@ export class MapWeather implements AfterViewInit {
       ]),
     });
 
+    // --- Set initial Z-Index for all layers map is created ---
+    this.circleVectorLayer.setZIndex(1);
+    this.districtVectorLayer.setZIndex(2);
+    this.Weather_LocationsVectorLayer.setZIndex(3);
+
+    this.imgIDWTempLayer.setZIndex(4);
+    this.imgIDWRainFallLayer.setZIndex(4);
+    this.imgIDWWindLayer.setZIndex(4);
+    this.imgIDWHumidityLayer.setZIndex(4);
+    this.imgIDWFogLayer.setZIndex(4);
+
     // --- Popup element
-    const container = document.getElementById('popup') as HTMLElement;
+    // const container = document.getElementById('popup') as HTMLElement;
     const closer = document.getElementById('popup-closer') as HTMLElement;
 
     // --- Overlay for popup
@@ -1202,52 +1243,6 @@ export class MapWeather implements AfterViewInit {
       return false;
     };
 
-    // const colorStops = [
-    //   { r: 0, g: 0, b: 255, value: 0 }, // blue
-    //   { r: 0, g: 255, b: 255, value: 20 }, // cyan
-    //   { r: 0, g: 255, b: 0, value: 40 }, // lime
-    //   { r: 255, g: 255, b: 0, value: 60 }, // yellow
-    //   { r: 255, g: 165, b: 0, value: 80 }, // orange
-    //   { r: 255, g: 0, b: 0, value: 100 }, // red
-    // ];
-
-    // function colorDistance(c1: any, c2: any) {
-    //   return Math.sqrt(
-    //     Math.pow(c1.r - c2.r, 2) +
-    //       Math.pow(c1.g - c2.g, 2) +
-    //       Math.pow(c1.b - c2.b, 2)
-    //   );
-    // }
-
-    // function getValueFromColor(r: any, g: any, b: any) {
-    //   let input = { r, g, b };
-    //   let nearest1: any = null,
-    //     nearest2 = null;
-    //   let minDist1: any = Infinity,
-    //     minDist2 = Infinity;
-
-    //   for (let stop of colorStops) {
-    //     let dist = colorDistance(input, stop);
-    //     if (dist < minDist1) {
-    //       minDist2 = minDist1;
-    //       nearest2 = nearest1;
-    //       minDist1 = dist;
-    //       nearest1 = stop;
-    //     } else if (dist < minDist2) {
-    //       minDist2 = dist;
-    //       nearest2 = stop;
-    //     }
-    //   }
-
-    //   if (minDist1 < 1) return nearest1.value;
-    //   let totalDist = minDist1 + minDist2;
-    //   let ratio = minDist1 / totalDist;
-
-    //   let interpolatedValue =
-    //     nearest1.value * (1 - ratio) + nearest2.value * ratio;
-    //   return interpolatedValue;
-    // }
-
     //#region Map OnClick
     this.map.on('click', async (evt) => {
       this.closePopup();
@@ -1258,7 +1253,7 @@ export class MapWeather implements AfterViewInit {
           let html = this.hazardDataBindPopup(feature.values_);
           this.popupContent.innerHTML = html;
           this.popupOverlay.setPosition(coord);
-        } else if (layer && layer.get('title') === 'Tower Layer') {
+        } else if (layer && layer.get('title') === 'Districts') {
           if (feature) {
             const payload = {
               type: 'update',
@@ -1281,43 +1276,20 @@ export class MapWeather implements AfterViewInit {
                   return;
                 }
               });
-            let id = feature.getId();
-            if (id !== undefined && id !== null) {
+            if (feature.values_) {
               if (!this.popupOverlay) {
                 return;
               }
-              const targetFeature = this.newtowerSource.getFeatureById(id);
-              let towerLat = targetFeature?.get('PRIORITY_LATITUDE');
-              let towerLon = targetFeature?.get('PRIORITY_LONGITUDE');
-              let siteName = (
-                targetFeature?.get('SITE_NAME') || ''
-              ).toUpperCase();
-              let district = targetFeature?.get('DISTRICTNAME');
-              let siteCategory = targetFeature?.get('SITECATEGORY');
-              let dgStatus = targetFeature?.get('DG_STATUS');
-              let circle = targetFeature?.get('CIRCLE');
-              let strategic = targetFeature?.get('STRATEGIC');
-              if (towerLat && towerLon) {
-                this.WeatherService.setLocation(`${towerLat},${towerLon}`);
-              }
-              if (
-                !towerLat ||
-                !towerLon ||
-                isNaN(towerLat) ||
-                isNaN(towerLon)
-              ) {
-                console.warn(
-                  '❌ Missing or invalid tower coordinates:',
-                  towerLat,
-                  towerLon
-                );
-                return;
-              }
 
-              const resultData = await this.getWeatherFromLatLong(
-                towerLat,
-                towerLon
-              );
+              let Lat = feature.values_.yy;
+              let Lon = feature.values_.xx;
+              let siteName = '';
+              let district = feature.values_.district;
+              let circle = feature.values_.state_ut;
+              if (Lat && Lon) {
+                this.WeatherService.setLocation(`${Lat},${Lon}`);
+              }
+              const resultData = await this.getWeatherFromLatLong(Lat, Lon);
               if (!resultData) return;
 
               const weatherIconUrl = resultData?.icon
@@ -1329,7 +1301,9 @@ export class MapWeather implements AfterViewInit {
 
                   <!-- Site Information -->
                   <div style="border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 8px;">
-                    <div><i class="fas fa-broadcast-tower" style="color:#007bff;"></i> <strong>SITE:</strong> ${siteName}</div>
+                    <div><i class="fas fa-broadcast-tower" style="color:#007bff;"></i> <strong>SITE:</strong> ${
+                      resultData.location_name
+                    }</div>
                     <div><i class="fas fa-circle" style="color:#28a745;"></i> <strong>Circle:</strong> ${circle}</div>
                     <div><i class="fas fa-map-marker-alt" style="color:#dc3545;"></i> <strong>District:</strong> ${district}</div>
                   </div>
@@ -1364,7 +1338,7 @@ export class MapWeather implements AfterViewInit {
 
                   <!-- Rain Probability Timeline -->
                   <div style="display: flex; align-items: center;">
-                    
+
                     <!-- Vertical label -->
                     <div style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: #555; margin-right: 6px;">
                       Rain Probability
@@ -1419,12 +1393,6 @@ export class MapWeather implements AfterViewInit {
       });
     });
 
-    this.setupPointerCursor(this.map, upBoundaryGeometry);
-    this.setupMapClick(this.map, upBoundaryGeometry, features);
-
-    // this.zoomToNewTowerLayerFeatures(newTowerLayer);
-
-    // Info of the imgIDWLayer
     // Create a tooltip element
     const tooltip = document.createElement('div');
     tooltip.className = 'map-tooltip';
@@ -1438,35 +1406,6 @@ export class MapWeather implements AfterViewInit {
     tooltip.style.borderRadius = '4px';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.fontSize = '12px';
-    // Mouse move event
-    this.map.on('pointermove', (evt) => {
-      const pointerEvt = evt.originalEvent as PointerEvent;
-      const coord = evt.coordinate;
-      if (!containsCoordinate(this.indiaExtent3857, coord)) {
-        tooltip.style.display = 'none';
-        return;
-      }
-
-      let tooltipContent: string[] = [];
-
-      this.imgIDWLayers.forEach(({ layer, source, label }) => {
-        if (layer.getVisible()) {
-          const val = this.getIDWValueAtCoord(coord, source);
-          if (val !== null) {
-            tooltipContent.push(`${label}: ${Math.round(val)}`);
-          }
-        }
-      });
-
-      if (tooltipContent.length > 0) {
-        tooltip.innerHTML = tooltipContent.join('<br>');
-        tooltip.style.left = pointerEvt.pageX + 10 + 'px';
-        tooltip.style.top = pointerEvt.pageY + 10 + 'px';
-        tooltip.style.display = 'block';
-      } else {
-        tooltip.style.display = 'none';
-      }
-    });
 
     this.cdr.detectChanges();
   }
@@ -1549,6 +1488,7 @@ export class MapWeather implements AfterViewInit {
       }
     });
   }
+
   renderLegendItem(
     layer: any,
     index: number,
@@ -1566,6 +1506,7 @@ export class MapWeather implements AfterViewInit {
     checkbox.style.width = '12px';
     checkbox.id = `layer-checkbox-${index}`;
 
+   
     checkbox.addEventListener('change', () => {
       this.closePopup();
       layer.setVisible(checkbox.checked);
@@ -1625,41 +1566,27 @@ export class MapWeather implements AfterViewInit {
           this.WeatherService.clearSelectedLayer();
           this.isIDWLayer = false;
           this.cdr.detectChanges();
-
-          // Optional: Zoom out or re-center
-          // this.map.getView().animate({
-          //   center: this.initialCenter,
-          //   zoom: this.initialZoom,
-          //   duration: 500,
-          // });
         } else {
           // Some other IDW layer is still visible – just remove this one from legend
           existingItem.remove();
-          // Optional: Zoom out or re-center
         }
       } else {
         // Non-IDW layer – just remove from legend
         existingItem.remove();
-        // Optional: Zoom out or re-center
-        // this.map.getView().animate({
-        //   center: this.initialCenter,
-        //   zoom: this.initialZoom,
-        //   duration: 500,
-        // });
       }
     }
   }
 
-  private setupPointerCursor(map: Map, boundary: Polygon): void {
-    map.on('pointermove', (event) => {
-      const hoveredCoordinate = event.coordinate;
-      map.getTargetElement().style.cursor = boundary.intersectsCoordinate(
-        hoveredCoordinate
-      )
-        ? 'pointer'
-        : 'default';
-    });
-  }
+  // private setupPointerCursor(map: Map, boundary: Polygon): void {
+  //   map.on('pointermove', (event) => {
+  //     const hoveredCoordinate = event.coordinate;
+  //     map.getTargetElement().style.cursor = boundary.intersectsCoordinate(
+  //       hoveredCoordinate
+  //     )
+  //       ? 'pointer'
+  //       : 'default';
+  //   });
+  // }
 
   private setupMapClick(
     map: Map,
@@ -1674,7 +1601,7 @@ export class MapWeather implements AfterViewInit {
   zoomToIndiaExtent = () => {
     this.map.getView().fit(this.indiaExtent, {
       padding: [20, 20, 20, 20],
-      duration: 1000,
+      duration: 100,
     });
   };
 
@@ -2147,141 +2074,6 @@ export class MapWeather implements AfterViewInit {
     });
   };
 
-  // ------------- from here lasso tool function and it's dependent functionality ----------------------------
-
-  getCurrentDateTime() {
-    const now = new Date();
-
-    // Format date → 27 Aug 2025
-    const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    };
-    const formattedDate = now.toLocaleDateString('en-GB', options);
-
-    // Format time → 02:00 (24h format, zero-padded)
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const formattedTime = `${hours}:00`;
-
-    return { formattedDate, formattedTime };
-  }
-
-  groupUsersByRole(data: any) {
-    const grouped: {
-      [role: string]: { username: string; mail: string | null; name: string }[];
-    } = {};
-
-    data.data.forEach((user: any) => {
-      const role = user.role?.trim() || 'UNKNOWN'; // clean spaces & fallback
-      if (!grouped[role]) {
-        grouped[role] = [];
-      }
-      grouped[role].push({
-        username: user.username?.trim(),
-        mail: user.mail?.trim() || null,
-        name: user.name?.trim(),
-      });
-    });
-
-    // convert to array of { role, users }
-    return Object.entries(grouped).map(([role, users]) => ({
-      role,
-      users,
-    }));
-  }
-
-  lassoSource = new VectorSource();
-  lassoLayer = new VectorLayer({
-    source: this.lassoSource,
-    style: new Style({
-      stroke: new Stroke({ color: 'rgba(255,0,0,0.8)', width: 2 }),
-      fill: new Fill({ color: 'rgba(255,0,0,0.2)' }),
-    }),
-    properties: {
-      title: 'Lasso Layer',
-    },
-  });
-
-  fetchUserList() {
-    this.dataService
-      .getWeatherUserList('get-user-list')
-      .subscribe(async (res: any) => {
-        this.userGroupedRoleWise = this.groupUsersByRole(res);
-      });
-  }
-
-  enableLasso(): void {
-    // Clear old polygons
-    const { formattedDate, formattedTime } = this.getCurrentDateTime();
-    this.currentDate = formattedDate;
-    this.currentTime = formattedTime;
-    this.lassoSource.clear();
-    if (this.lassoDraw) {
-      this.map.removeInteraction(this.lassoDraw);
-    }
-    this.lassoDraw = new Draw({
-      source: this.lassoSource,
-      type: 'Polygon',
-      freehand: true,
-    });
-    this.map.addLayer(this.lassoLayer);
-    this.lassoDraw.on('drawend', (event) => {
-      const polygon = event.feature.getGeometry() as Polygon;
-      const selected: Feature[] = [];
-      this.newtowerSource.forEachFeature((f) => {
-        const geom = f.getGeometry();
-        if (geom && polygon.intersectsExtent(geom.getExtent())) {
-          selected.push(f);
-        }
-      });
-      const towerProps = selected.map((f) => f.getProperties());
-      towerProps.forEach((props: any) => {
-        const district = props.SITE_NAME || 'UNKNOWN'; // fallback if missing
-        if (!this.towerGroupedByDistrict[district]) {
-          this.towerGroupedByDistrict[district] = [];
-        }
-        this.towerGroupedByDistrict[district].push(props);
-      });
-      this.groupedTowerArray = Object.entries(this.towerGroupedByDistrict).map(
-        ([circle, towers]) => {
-          const districts = [...new Set(towers.map((t) => t.SITE_NAME))];
-          const assignedUsers = districts.flatMap((district) => {
-            const roleGroup = this.userGroupedRoleWise.find(
-              (u: any) => u.role === district
-            );
-            return roleGroup
-              ? roleGroup.users.map((u: any) => ({
-                  name: u.name,
-                  mail: u.mail,
-                }))
-              : [];
-          });
-          return {
-            circle,
-            siteCount: towers.length,
-            districts,
-            users: assignedUsers, //  array of names only
-          };
-        }
-      );
-      if (this.groupedTowerArray.length > 0) {
-        this.isTowersSelected = true;
-        this.cdr.detectChanges();
-      }
-      this.map.removeInteraction(this.lassoDraw!);
-    });
-    this.map.addInteraction(this.lassoDraw);
-  }
-
-  closeTowerList() {
-    this.isTowersSelected = false;
-    this.groupedTowerArray = [];
-    if (this.lassoLayer && this.map) {
-      this.map.removeLayer(this.lassoLayer);
-    }
-  }
   onAlert(group: any, event: Event) {
     const checked = (event.target as HTMLInputElement).checked;
     if (checked) {

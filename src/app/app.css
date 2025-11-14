@@ -1,3 +1,31 @@
+:root {
+    --extreme-color: #ff0000;
+    --high-color: #ffa500;
+    --moderate-color: #ffff00;
+    --low-color: #00ff00;
+  }
+
+
+  .extreme{
+    background-color: var(--extreme-color);
+  }
+  
+
+  .legend-box.extreme {
+    background-color: var(--extreme-color);
+  }
+  .legend-box.high {
+    background-color: var(--high-color);
+  }
+  .legend-box.moderate {
+    background-color: var(--moderate-color);
+  }
+  .legend-box.low {
+    background-color: var(--low-color);
+  }
+  
+
+
 .pdf_cont {
     background-color: #FAF2E9;
     /* width: 210mm; */

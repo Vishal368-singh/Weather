@@ -25,70 +25,10 @@ export class ExportPdf {
     });
   }
 
-  // exportPDF(): void {
-  //   debugger
-  //   const content = document.getElementById('pdf-content');
-  //   if (!content) return;
-
-  //   this.loading = true;
-
-  //   let injectedMapImg: HTMLImageElement | null = null;
-  //   const mapEl = document.getElementById('map');
-  //   const olCanvas = mapEl?.querySelector('.ol-layer canvas') as HTMLCanvasElement;
-
-  //   if (olCanvas) olCanvas.style.display = 'none';
-
-  //   if (this.mapImage) {
-  //     const img = new Image();
-  //     img.src = this.mapImage;
-  //     img.style.position = 'absolute';
-  //     img.style.top = '0';
-  //     img.style.left = '0';
-  //     img.style.width = '100%';
-  //     img.style.border = 'none';
-  //     img.style.boxShadow = 'none';
-  //     img.style.zIndex = '0';
-  //     img.classList.add('export-map-image');
-  //     if (mapEl) {
-  //       mapEl.appendChild(img);
-  //       injectedMapImg = img;
-  //     }
-  //   }
-
-  //   setTimeout(() => {
-  //     const loader = document.getElementById('loader');
-  //     if (loader) loader.style.display = 'none'; // 🔒 Hide loader before capture
-
-  //     html2canvas(content, {
-  //       useCORS: true,
-  //       allowTaint: false,
-  //       backgroundColor: '#ffffff',
-  //       scale: 4,
-  //     }).then((canvas) => {
-  //       const imgData = canvas.toDataURL('image/png');
-  //       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  //       const pdfWidth = pdf.internal.pageSize.getWidth();
-  //       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-  //       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  //       pdf.save('weather-bulletin.pdf');
-
-  //       // ✅ Clean up everything
-  //       if (injectedMapImg) injectedMapImg.remove();
-  //       if (olCanvas) olCanvas.style.display = '';
-  //       if (loader) loader.style.display = 'flex'; // restore if needed
-  //       this.loading = false;
-  //     }).catch((err) => {
-  //       console.error('Error generating PDF:', err);
-  //       if (olCanvas) olCanvas.style.display = '';
-  //       if (loader) loader.style.display = 'flex';
-  //       this.loading = false;
-  //     });
-  //   }, 500);
-  // }
+ 
 
   exportPDF(): void {
-    debugger;
+  
     const content = document.getElementById('pdf-content');
     if (!content) return;
 

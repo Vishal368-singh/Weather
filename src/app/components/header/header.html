@@ -1,66 +1,131 @@
-<div [ngClass]="{
+<div
+  [ngClass]="{
     'header': true,
     'd-flex': true,
     'justify-content-between': true,
     'align-items-center': true,
     'px-5': false,
     'dashboard-header': isDashboard
-  }">
+  }"
+>
+  <div class="headerDiv d-flex align-items-center" style="color: #494343">
+    <img
+      class="me-2"
+      src="assets/icons/headerlogo.svg"
+      alt="Logo"
+      style="width: 70px; height: 65px"
+    />
+    <span class="fw-bold fs-12"
+      >Weather Intelligence & Disaster Alert System</span
+    >
 
-  <div class="headerDiv d-flex align-items-center" style="color: #494343;">
-    <img class="me-2" src="assets/icons/headerlogo.svg" alt="Logo" style="width: 70px; height: 65px; ">
-    <span class="fw-bold fs-12 ">Weather Intelligence & Disaster Alert System</span>
+    <button><a routerLink="/hazards-feed">Hazards Feed</a></button>
   </div>
 
   <!-- Right: Profile -->
-  <div (click)="toggleDropdown()" class="profile-area position-relative" title="Profile" style="cursor: pointer;">
-    <img class="profileImg fancy-profile" src="assets/icons/profile.svg" alt="Profile">
+  <div
+    (click)="toggleDropdown()"
+    class="profile-area position-relative"
+    title="Profile"
+    style="cursor: pointer"
+  >
+    <img
+      class="profileImg fancy-profile"
+      src="assets/icons/profile.svg"
+      alt="Profile"
+    />
 
-    <div *ngIf="showDropdown"
+    <div
+      *ngIf="showDropdown"
       class="profileDropdown position-absolute p-3 bg-white border rounded shadow dropdown-animate"
-      style="z-index: 10; min-width: 140px;">
+      style="z-index: 10; min-width: 140px"
+    >
       <div class="userName fw-bold text-success mb-2">Admin</div>
       <div class="profile-div">
-        <button (click)="changePassword()" class="btn-change-pass fw-bold text-success">Password</button>
+        <button
+          (click)="changePassword()"
+          class="btn-change-pass fw-bold text-success"
+        >
+          Password
+        </button>
       </div>
-      <div (click)="logout()" class="logoutBtn logout-hover" style="cursor: pointer;">Logout</div>
+      <div
+        (click)="logout()"
+        class="logoutBtn logout-hover"
+        style="cursor: pointer"
+      >
+        Logout
+      </div>
     </div>
   </div>
 </div>
-<div id="changePasswordModal" class="modal bg-dark bg-opacity-50 w-100 h-100" style="display:none;">
-  <div class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg" style="width: 400px;">
+<div
+  id="changePasswordModal"
+  class="modal bg-dark bg-opacity-50 w-100 h-100"
+  style="display: none"
+>
+  <div
+    class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg"
+    style="width: 400px"
+  >
     <div class="modal-content rounded-3 shadow">
-
       <!-- Header -->
       <div class="modal-header">
         <h5 class="modal-title">Change Password</h5>
-        <button type="button" class="btn-close" (click)="closeChangePasswordModal()"></button>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeChangePasswordModal()"
+        ></button>
       </div>
 
       <!-- Form -->
-      <form #passwordForm="ngForm" (ngSubmit)="submitChangePassword(passwordForm)">
+      <form
+        #passwordForm="ngForm"
+        (ngSubmit)="submitChangePassword(passwordForm)"
+      >
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Current Password</label>
-            <input type="password" class="form-control" name="oldPassword" ngModel />
+            <input
+              type="password"
+              class="form-control"
+              name="oldPassword"
+              ngModel
+            />
           </div>
           <div class="mb-3">
             <label class="form-label">New Password</label>
-            <input type="password" class="form-control" name="newPassword" ngModel />
+            <input
+              type="password"
+              class="form-control"
+              name="newPassword"
+              ngModel
+            />
           </div>
           <div class="mb-3">
             <label class="form-label">Confirm Password</label>
-            <input type="password" class="form-control" name="confirmPassword" ngModel />
+            <input
+              type="password"
+              class="form-control"
+              name="confirmPassword"
+              ngModel
+            />
           </div>
         </div>
 
         <!-- Footer -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeChangePasswordModal()"
+          >
+            Cancel
+          </button>
           <button type="submit" class="btn btn-success">Submit</button>
         </div>
       </form>
-
     </div>
   </div>
 </div>

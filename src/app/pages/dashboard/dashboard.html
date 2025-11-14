@@ -167,10 +167,9 @@
       <!-- Right Panel -->
       <div class="map-panel col-lg-7 col-md-7 col-sm-12 d-flex flex-column">
         <div class="equal-height-panel" id="map-component-container">
-          
           <div *ngIf="isSearchLoading" class="map-loading-overlay">
             <div class="spinner"></div>
-            <p class="loading-text" style="font-size: 24px;">
+            <p class="loading-text" style="font-size: 24px">
               Searching
               <span class="dot dot1">.</span>
               <span class="dot dot2">.</span>
@@ -237,7 +236,6 @@
             <app-map-weather
               (callParentFun)="hazardToggleOff()"
             ></app-map-weather>
-            
           </div>
         </div>
       </div>
@@ -371,11 +369,11 @@
 
           <!-- Scrollable Weather Cards -->
           <div
+            #scrollContainer7DayForecast
             class="d-flex overflow-auto gap-3 py-2 px-1"
             *ngIf="dayForecastList && dayForecastList.length > 0"
           >
             <div
-              #scrollContainer7DayForecast
               class="seven-day-container card text-center flex-shrink-0 shadow-sm"
               style="border-color: green; background-color: #e7f3df"
               *ngFor="let day of dayForecastList"
@@ -410,7 +408,7 @@
       </div>
     </div>
     <!-- Hazards / Bad Weather -->
-    <div class="accordion-item mb-3">
+    <div class="accordion-item">
       <h2 class="accordion-header" id="headingHazards">
         <button
           id="hazardsAccordionButton"
@@ -421,7 +419,7 @@
           aria-expanded="false"
           aria-controls="collapseHazards"
         >
-          Hazards / Bad Weather (Source - NDMA)
+          Hazards / Bad Weather
         </button>
       </h2>
 
@@ -503,74 +501,65 @@
             </div>
 
             <!-- Table Section -->
-            <div
-              *ngIf="hazardsArray.length > 0"
-              class="table-container panel"
-              style="height: 27rem; overflow: scroll"
-            >
-              <table>
-                <thead style="position: sticky; top: 0">
-                  <tr>
-                    <th style="width: 5%">S.No.</th>
-                    <th style="width: 10%">State</th>
-                    <th style="width: 8%">Type</th>
-                    <th style="width: 8%">Severity</th>
-                    <th style="width: 5%">Effective</th>
-                    <th style="width: 5%">Onset</th>
-                    <th style="width: 5%">Expires</th>
-                    <th style="width: 35%; word-break: break-word">
-                      Description
-                    </th>
-                    <th style="width: 14%">Affected Areas</th>
-                    <th style="width: 5%">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    *ngFor="let hazard of hazardsArray;let i=index;"
-                    [ngClass]="{
-                      'severity-severe': hazard.severity === 'Extreme',
-                      'severity-moderate': hazard.severity === 'Severe',
-                      'severity-low': hazard.severity === 'Moderate'
-                    }"
-                  >
-                    <td>{{ i+1 }}</td>
-                    <td>{{ hazard.state }}</td>
-                    <td>{{ hazard.event }}</td>
-                    <td>{{ hazard.severity }}</td>
-                    <td>{{ hazard.effective }}</td>
-                    <td>{{ hazard.onset }}</td>
-                    <td>{{ hazard.expires }}</td>
-                    <td style="width: 35%; word-break: break-word">
-                      {{ hazard.description }}
-                    </td>
-                    <td>{{ hazard.areaDesc }}</td>
-                    <td>
-                      <button
-                        (click)="viewSelectedHazardOnMap(hazard.id)"
-                        style="
-                          width: 50px;
-                          height: 50px;
-                          background: none;
-                          border: none;
-                        "
-                      >
-                        <img
-                          src="assets/icons/map.svg"
-                          alt="View on Map"
-                          title="View on map"
-                          style="cursor: pointer"
-                        />
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div *ngIf="hazardsArray.length > 0" class="table-container panel">
+              <div class="table-wrapper">
+                <table class="hazard-table">
+                  <thead>
+                    <tr>
+                      <th>S.No.</th>
+                      <th>State</th>
+                      <th>Type</th>
+                      <th>Severity</th>
+                      <th>Effective</th>
+                      <th>Onset</th>
+                      <th>Expires</th>
+                      <th>Description</th>
+                      <th>Affected Areas</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr
+                      *ngFor="let hazard of hazardsArray; let i = index"
+                      [ngClass]="{
+                        'severity-severe': hazard.severity === 'Extreme',
+                        'severity-moderate': hazard.severity === 'Severe',
+                        'severity-low': hazard.severity === 'Moderate'
+                      }"
+                    >
+                      <td>{{ i + 1 }}</td>
+                      <td>{{ hazard.state }}</td>
+                      <td>{{ hazard.event }}</td>
+                      <td>{{ hazard.severity }}</td>
+                      <td>{{ hazard.effective }}</td>
+                      <td>{{ hazard.onset }}</td>
+                      <td>{{ hazard.expires }}</td>
+                      <td>{{ hazard.description }}</td>
+                      <td>{{ hazard.areaDesc }}</td>
+                      <td>
+                        <button
+                          class="map-btn"
+                          (click)="viewSelectedHazardOnMap(hazard.id)"
+                        >
+                          <img
+                            src="assets/icons/map.svg"
+                            alt="View on Map"
+                            class="map-icon"
+                            title="View on map"
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <!-- No Data Message -->
             <p
-              *ngIf="(selectedHazard || selectedDistrict) && hazardsArray.length === 0"
+              *ngIf="(hazardsArray.length === 0 && (!categoriesKeys || categoriesKeys.length === 0))"
+              class="text-center text-muted mt-4"
             >
               No data found for selected filters.
             </p>

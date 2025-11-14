@@ -17,7 +17,7 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  position: relative;
+  /* position: relative; */
 }
 
 .weather-filters-button .btn.active {
@@ -1158,7 +1158,7 @@ input:checked + .slider:before {
 /* End Media Query Region */
 
 /* Dashboard-specific styles ---dilip--- code----  */
-@media (min-width: 200px) and (max-width: 768px) {
+/* @media (min-width: 200px) and (max-width: 768px) {
   #dashboardAccordion {
     margin-bottom: 25%;
   }
@@ -1171,9 +1171,9 @@ input:checked + .slider:before {
 }
 
 @media (min-width: 768px) and (max-width: 1050px) {
-  /* #dashboardAccordion{
+  #dashboardAccordion{
       margin-bottom: 0%;
-    } */
+    }
   .accordion {
     padding-right: 0px;
     margin: 0px 10px;
@@ -1187,12 +1187,12 @@ input:checked + .slider:before {
     margin: 0px 11px;
     margin-bottom: 2%;
   }
-}
+} */
 
-/* Responsive styles for Hourly ---code by dilip------ */
-@media (min-width: 200px) and (max-width: 768px) {
+/*  Dashboard-specific styles ---dilip--- code---- */
+@media (min-width: 300px) and (max-width: 768px) {
   #dashboardAccordion {
-    margin-bottom: 25%;
+    margin-bottom: 50%;
   }
 
   .accordion {
@@ -1583,4 +1583,228 @@ input:checked + .slider:before {
 .ol-hazard-popup-closer:after {
   content: "✖";
   font-size: 14px;
+}
+
+/* today code */
+
+.table-container {
+  height: 27rem; /* you can tweak */
+  overflow-y: auto; /* vertical scroll for rows */
+  background: inherit;
+  box-sizing: border-box;
+}
+
+/* table horizontal scroll wrapper only */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto; /* horizontal scroll only here */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* core table rules */
+.hazard-table {
+  width: 100%;
+  min-width: 1000px; /* ensures horiz scroll when needed */
+  border-collapse: collapse;
+  table-layout: fixed; /* IMPORTANT: enforce column widths from <th> */
+  box-sizing: border-box;
+}
+
+/* header */
+.hazard-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: inherit; /* keep your header background */
+}
+
+/* cell basic styling + ensure wrapping */
+/* .hazard-table th,
+.hazard-table td {
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid rgba(0,0,0,0.08);
+  white-space: normal;      
+  overflow-wrap: anywhere;     
+  word-break: break-word;
+  box-sizing: border-box;
+} */
+
+/* ensure description & affected areas wrap nicely (the % widths come from inline styles) */
+/* .hazard-table th:nth-child(8),
+.hazard-table td:nth-child(8) { 
+  white-space: normal;
+} */
+
+/* .hazard-table th:nth-child(9),
+.hazard-table td:nth-child(9) {
+  white-space: normal;
+} */
+
+/* map button & icon */
+.map-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+.map-icon {
+  width: 34px;
+  height: 34px;
+  display: block;
+  object-fit: contain;
+}
+
+/* scrollbar styling (optional) */
+.table-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}
+
+/* ----------------- RESPONSIVE BREAKPOINTS ----------------- */
+
+.hazard-table:hover {
+  border: none;
+}
+
+@media (min-width: 320px) and (max-width: 768px) {
+  .panel th,
+  .panel td {
+    width: 6%;
+    padding: 10px 8px;
+    font-size: 9.5px;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+
+  .panel table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .panel select {
+    max-width: 100%;
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hazard-table th:nth-child(8),
+  .hazard-table td:nth-child(9) {
+    width: 30%;
+  }
+
+  .panel th,
+  .panel td {
+    width: 17%;
+    padding: 12px 8px;
+    font-size: 12px;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+  .panel select {
+    max-width: 100%;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1450px) {
+  .hazard-table th:nth-child(8),
+  .hazard-table td:nth-child(9) {
+    width: 8%;
+  }
+
+  .panel th,
+  .panel td {
+    width: 5%;
+    padding: 12px 8px;
+    font-size: 13px;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+  .panel select {
+    max-width: 100%;
+    font-size: 14px;
+  }
+}
+
+/* <--! tabs responsive --!> */
+
+@media (max-width: 576px) {
+  .container-fluid .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .col-7,
+  .col-3,
+  .col-2 {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .hazard-tabs {
+    margin-bottom: 10px;
+  }
+
+  .hazard-tabs button {
+    flex: 1 1 45%;
+    font-size: 13px;
+  }
+
+  .form-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  select.form-select {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  #myDiv {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0 !important;
+  }
+
+  #myDiv span {
+    margin: 0 !important;
+    font-size: 14px;
+  }
+}
+
+/* 📱💡 Mobile-L (577px–767px) */
+@media (min-width: 577px) and (max-width: 767px) {
+  .container-fluid .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .col-7,
+  .col-3,
+  .col-2 {
+    width: 100% !important;
+  }
+
+  .hazard-tabs button {
+    flex: 1 1 30%;
+    font-size: 14px;
+  }
+
+  #myDiv {
+    flex-direction: row !important;
+    justify-content: space-between;
+  }
 }

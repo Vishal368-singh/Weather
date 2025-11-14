@@ -8,8 +8,7 @@ import { authGuard } from './auth/auth-guard';
 import { Profile } from './pages/profile/profile';
 import { SeverityRanges } from './pages/severity-ranges/severity-ranges';
 import { Usage } from './usage/usage';
-
-
+import { HazardsFeed } from './pages/hazards-feed/hazards-feed';
 export const routes: Routes = [
   { path: '', component: Login },
   {
@@ -17,13 +16,30 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', component: Dashboard },
-      { path: 'profile', component: Profile },
-      { path: 'severity-ranges', component: SeverityRanges },
-      { path: 'reports/pan-india', component: Reports },
-      { path: 'reports/circle-level', component: Reports },
-      { path: 'reports/usage', component: Usage },
-      { path: 'THVS', component: THVS },
-    ]
+      { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+      { path: 'profile', component: Profile, canActivate: [authGuard] },
+      {
+        path: 'severity-ranges',
+        component: SeverityRanges,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'reports/pan-india',
+        component: Reports,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'reports/circle-level',
+        component: Reports,
+        canActivate: [authGuard],
+      },
+      { path: 'reports/usage', component: Usage, canActivate: [authGuard] },
+      { path: 'THVS', component: THVS, canActivate: [authGuard] },
+      {
+        path: 'hazards-feed',
+        component: HazardsFeed,
+        canActivate: [authGuard],
+      },
+    ],
   },
 ];

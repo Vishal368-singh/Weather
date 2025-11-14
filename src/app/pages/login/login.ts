@@ -149,8 +149,8 @@ export class Login implements AfterViewInit {
       )
       .subscribe((res: any) => {
         if (res?.token) {
-          sessionStorage.setItem('user', JSON.stringify(res.resultUser));
-          sessionStorage.setItem('token', res.token);
+          localStorage.setItem('user', JSON.stringify(res.resultUser));
+          localStorage.setItem('token', res.token);
           this.deviceInfo = this.deviceService.getDeviceInfo();
           const Dev_Type = this.deviceInfo.deviceType //'desktop'
           const Dev_Os = this.deviceInfo.os  //'Windows'
@@ -176,7 +176,7 @@ export class Login implements AfterViewInit {
               })).subscribe((res: any) => {
                 if (res?.status === "success") {
                   let id = res.id;
-                  sessionStorage.setItem('logId', res.id);
+                  localStorage.setItem('logId', res.id);
                   this.weatherService.setWeatherLogId(id)
                   return;
                 }

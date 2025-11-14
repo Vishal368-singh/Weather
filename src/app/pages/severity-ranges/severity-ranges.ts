@@ -28,11 +28,32 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   selectedCircle: string = '';
   editableKPIData: any = {};
 
-
+  // kpiList = [
+  //   { name: 'Rainfall (mm)', field: 'rainfall', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Wind (Kmph)', field: 'wind', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Temperature (°C)', field: 'temperature', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Humidity', field: 'humidity', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Visibility (Km)', field: 'visibility', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Cyclone (Kmph)', field: 'cyclone', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Flood (depth in meter)', field: 'flood', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Snowfall (cm)', field: 'snowfall', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Lightning (probability)', field: 'lightning', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Landslide (probability)', field: 'landslide', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
+  //   { name: 'Avalanche (probability)', field: 'avalanche', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false }
+  // ];
   kpiList = [
     {
       name: 'Rainfall (mm)',
       field: 'rainfall',
+      extreme: '',
+      high: '',
+      moderate: '',
+      low: '',
+      editMode: false,
+    },
+    {
+      name: 'Accu Rainfall (mm)',
+      field: 'accu_rainfall',
       extreme: '',
       high: '',
       moderate: '',
@@ -159,6 +180,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   ];
 
   ngOnInit(): void {
+    this.loadCircleListForDropdown();
     this.fetchKPIRanges();
   }
 
@@ -168,21 +190,19 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   fetchKPIRanges = () => {
     try {
       this.dataService
-        .getRequests('/fetch-kpi-range')
+        .postData('/fetch-kpi-range')
         .pipe(
           catchError((error: any) => {
             const errorMessage = error?.error?.message || 'Internal Server';
-            console.log(errorMessage);
+
             return throwError(() => error);
           })
         )
         .subscribe((response) => {
           if (response.status === 'success') {
             this.responseData = response.data;
-            
+            this.selectedCircle = 'AP';
 
-            this.circles = Object.keys(this.responseData);
-            this.selectedCircle = this.circles[0];
             if (this.selectedCircle) {
               this.mapKpiData(this.selectedCircle);
               this.cdr.detectChanges();
@@ -194,7 +214,74 @@ export class SeverityRanges implements OnInit, AfterViewInit {
     }
   };
 
+  async loadCircleListForDropdown() {
+    try {
+      // Prepare payload based on user role
+      const apiPayload = { circle: 'All Circle' };
 
+      // Fetch circle list from API
+      const res: any = await this.dataService
+        .postData('get_circle_list', apiPayload)
+        .toPromise();
+
+      // Validate and map API response
+      if (res?.status && Array.isArray(res.data)) {
+        this.circles = res.data
+          .filter(
+            (item: { circle: string; location: string }) =>
+              item.circle !== 'All Circle'
+          )
+          .map((item: { circle: string; location: string }) => ({
+            value: item.circle,
+            location: item.location,
+          }))
+          .sort(
+            (
+              a: { value: string; location: string },
+              b: { value: string; location: string }
+            ) => a.value.localeCompare(b.value)
+          );
+    
+      } else {
+        console.error(
+          '❌ Failed to load circle list: Invalid API response format'
+        );
+        this.circles = [];
+      }
+
+      // Ensure dropdown overlays correctly above the map
+      setTimeout(() => {
+        const dropdownEl = document.querySelector('.dropdown-menu');
+        if (dropdownEl) {
+          const el = dropdownEl as HTMLElement;
+          el.style.position = 'absolute';
+          el.style.zIndex = '2000'; // keep above map container
+        }
+      });
+
+      // Trigger Angular change detection
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('❌ Failed to load circle list from API:', error);
+      this.circles = [];
+      this.cdr.detectChanges();
+    }
+  }
+
+  //Mapping it to the kpiList
+  // mapKpiData(circle: string) {
+  //   const circleData = this.responseData[circle][0]; // one record per circle
+  //   this.kpiList = this.kpiList.map(kpi => ({
+  //     ...kpi,
+  //     extreme: circleData[`extreme_${kpi.field}`],
+  //     high: circleData[`high_${kpi.field}`],
+  //     moderate: circleData[`moderate_${kpi.field}`],
+  //     extremeColor: circleData[`extreme_${kpi.field}_color`],
+  //     highColor: circleData[`high_${kpi.field}_color`],
+  //     moderateColor: circleData[`moderate_${kpi.field}_color`],
+  //     editMode: false
+  //   }));
+  // }
   mapKpiData(circle: string) {
     const circleData = this.responseData[circle][0];
 
@@ -271,7 +358,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       lowColorMin: () => `low_min_color`,
     };
 
-    const payload: any = { indus_circle: this.selectedCircle };
+    const payload: any = { circle: this.selectedCircle };
 
     (Object.keys(editedKpiData) as (keyof typeof editedKpiData)[]).forEach(
       (key) => {
@@ -293,11 +380,11 @@ export class SeverityRanges implements OnInit, AfterViewInit {
     );
 
     this.dataService
-      .postRequest('/update-kpi-range', payload)
+      .postData('/update-kpi-range', payload)
       .pipe(
         catchError((error: any) => {
           const errorMessage = error?.error?.message || 'Internal Server Error';
-          console.log(errorMessage);
+
           return throwError(() => error);
         })
       )

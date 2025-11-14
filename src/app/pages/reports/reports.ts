@@ -13,6 +13,8 @@ import { BaseChartDirective } from 'ng2-charts';
 import { MapWeather } from '../../components/map-weather/map-weather';
 import { DataService } from '../../data-service/data-service';
 import { WeatherService } from '../../services/weather';
+import { DateTimeService } from '../../services/date-time';
+
 import {
   Chart,
   BarController,
@@ -28,6 +30,7 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { CurrentLocationService } from '../../services/current-location-service';
+import { visibility } from 'html2canvas/dist/types/css/property-descriptors/visibility';
 
 Chart.register(
   ...registerables,
@@ -81,7 +84,8 @@ export class Reports implements OnInit {
     private locationService: CurrentLocationService,
     private dataService: DataService,
     private cdr: ChangeDetectorRef,
-    private WeatherService: WeatherService
+    private WeatherService: WeatherService,
+    private dateTimeService: DateTimeService
   ) {
     this.barThickness();
   }
@@ -102,12 +106,20 @@ export class Reports implements OnInit {
   selectedDistrict = '';
   selectedTab = 1;
   responseData: any = {};
+  responseDataDistrictWise: any[] = [];
+  responseDataSeverityWise: any = {};
   selectedCircle: string = '';
   selectedCircleSeverityRange: any = {};
+
+  legendData: any;
   grouped: any = {};
   public barChartData1: any = {};
   public barChartData2: any = {};
-  labels: any = ['Rain', 'Temp', 'Wind', 'Humidity', 'Visibility'];
+
+  circleOptions: any = [];
+  selectedPDFCircle: string = '';
+
+  labels: any = ['Rain', 'Temp (Max)', 'Wind', 'Humidity', 'Visibility'];
   severityOrder: any = ['Extreme', 'High', 'Moderate'];
   severityColorMap: any = {};
   labelToColorKey: any = {
@@ -117,6 +129,7 @@ export class Reports implements OnInit {
     Humidity: 'humidityColor',
     Visibility: 'visibilityColor',
   };
+  currentDate: string = '';
   UP_West = [
     'Saharanpur',
     'Muzaffarnagar',
@@ -215,27 +228,48 @@ export class Reports implements OnInit {
   weatherData: DailyWeather[] = [];
   mappedTowerData: any;
   activeTab: string = 'temperature';
+  activeKPIUnit: string = ' °C';
   user: any = {};
 
   setActive(tab: string) {
     this.activeTab = tab;
+    if (tab === 'temperature') {
+      this.activeKPIUnit = ' °C';
+    } else if (tab === 'rainfall') {
+      this.activeKPIUnit = ' mm';
+    } else if (tab === 'wind') {
+      this.activeKPIUnit = ' kph';
+    } else if (tab === 'humidity') {
+      this.activeKPIUnit = ' %';
+    } else if (tab === 'visibility') {
+      this.activeKPIUnit = ' km';
+    } else if (tab === 'accu_rainfall') {
+      this.activeKPIUnit = ' mm';
+    } else {
+      this.activeKPIUnit = '';
+    }
+    this.fetchDistrictWiseKPIValues();
+    this.fetchDistrictNamesSeverityWise();
   }
   selectTab(tabNumber: number) {
     this.selectedTab = tabNumber;
   }
+
   ngOnInit(): void {
-    let storedUser = sessionStorage.getItem('user');
+    const { formattedDate } = this.dateTimeService.getCurrentDateTime();
+    this.currentDate = formattedDate;
+    this.WeatherService.setSearchLocation('');
+    localStorage.removeItem('selectedCircle');
+    let storedUser = localStorage.getItem('user');
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      this.selectedCircle = this.user.circle;
-      if (this.user.circle === 'UP East') {
-        this.user.circle = 'Varanasi';
-      } else if (this.user.circle === 'UP West') {
-        this.user.circle = 'Dehradun';
-      } else if (this.user.circle === 'North East') {
-        this.user.circle = 'Meghalaya';
+
+      if (this.user.indus_circle === 'All Circle') {
+        this.location = 'M&G';
+      } else {
+        this.location = this.user.indus_circle;
       }
-      this.location = this.user.circle;
+
       if (this.user.circle === '') {
         this.getUserCurrentLocation();
         this.cdr.detectChanges();
@@ -244,45 +278,49 @@ export class Reports implements OnInit {
         this.cdr.detectChanges();
       }
     }
+    this.loadCircleListForDropdown();
 
     this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
-      // console.log(`This is circle form the map-weather : ${circle}`);
-      if (circle.toLowerCase() === 'UP East'.toLowerCase()) {
-        this.location = 'Varanasi';
-      } else if (circle.toLowerCase() === 'UP West'.toLowerCase()) {
-        this.location = 'Dehradun';
-      } else if (circle.toLowerCase() === 'North East'.toLowerCase()) {
-        this.location = 'Meghalaya';
-      } else {
-        this.location = circle;
+      if (circle) {
+        if (circle === 'All Circle') {
+          this.location = 'M&G';
+        } else {
+          this.location = circle;
+        }
+        this.fetchWeatherData();
       }
-      this.fetchWeatherData();
     });
 
     this.WeatherService.panIndia$.subscribe((location: string) => {
       if (location) {
         this.location = location;
-        this.selectedCircle = location;
         this.fetchSeverityKPIRanges();
         this.fetchWeatherData();
+        this.fetchDistrictWiseKPIValues();
+        this.fetchDistrictNamesSeverityWise();
         this.cdr.detectChanges();
       } else {
-        this.location = this.user.circle;
-        this.selectedCircle = this.user.circle;
+        this.location =
+          this.user.indus_circle === 'All Circle'
+            ? 'M&G'
+            : this.user.indus_circle;
+
         this.fetchSeverityKPIRanges();
+        this.fetchDistrictWiseKPIValues();
+        this.fetchDistrictNamesSeverityWise();
         this.fetchWeatherData();
         this.cdr.detectChanges();
       }
     });
+
+    this.fetchlegend_with_color();
+    this.fetchDistrictWiseKPIValues();
   }
 
   towerData: any = [];
   fetch7daysForecastData() {
-    const matchedCircle = this.circleList.find((circle) =>
-      circle.toLowerCase().includes(this.selectedCircle.toLowerCase())
-    );
     const payload = {
-      circle: matchedCircle,
+      circle: this.location,
     };
     this.dataService
       .postRequest('fetch_circle_report', payload)
@@ -296,12 +334,13 @@ export class Reports implements OnInit {
       .subscribe((response: any) => {
         // Order of severity mapping must match your towerData order:
         const severityOrder = [
-          'Temperature',
+          'Temperature_Max',
           'Rainfall',
           'Wind',
           'Humidity',
           'Visibility',
         ];
+
         // Map API response into towerData
         this.towerData = Object.keys(response).map((dayKey) => {
           const dayData = response[dayKey];
@@ -316,9 +355,43 @@ export class Reports implements OnInit {
         });
         this.fetchWeatherData();
         this.fetchSeverityKPIRanges();
+        this.fetchDistrictWiseKPIValues();
+        this.fetchDistrictNamesSeverityWise();
         this.buildBarChartData();
         this.cdr.detectChanges();
       });
+  }
+
+  fetchlegend_with_color() {
+    const payload = { circle: this.location };
+    this.dataService.postRequest('legend_with_color', payload).subscribe({
+      next: (res: any) => {
+        if (res?.status === 'success') {
+          this.legendData = res.data;
+          console.log('Legend Data Loaded:', this.legendData);
+
+          document.documentElement.style.setProperty(
+            '--extreme-color',
+            this.legendData.color.extreme_color
+          );
+          document.documentElement.style.setProperty(
+            '--high-color',
+            this.legendData.color.high_color
+          );
+          document.documentElement.style.setProperty(
+            '--moderate-color',
+            this.legendData.color.moderate_color
+          );
+          document.documentElement.style.setProperty(
+            '--low-color',
+            this.legendData.color.low_color
+          );
+
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error('Legend load failed:', err),
+    });
   }
 
   getUserCurrentLocation() {
@@ -345,7 +418,7 @@ export class Reports implements OnInit {
   fetchSeverityKPIRanges = () => {
     try {
       this.dataService
-        .getRequests('/fetch-kpi-range')
+        .postData('/fetch-kpi-range')
         .pipe(
           catchError((error: any) => {
             const errorMessage =
@@ -360,23 +433,14 @@ export class Reports implements OnInit {
             let circle = '';
 
             // Normalize the circle name
-            if (this.selectedCircle) {
-              if (this.selectedCircle === 'UP East') circle = 'UP(E)';
-              else if (this.selectedCircle === 'UP West') circle = 'UP(W)';
-              else circle = this.selectedCircle;
-            }
 
-            if (!circle) {
-              circle = sessionStorage.getItem('selectedCircle') || '';
-            }
-            //  Access correctly using bracket notation
-            const matchedCircle = this.circleList.find((circle) =>
-              circle.toLowerCase().includes(this.selectedCircle.toLowerCase())
-            );
-            const data = matchedCircle
-              ? this.responseData[matchedCircle]
+            circle = this.location;
+
+            const data = circle
+              ? this.responseData[circle]
               : this.responseData[circle];
 
+            // console.log('Severity KPI Ranges Data:', data);
             if (data && data.length > 0) {
               this.selectedCircleSeverityRange = data[0];
               this.grouped = this.categorizeKPI(
@@ -397,6 +461,264 @@ export class Reports implements OnInit {
       console.error(error);
     }
   };
+
+  fetchDistrictWiseKPIValues = () => {
+    try {
+      const payload = {
+        circle: 'AP',
+      };
+
+      this.dataService
+        .postRequest('/fetch_district_wise_KPI_values', payload)
+        .pipe(
+          catchError((error: any) => {
+            const errorMessage =
+              error?.error?.message || 'Internal Server Error';
+            console.error(errorMessage);
+            return throwError(() => error);
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            this.responseDataDistrictWise = [];
+
+            if (response) {
+              const kpidata = response[0].district_wise_kpi_values;
+              if (this.activeTab === 'temperature') {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.temp_max,
+                    min1: ele.day1.temp_min,
+
+                    day2: ele.day2.temp_max,
+                    min2: ele.day2.temp_min,
+
+                    day3: ele.day3.temp_max,
+                    min3: ele.day3.temp_min,
+
+                    day4: ele.day4.temp_max,
+                    min4: ele.day4.temp_min,
+
+                    day5: ele.day5.temp_max,
+                    min5: ele.day5.temp_min,
+
+                    day6: ele.day6.temp_max,
+                    min6: ele.day6.temp_min,
+
+                    day7: ele.day7.temp_max,
+                    min7: ele.day7.temp_min,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              } else if (this.activeTab === 'rainfall') {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.rain_precip,
+                    day2: ele.day2.rain_precip,
+                    day3: ele.day3.rain_precip,
+                    day4: ele.day4.rain_precip,
+                    day5: ele.day5.rain_precip,
+                    day6: ele.day6.rain_precip,
+                    day7: ele.day7.rain_precip,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              } else if (this.activeTab === 'humidity') {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.humidity,
+                    day2: ele.day2.humidity,
+                    day3: ele.day3.humidity,
+                    day4: ele.day4.humidity,
+                    day5: ele.day5.humidity,
+                    day6: ele.day6.humidity,
+                    day7: ele.day7.humidity,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              } else if (this.activeTab === 'visibility') {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.visibility,
+                    day2: ele.day2.visibility,
+                    day3: ele.day3.visibility,
+                    day4: ele.day4.visibility,
+                    day5: ele.day5.visibility,
+                    day6: ele.day6.visibility,
+                    day7: ele.day7.visibility,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              } else if (this.activeTab === 'accu_rainfall') {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.accu_rainfall,
+                    day2: ele.day2.accu_rainfall,
+                    day3: ele.day3.accu_rainfall,
+                    day4: ele.day4.accu_rainfall,
+                    day5: ele.day5.accu_rainfall,
+                    day6: ele.day6.accu_rainfall,
+                    day7: ele.day7.accu_rainfall,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              } else {
+                kpidata.forEach((ele: any) => {
+                  const obj = {
+                    district: ele.district,
+                    day1: ele.day1.wind,
+                    day2: ele.day2.wind,
+                    day3: ele.day3.wind,
+                    day4: ele.day4.wind,
+                    day5: ele.day5.wind,
+                    day6: ele.day6.wind,
+                    day7: ele.day7.wind,
+                  };
+                  this.responseDataDistrictWise.push(obj);
+                });
+                this.cdr.detectChanges();
+              }
+
+              this.responseDataDistrictWise = response.data;
+              // console.log(
+              //   'District-wise KPI Data Only:',
+              //   this.responseDataDistrictWise
+              // ); // LOG ACTUAL DATA
+            } else {
+              console.warn(
+                'District-wise KPI API returned non-success status',
+                response
+              );
+            }
+          },
+          error: (err: any) => {
+            console.error('Error fetching district-wise KPI values', err);
+          },
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchDistrictNamesSeverityWise = () => {
+    try {
+      const payload = { circle: 'AP' };
+
+      this.dataService
+        .postRequest('/fetch_district_names_severity_wise', payload)
+        .pipe(
+          catchError((error: any) => {
+            const errorMessage =
+              error?.error?.message || 'Internal Server Error';
+            console.error(errorMessage);
+            return throwError(() => error);
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            // console.log('Full API Response:', response);
+
+            if (response) {
+              this.responseDataSeverityWise = {
+                Rainfall: response.Rainfall?.day1,
+                Temperature_Max: response.Temperature_Max?.day1,
+                Humidity: response.Humidity?.day1,
+                Wind: response.Wind?.day1,
+                Visibility: response.Visibility?.day1,
+              };
+            }
+          },
+          error: (err: any) => {
+            console.error('Error fetching district names severity-wise:', err);
+          },
+        });
+    } catch (error) {
+      console.error('Unexpected error in fetchDistrictWiseKPIValues:', error);
+    }
+  };
+
+  async loadCircleListForDropdown() {
+    try {
+      let apiPayload: { circle: string };
+      if (['Admin', 'MLAdmin'].includes(this.user.userrole)) {
+        apiPayload = { circle: 'All Circle' };
+      } else {
+        apiPayload = { circle: this.user.indus_circle };
+      }
+
+      const res: any = await this.dataService
+        .postData('get_circle_list', apiPayload)
+        .toPromise();
+
+      if (res && res.status && Array.isArray(res.data)) {
+        this.circleOptions = res.data
+          .filter(
+            (item: { circle: string; location: string }) =>
+              item.circle !== 'All Circle'
+          )
+          .map((circleName: { circle: string; location: string }) => ({
+            value: circleName.location,
+            label: circleName.circle,
+          }))
+          .sort(
+            (
+              a: { label: string; value: string },
+              b: { label: string; value: string }
+            ) => a.label.localeCompare(b.label)
+          );
+      } else {
+        console.error(
+          'Failed to load circle list: Invalid API response format'
+        );
+        this.circleOptions = [];
+      }
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('❌ Failed to load circle list from API:', error);
+      this.circleOptions = [];
+    }
+  }
+
+  pdfdownload(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const selectedValues = Array.from(selectEl.selectedOptions).map(
+      (opt) => opt.label
+    );
+
+    this.selectedPDFCircle = selectedValues[0];
+    const payload = {
+      circle: this.selectedPDFCircle,
+    };
+    let circle_pdf_url = '';
+    this.dataService
+      .postData('/generate_pdf_link', payload)
+      .pipe(
+        catchError((error) => {
+          const errorMessage = error?.error?.message || 'Internal Server Error';
+          console.error(errorMessage);
+          return throwError(() => error);
+        })
+      )
+      .subscribe((res) => {
+        if (res) {
+          circle_pdf_url = res.url;
+          if (circle_pdf_url) {
+            window.open(circle_pdf_url);
+          }
+        }
+      });
+  }
+
   severityTable: SeverityRow[] = [
     { label: 'Extreme' },
     { label: 'High' },
@@ -407,6 +729,7 @@ export class Reports implements OnInit {
     { label: 'High' },
     { label: 'Moderate' },
   ];
+
   populateSeverityTable() {
     Object.keys(this.grouped).forEach((key) => {
       if (key.endsWith('_color')) return;
@@ -454,9 +777,11 @@ export class Reports implements OnInit {
     this.mappedTowerData = towerData;
     this.cdr.detectChanges();
   }
+
   // Function to categorize data
   categorizeKPI(data: any) {
     const categories: any = {};
+
     Object.keys(data).forEach((key) => {
       const match = key.match(/(extreme|high|moderate|low)_(\w+)/);
       if (match) {
@@ -475,6 +800,7 @@ export class Reports implements OnInit {
         }
       }
     });
+
     return categories;
   }
 
@@ -517,6 +843,7 @@ export class Reports implements OnInit {
         date: dateObj.getDate(),
       });
     }
+
     return daysArr;
   }
 
@@ -526,33 +853,12 @@ export class Reports implements OnInit {
     max: string;
     min: string;
   }[] = [];
+
   // #region Fetch Weather data
   fetchWeatherData = () => {
     this.loading = true;
-
     try {
-      //  Get user circle from session
-      const storedUser = sessionStorage.getItem('user');
-      const userCircle = storedUser ? JSON.parse(storedUser)?.circle || '' : '';
-
-      //  Determine effective circle/location
-      let circle = this.selectedCircle || this.location || userCircle || '';
-      circle = circle.trim();
-
-      //  Normalize for special mappings
-      const normalizedMap: Record<string, string> = {
-        'up east': 'Uttra Pradesh',
-        'up west': 'Uttra Pradesh',
-        'north east': 'Uttrakhand',
-      };
-      const lowerCircle = circle.toLowerCase();
-      const location =
-        normalizedMap[lowerCircle] ||
-        this.circleList.find((c) => c.toLowerCase().includes(lowerCircle)) ||
-        circle;
-
-      const payload = { circle: location };
-
+      const payload = { circle: this.location };
       this.dataService
         .postRequest('get_circle_weather_min_max', payload)
         .subscribe({
@@ -562,9 +868,8 @@ export class Reports implements OnInit {
               this.loading = false;
               return;
             }
-
             const weather = res.data[0];
-            this.location = res.circle || location;
+            this.location = res.circle;
 
             // 🔹 Compact KPI setup
             this.weatherKPIs = [
@@ -583,8 +888,8 @@ export class Reports implements OnInit {
               {
                 label: 'Rainfall',
                 icon: `<i class="fas fa-cloud-showers-heavy"></i>`,
-                max: `${weather.rain_max} %`,
-                min: `${weather.rain_min} %`,
+                max: `${weather.rain_max} mm`,
+                min: `${weather.rain_min} mm`,
               },
               {
                 label: 'Wind',
@@ -604,7 +909,6 @@ export class Reports implements OnInit {
             const currentTime = res?.location?.localtime;
             const lastUpdated = res?.current?.last_updated;
             this.currentTime = this.formatDateTime(currentTime);
-            console.log('This is currentTime', this.currentTime);
 
             this.currentTime = currentTime
               ? new Date(currentTime).toLocaleString('en-IN', {
@@ -906,12 +1210,16 @@ export class Reports implements OnInit {
   };
 
   //  .............Tower Table Data...................
-  
+
   days = this.getNext6Days();
+
   // ............... Bar Chart ............................................
   @HostListener('window:resize')
   onResize() {
     this.barThickness();
+
+    //Changes By Sandeep
+    this.fetchDistrictWiseKPIValues();
   }
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   barThickness = () => {
@@ -967,7 +1275,7 @@ export class Reports implements OnInit {
         stacked: true,
         title: {
           display: true,
-          text: 'Weather Zone (Count)',
+          text: 'District Count',
           padding: { top: 0, bottom: 20 },
         },
         grid: { display: false },
@@ -1166,6 +1474,7 @@ export class Reports implements OnInit {
       });
       return value;
     });
+
     return mappedTowerData;
   };
 
@@ -1192,7 +1501,7 @@ export class Reports implements OnInit {
     } else {
       this.location = changedCircle;
     }
-    this.selectedCircle = changedCircle;
+    this.location = changedCircle;
     this.fetch7daysForecastData();
   };
 }
