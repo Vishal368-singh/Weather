@@ -146,6 +146,7 @@
             <td>
               <button
                 *ngIf="!kpi.editMode"
+                [disabled]="userRole !== 'MLAdmin'"
                 class="btn btn-sm btn-success"
                 (click)="editRow(i)"
               >

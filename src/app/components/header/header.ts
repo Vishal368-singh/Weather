@@ -10,11 +10,11 @@ import { WeatherService } from '../../services/weather';
 import { DataService } from '../../data-service/data-service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
-import { HazardsFeed } from "../../pages/hazards-feed/hazards-feed";
+import { HazardsFeed } from '../../pages/hazards-feed/hazards-feed';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, FormsModule, HazardsFeed, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './header.html',
   styleUrl: './header.css',
   standalone: true,
@@ -27,8 +27,8 @@ export class Header implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar,
     private router: Router,
     private WeatherService: WeatherService,
-    private dataService: DataService,
-  ) { }
+    private dataService: DataService
+  ) {}
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
   }
@@ -37,17 +37,14 @@ export class Header implements OnInit, AfterViewInit {
   userName: string = '';
   userId: string = '';
   ngOnInit() {
-    const sessionUser: any = localStorage.getItem('user')
-    this.userData = JSON.parse(sessionUser)
+    const sessionUser: any = localStorage.getItem('user');
+    this.userData = JSON.parse(sessionUser);
     const username = this.userData.name;
     this.userId = this.userData.userid;
     this.userName = username.split(' ')[0];
     this.userRole = this.userData.userrole;
-
   }
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   /* Change User Password  */
   changePassword = () => {
@@ -66,12 +63,16 @@ export class Header implements OnInit, AfterViewInit {
 
   submitChangePassword = (form: any) => {
     if (form.valid) {
-      if (!form.value.oldPassword || !form.value.newPassword || !form.value.confirmPassword) {
+      if (
+        !form.value.oldPassword ||
+        !form.value.newPassword ||
+        !form.value.confirmPassword
+      ) {
         this.snackBar.open('Enter the required details', 'X', {
           duration: 2000, // auto close after 3s
           horizontalPosition: 'center',
           verticalPosition: 'bottom',
-          panelClass: ['custom-error-snackbar']
+          panelClass: ['custom-error-snackbar'],
         });
         return;
       }
@@ -80,7 +81,7 @@ export class Header implements OnInit, AfterViewInit {
           duration: 2000, // auto close after 3s
           horizontalPosition: 'center',
           verticalPosition: 'bottom',
-          panelClass: ['custom-error-snackbar']
+          panelClass: ['custom-error-snackbar'],
         });
         return;
       }
@@ -90,27 +91,28 @@ export class Header implements OnInit, AfterViewInit {
         userId: this.userId,
         oldPassword: form.value.oldPassword,
         newPassword: form.value.newPassword,
-      }
-      this.dataService.postRequest("/change-password", payload)
+      };
+      this.dataService
+        .postRequest('/change-password', payload)
         .pipe(
           catchError((error: any) => {
-            const errorMessage = error?.error?.message || 'Internal Server Error';
+            const errorMessage =
+              error?.error?.message || 'Internal Server Error';
             console.log(errorMessage);
-            return throwError(() => error)
+            return throwError(() => error);
           })
-        ).subscribe((response: any) => {
+        )
+        .subscribe((response: any) => {
           if (response.status === 'success') {
             this.snackBar.open(response.message, 'X', {
               duration: 2000,
               horizontalPosition: 'center',
               verticalPosition: 'bottom',
-              panelClass: ['custom-success-snackbar']
-            })
+              panelClass: ['custom-success-snackbar'],
+            });
             this.closeChangePasswordModal();
           }
-        })
-
-
+        });
     }
   };
 

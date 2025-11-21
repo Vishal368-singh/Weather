@@ -73,6 +73,7 @@ export class WeatherService {
   }
 
   setCircleLocationChange(circleLocation: string): void {
+    
     this.circleLocationChanged.next(circleLocation);
   }
 

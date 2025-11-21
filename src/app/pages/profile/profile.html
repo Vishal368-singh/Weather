@@ -24,7 +24,7 @@
             Edit
           </button>
         </div>
-        <div class="change-pass-div">
+        <div class="change-pass-div" *ngIf="userRole === 'MLAdmin'">
           <button class="text-success fw-bold" (click)="changePassword()">
             Change Password
           </button>
@@ -33,11 +33,24 @@
     </div>
     <div class="profile-container-1-div2">
       <div class="container-1-div2-heading">
-        <h5>User List</h5>
+        <span
+          class="user_list_tab text-success"
+          [ngClass]="{ 'active_user_list_tab': activeTab === 'activeUserList' }"
+          (click)="handleActiveTab('activeUserList')"
+        >
+          Dashboard User List
+        </span>
+        <span
+          class="user_list_tab text-success"
+          [ngClass]="{ 'active_user_list_tab': activeTab === 'deActiveUserList'}"
+          (click)="handleActiveTab('deActiveUserList')"
+          >Report Distribution List</span
+        >
       </div>
       <div class="container-1-div2-table">
         <div class="table-responsive">
           <table
+            *ngIf="activeTab === 'activeUserList'"
             class="userTable table table-striped table-bordered align-middle text-center"
           >
             <thead class="table-light sticky-header">
@@ -48,6 +61,8 @@
                 <th>Mobile</th>
                 <th>Email-Id</th>
                 <th>Status</th>
+                <th>Activation Date</th>
+                <th>DeActivation Date</th>
                 <th>Edit</th>
               </tr>
             </thead>
@@ -61,13 +76,65 @@
                 <td>
                   <input
                     type="checkbox"
-                    class="form-check-input"
+                    class="form-check-input green-checkbox"
                     [checked]="user.status === 'active'"
+                    [disabled]="userRole !== 'MLAdmin'"
                     (click)="openConfirmDialog($event, user)"
                   />
                 </td>
+                <td class="text-dark">{{ user.activationDate}}</td>
+                <td class="text-dark">{{ user.deactivationDate }}</td>
                 <td>
-                  <button class="btn btn-sm btn-success" (click)="onEdit(user)">
+                  <button
+                    [disabled]="userRole !== 'MLAdmin'"
+                    class="btn btn-sm btn-success"
+                    (click)="onEdit(user)"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table
+            *ngIf="activeTab === 'deActiveUserList'"
+            class="userTable table table-striped table-bordered align-middle text-center"
+          >
+            <thead class="table-light sticky-header">
+              <tr>
+                <th>Name</th>
+                <th>Circle</th>
+                <th>Mobile</th>
+                <th>Email-Id</th>
+                <th>Status</th>
+                <th>Activation Date</th>
+                <th>DeActivation Date</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of reportUserList" class="table-body-row">
+                <td class="text-dark">{{ user.name }}</td>
+                <td class="text-dark">{{ user.indus_circle}}</td>
+                <td class="text-dark">{{ user.mobile }}</td>
+                <td class="text-dark">{{ user.mail }}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input green-checkbox"
+                    [checked]="user.status === 'active'"
+                    [disabled]="userRole !== 'MLAdmin'"
+                    (click)="openReportUserConfirmDialog($event, user)"
+                  />
+                </td>
+                <td class="text-dark">{{ user.activationDate}}</td>
+                <td class="text-dark">{{ user.deactivationDate }}</td>
+                <td>
+                  <button
+                    [disabled]="userRole !== 'MLAdmin'"
+                    class="btn btn-sm btn-success"
+                    (click)="onReportUserEdit(user)"
+                  >
                     <i class="fas fa-edit"></i>
                   </button>
                 </td>
@@ -75,8 +142,11 @@
             </tbody>
           </table>
         </div>
-        <div class="add-user-div">
-          <button class="text-success fw-bold my-2" (click)="addNewUser()">
+        <div class="add-user-div" *ngIf="userRole === 'MLAdmin'">
+          <button
+            class="text-success fw-bold my-2"
+            (click)="handleAdd()"
+          >
             Add User
           </button>
         </div>
@@ -84,7 +154,8 @@
     </div>
   </div>
 </div>
-<!-- Confirmation Modal -->
+
+<!-- Licensed User Status Confirmation Modal -->
 <div
   class="modal fade"
   id="confirmModal"
@@ -122,7 +193,7 @@
   </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- Licensed User Edit Modal -->
 <div
   class="modal-backdrop d-flex justify-content-center align-items-center"
   *ngIf="isEditModalOpen"
@@ -209,7 +280,7 @@
   </div>
 </div>
 
-<!-- Add New User Modal -->
+<!-- Add New Licensed User Modal -->
 <div
   class="modal fade"
   id="addNewUserModal"
@@ -459,6 +530,322 @@
           <button type="submit" class="btn btn-success">Submit</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Report User Status Confirmation Modal -->
+<div
+  class="modal fade"
+  id="reportUserConfirmModal"
+  tabindex="-1"
+  aria-labelledby="reportUserConfirmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reportUserConfirmModalLabel">
+          User Status
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to update this user status?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          No
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="confirmReportUserStatusChange()"
+        >
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report User Edit Modal -->
+<div
+  class="modal-backdrop d-flex justify-content-center align-items-center"
+  *ngIf="isReportUserEditModalOpen"
+>
+  <div
+    class="modal-dialog add-user-model-content modal-dialog-centered modal-md"
+  >
+    <div class="modal-content bg-white p-3">
+      <div class="modal-header mb-2">
+        <h5 class="modal-title">Edit User</h5>
+        <button
+          type="button"
+          class="btn-close border border-black d-flex justify-content-center align-items-center p-1"
+          aria-label="Close"
+          (click)="closeReportUserEditModal()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.name"
+              name="name"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.mail"
+              name="email"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Mobile</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.mobile"
+              name="mobile"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Circle</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.indus_circle"
+              name="indus_circle"
+            />
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer my-2">
+        <button
+          class="btn btn-secondary mx-2"
+          (click)="closeReportUserEditModal()"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-success mx-2" (click)="saveReportUserEdit()">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Licensed User Modal -->
+<div
+  class="modal fade"
+  id="addNewReportUserModal"
+  tabindex="-1"
+  aria-labelledby="addNewReportUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addNewReportUserModalLabel">
+          Add New User
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.name"
+                name="name"
+                (ngModelChange)="clearValidation('name')"
+                required
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('name') ? 'red' : '',
+                        'border-width': validatedFields.includes('name') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.username"
+                name="username"
+                required
+                (ngModelChange)="clearValidation('username')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('username') ? 'red' : '',
+                        'border-width': validatedFields.includes('username') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">UserId</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.userid"
+                name="userid"
+                required
+                (ngModelChange)="clearValidation('userid')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('userid') ? 'red' : '',
+                        'border-width': validatedFields.includes('userid') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                [(ngModel)]="newReportUser.password"
+                name="password"
+                required
+                (ngModelChange)="clearValidation('password')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('password') ? 'red' : '',
+                        'border-width': validatedFields.includes('password') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select
+                class="form-select"
+                [(ngModel)]="newReportUser.status"
+                name="status"
+                (ngModelChange)="clearValidation('status')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('status') ? 'red' : '',
+                        'border-width': validatedFields.includes('status') ? '2px' : ''
+                      }"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Team</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.team"
+                name="team"
+                required
+                (ngModelChange)="clearValidation('team')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('team') ? 'red' : '',
+                        'border-width': validatedFields.includes('team') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">To / CC</label>
+              <select
+                class="form-select"
+                [(ngModel)]="newReportUser.to_cc"
+                name="to_cc"
+                (ngModelChange)="clearValidation('to_cc')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('to_cc') ? 'red' : '',
+                        'border-width': validatedFields.includes('to_cc') ? '2px' : ''
+                      }"
+              >
+                <option value="">-- Select To/CC --</option>
+                <option value="to">To</option>
+                <option value="cc">CC</option></select
+              >.
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email-Id</label>
+              <input
+                type="email"
+                class="form-control"
+                [(ngModel)]="newReportUser.mail"
+                name="mail"
+                required
+                (ngModelChange)="clearValidation('mail')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('mail') ? 'red' : '',
+                        'border-width': validatedFields.includes('mail') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Mobile</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.mobile"
+                name="mobile"
+                required
+                (ngModelChange)="clearValidation('mobile')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('mobile') ? 'red' : '',
+                        'border-width': validatedFields.includes('mobile') ? '2px' : ''
+                      }"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Indus Circle</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.indus_circle"
+                name="indus_circle"
+                required
+                (ngModelChange)="clearValidation('indus_circle')"
+                [ngStyle]="{
+                        'border-color': validatedFields.includes('indus_circle') ? 'red' : '',
+                        'border-width': validatedFields.includes('indus_circle') ? '2px' : ''
+                      }"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="submitNewReportUser()"
+        >
+          Submit
+        </button>
+      </div>
     </div>
   </div>
 </div>

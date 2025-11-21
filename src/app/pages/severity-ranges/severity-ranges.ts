@@ -27,20 +27,8 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   circles: any = [];
   selectedCircle: string = '';
   editableKPIData: any = {};
+  userRole: string = '';
 
-  // kpiList = [
-  //   { name: 'Rainfall (mm)', field: 'rainfall', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Wind (Kmph)', field: 'wind', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Temperature (°C)', field: 'temperature', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Humidity', field: 'humidity', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Visibility (Km)', field: 'visibility', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Cyclone (Kmph)', field: 'cyclone', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Flood (depth in meter)', field: 'flood', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Snowfall (cm)', field: 'snowfall', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Lightning (probability)', field: 'lightning', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Landslide (probability)', field: 'landslide', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false },
-  //   { name: 'Avalanche (probability)', field: 'avalanche', extreme: '', extremeColor: '', high: '', highColor: '', moderate: '', moderateColor: '', editMode: false }
-  // ];
   kpiList = [
     {
       name: 'Rainfall (mm)',
@@ -70,7 +58,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       editMode: false,
     },
     {
-      name: 'Temperature Max (°C)',
+      name: 'Temp Max °C (Departure From Normal)',
       field: 'temperature',
       extreme: '',
       high: '',
@@ -79,7 +67,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       editMode: false,
     },
     {
-      name: 'Temperature Min (°C)',
+      name: 'Temp Min °C (Departure From Normal)',
       field: 'min_temp',
       extreme: '',
       high: '',
@@ -180,6 +168,11 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   ];
 
   ngOnInit(): void {
+    let storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      let user = JSON.parse(storedUser);
+      this.userRole = user.userrole;
+    }
     this.loadCircleListForDropdown();
     this.fetchKPIRanges();
   }
@@ -241,7 +234,6 @@ export class SeverityRanges implements OnInit, AfterViewInit {
               b: { value: string; location: string }
             ) => a.value.localeCompare(b.value)
           );
-    
       } else {
         console.error(
           '❌ Failed to load circle list: Invalid API response format'

@@ -14,7 +14,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import XYZ from 'ol/source/XYZ';
 import GeoJSON from 'ol/format/GeoJSON';
-import { Style, Fill, Stroke } from 'ol/style';
+import { Style, Fill, Stroke, Circle } from 'ol/style';
 import { CommonModule } from '@angular/common';
 import { DateTime } from 'luxon';
 import { DataService } from '../../data-service/data-service';
@@ -27,6 +27,7 @@ import { HttpClient } from '@angular/common/http';
 import { DateTimeService } from '../../services/date-time';
 import { CurrentLocationService } from '../../services/current-location-service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { circle } from '@turf/turf';
 
 interface HazardItem {
   state: string;
@@ -110,6 +111,11 @@ export class Dashboard implements OnInit, AfterViewInit {
   searchResults: any[] = [];
   showDropdown = false;
   private searchSubject = new Subject<string>();
+
+  //For Detect Changes Faster
+  safeDetectChanges() {
+    this.cdr.markForCheck();
+  }
 
   logId: string = '';
   isLoading: boolean = false;
@@ -327,7 +333,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         } else {
           this.WeatherService.setSearchLoader(false);
           // this.isLoading = false;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
           this.snackBar.open('Please enter correct name.', 'X', {
             duration: 2000, // auto close after 3s
             horizontalPosition: 'center',
@@ -362,10 +368,6 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.loadWeather();
 
     this.WeatherService.location$.subscribe((location: string) => {
-      if (!location) {
-        console.warn('location$ received empty value. Skipping loadWeather.');
-        return;
-      }
 
       if (this.selectedDay === 'TODAY') {
         this.selectedLocation = location;
@@ -378,12 +380,12 @@ export class Dashboard implements OnInit, AfterViewInit {
 
     this.WeatherService.selectedLayer$.subscribe((layer) => {
       this.selectedLayer = layer;
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     });
 
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     });
 
     this.WeatherService.selectedDay$.subscribe((day: string) => {
@@ -404,9 +406,15 @@ export class Dashboard implements OnInit, AfterViewInit {
         );
         return;
       }
-      this.selectedLocation = circle;
-      this.loadWeather();
+      this.user.circle = circle;
     });
+
+    this.WeatherService.circleLocationChangedIs$.subscribe(
+      (circleLocation: string) => {
+        this.selectedLocation = circleLocation;
+        this.loadWeather();
+      }
+    );
 
     this.fetchHazardTypes();
     this.fetchSeverityTypes();
@@ -626,9 +634,12 @@ export class Dashboard implements OnInit, AfterViewInit {
           year: 'numeric',
         }
       );
-      let regionName = '';
+
+      const name = data.location['name'];
+      let regionName = data.location['region'];
       const reginUPArray = ['Uttar Pradesh', 'UP'];
       const rgionMPArray = ['Madhya Pradesh', 'MP'];
+
       if (reginUPArray.includes(data.location['region'])) {
         regionName = 'UP East';
       } else if (rgionMPArray.includes(data.location['region'])) {
@@ -803,6 +814,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.currentHourRainPercent = currentHourData.chance_of_rain;
     this.currentHourRainMM = currentHourData.rain_mm;
   }
+
   loadNextDayWeatherData(index: number) {
     if (
       !this.dayForecastWeatherData ||
@@ -810,6 +822,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     ) {
       return;
     }
+
     const nextSevenDays = this.dayForecastWeatherData.slice(index, index + 7);
     this.mapWeatherAPIToCurrentForecast(this.apiResponseOfWeatherData, index);
     this.dayForecastList = this.mapWeatherAPIDayForecast(nextSevenDays);
@@ -828,60 +841,33 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   loadWeather(): void {
     let location: any;
-    this.WeatherService.circleLocationChangedIs$.subscribe((loc: string) => {
-      if (loc) {
-        location = loc;
-      }
-    });
-
-    // if (this.selectedLocation) {
-    //   location = this.selectedLocation;
-    // } else if (this.user && this.user.location) {
-    //   location = this.user.location;
-    // } else if (this.user && (this.user.circle || this.user.indus_circle)) {
-    //   let userCircle = this.user.circle || this.user.indus_circle;
-    //   if (userCircle === 'UP East') {
-    //     location = 'Varanasi';
-    //   } else if (userCircle === 'UP West') {
-    //     location = 'Dehradun';
-    //   } else if (userCircle === 'North East') {
-    //     location = 'Meghalaya';
-    //   } else if (userCircle === 'All Circle') {
-    //     location = 'Delhi';
-    //   } else {
-    //     location = userCircle;
-    //   }
-    // } else {
-    //   console.log('loadWeather: No user/location');
-    //   this.getUserCurrentLocation();
-    //   return;
-    // }
-
-    if (location == '') {
-      console.error('loadWeather: Location is still undefined.');
-      this.getUserCurrentLocation();
-      return;
-    }
 
     // Save the resolved location
-    this.selectedLocation = location;
+    location = this.selectedLocation;
 
-    this.isLoading = true; // Start loader
+    this.isLoading = false; // Start loader
 
     if (this.selectedSource === 'weather_api') {
       this.dataService.getWeatherForecast(location).subscribe({
         next: (response: any) => {
           this.apiResponseOfWeatherData = response;
           this.dayForecastWeatherData = response.forecast.forecastday;
-          this.loadTodayWeatherdata(response);
+
+          // According To Day , update weather data
+          if (this.selectedDay === 'TODAY') {
+            this.loadTodayWeatherdata(response);
+          } else {
+            this.loadNextDayWeatherData(1);
+          }
+
           this.isLoading = false; // Stop loader
           this.activeAccordion = 'hourly';
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         },
         error: (err: any) => {
           console.error('Error from weather_api', err);
           this.isLoading = false;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         },
       });
     } else if (this.selectedSource === 'cross_visual') {
@@ -892,12 +878,12 @@ export class Dashboard implements OnInit, AfterViewInit {
           this.hourlyForecastList = this.getCrossVisualHourlyForecast(response);
           this.isLoading = false; // Stop loader
           this.activeAccordion = 'hourly';
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         },
         error: (err: any) => {
           console.error('Error from cross_visual', err);
           this.isLoading = false;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         },
       });
     }
@@ -1049,7 +1035,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       },
     };
     this.updateWeatherLogTable(payload);
-    this.cdr.detectChanges();
+    this.safeDetectChanges();
   };
 
   onchangeSeverityType = async () => {
@@ -1066,7 +1052,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       },
     };
     this.updateWeatherLogTable(payload);
-    this.cdr.detectChanges();
+    this.safeDetectChanges();
   };
 
   callToggleTempIDW() {
@@ -1286,7 +1272,7 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   fetchHazardTypes = () => {
     this.dataService
-      .postRequest('get-hazards-lits', {})
+      .postRequest('get-hazards-list', {})
       .subscribe((res: any) => {
         const data = res.data;
 
@@ -1325,7 +1311,7 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   fetchSeverityTypes = () => {
     this.dataService
-      .postRequest('get-severity-lits', {})
+      .postRequest('get-severity-list', {})
       .subscribe((res: any) => {
         const data = res.data;
         this.severityTypes = [];
@@ -1388,7 +1374,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         }
       });
 
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     }
   };
 
@@ -1547,7 +1533,7 @@ export class Dashboard implements OnInit, AfterViewInit {
             state: state,
           };
           this.selectedHazardDetail = obj;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
           featuresArray.push({
             type: 'Feature',
             geometry: JSON.parse(hazard.geometry),

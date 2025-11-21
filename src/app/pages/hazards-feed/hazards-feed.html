@@ -1,1 +1,260 @@
-<p>hazards-feed works!</p>
+<div class="main-container">
+  <h3>Hazards Fees</h3>
+
+  <!-- ====== TABS SECTION ====== -->
+  <div class="summary-table-container d-flex flex-wrap gap-3 mb-3 mt-3">
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Flood' }"
+      (click)="setActive('Flood')"
+    >
+      <i class="fas fa-water"></i> Flood
+    </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Cyclone' }"
+      (click)="setActive('Cyclone')"
+    >
+      <i class="fas fa-wind"></i> Cyclone
+    </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Snowfall' }"
+      (click)="setActive('Snowfall')"
+    >
+      <i class="fa-solid fa-snowflake"></i> Snowfall
+    </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Avalanche' }"
+      (click)="setActive('Avalanche')"
+    >
+      <i class="fas fa-mountain"></i> Avalanche
+    </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Cloudburst' }"
+      (click)="setActive('Cloudburst')"
+    >
+      <i class="fas fa-cloud-bolt"></i> Cloudburst
+    </button>
+  </div>
+
+  <!-- ====== FORM APPEAR AFTER TAB CLICK ====== -->
+  <div *ngIf="activeHazardTab" class="card p-3">
+    <div class="row">
+      <!-- CIRCLE DROPDOWN -->
+      <div class="custom-col mb-3">
+        <label>Circle</label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.circle"
+          (change)="loadDistrictListForDropdown()"
+        >
+          <option value="" disabled selected>Select Circle</option>
+          <option *ngFor="let c of circleList" [value]="c.label">
+            {{c.label}}
+          </option>
+        </select>
+      </div>
+
+      <!-- DISTRICT CHECKBOX -->
+      <div class="custom-col mb-3">
+        <label>District</label>
+
+        <div class="dropdown custom-dropdown">
+          <button
+            style="text-align: left"
+            class="form-select"
+            type="button"
+            data-bs-toggle="dropdown"
+          >
+            {{ form.districts.length > 0 ? form.districts.join(', ') : 'Select
+            Districts' }}
+          </button>
+
+          <ul
+            class="dropdown-menu p-2"
+            style="max-height: 200px; overflow-y: auto"
+          >
+            <li
+              class="dropdown-item d-flex align-items-center"
+              *ngFor="let d of districtList"
+            >
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="form.districts.includes(d.district)"
+                (change)="toggleDistrict(d.district, $event)"
+              />
+
+              <label class="ms-2">{{ d.district }}</label>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="custom-col mb-3">
+        <label>Severity</label>
+        <select class="form-select" [(ngModel)]="form.severity">
+          <option value="" disabled>Select Severity</option>
+          <option *ngFor="let s of severityList" [value]="s">{{s}}</option>
+        </select>
+      </div>
+
+      <!-- DAYS -->
+      <div class="custom-col mb-3">
+        <label>Days</label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.day"
+          (change)="getDateFromSelectedDay(form.day)"
+        >
+          <option value="" disabled>Select Day</option>
+          <option *ngFor="let d of days" [value]="d">{{d}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <!-- RANGE -->
+      <div class="col-md-6 mb-3">
+        <label>{{activeHazardTab}}</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.hazardValue"
+          placeholder="Enter the value"
+        />
+      </div>
+      <!-- DESCRIPTION -->
+      <div class="col-md-6 mb-3">
+        <label>Description</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.description"
+          placeholder="Enter description"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="d-flex gap-3 mt-3">
+    <!-- <button class="btn btn-success" (click)="edit()">Edit</button> -->
+    <button class="btn btn-success" (click)="addNew()">Add New</button>
+    <div>
+      <button class="btn btn-success" (click)="showmap()">View in Map</button>
+    </div>
+  </div>
+
+  <div
+    class="accordion mt-4"
+    id="importantLinksAccordion"
+    *ngIf="activeHazardTab"
+  >
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingImportantLinks">
+        <button
+          class="accordion-button collapsed"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseImportantLinks"
+          aria-expanded="false"
+          aria-controls="collapseImportantLinks"
+          style="font-size: 20px"
+        >
+          Sources of Information for {{ activeHazardTab | titlecase }}
+        </button>
+      </h2>
+
+      <div
+        id="collapseImportantLinks"
+        class="accordion-collapse collapse"
+        aria-labelledby="headingImportantLinks"
+        data-bs-parent="#importantLinksAccordion"
+      >
+        <div class="accordion-body">
+          <ul class="list-group">
+            <!-- SHOW LIST ONLY IF LINKS EXIST -->
+            <ng-container
+              *ngIf="linksData[activeHazardTab]?.length > 0; else noLinks"
+            >
+              <li
+                class="list-group-item"
+                *ngFor="let link of linksData[activeHazardTab]; let i = index"
+              >
+                <a [href]="link.url" target="_blank"> {{ link.name }} </a>
+                <p>{{ link.description }}</p>
+              </li>
+            </ng-container>
+          </ul>
+
+          <!-- SHOW NOTHING IF LENGTH IS 0 (No message, no value) -->
+          <ng-template #noLinks>
+            <h5>No Sources are available.</h5>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TABLE SHOW AFTER ADD NEW ====== -->
+  <div class="table-box" *ngIf="tableData.length > 0">
+    <div class="table-container mt-4 mb-2">
+      <table *ngIf="tableData.length > 0" class="table table-bordered mt-4">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Tab</th>
+            <th>Circle</th>
+            <th>Districts</th>
+            <th>Severity</th>
+            <th>Day</th>
+            <th>Date</th>
+            <th>{{activeHazardTab}}</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of tableData; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ row.tab }}</td>
+            <td>{{ row.circle }}</td>
+            <td>{{ row.districts.join(', ') }}</td>
+            <td>{{ row.severity }}</td>
+            <td>{{ row.day }}</td>
+            <td>{{ row.date }}</td>
+            <td>{{ row.hazardValue }}</td>
+            <td>{{ row.description }}</td>
+
+            <!-- EDIT BUTTON -->
+            <td class="d-flex spacebetween gap-2">
+              <button class="btn btn-success btn-sm" (click)="edit(i)">
+                Edit
+              </button>
+              <button class="btn btn-success btn-sm" (click)="delete(i)">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align: center">
+      <button class="btn btn-success" (click)="onSubmitClick()">Submit</button>
+    </div>
+  </div>
+
+  <!-- Full screen map viewer -->
+  <div *ngIf="showMapFull" class="fullscreen-map">
+    <app-map-weather></app-map-weather>
+
+    <button class="close-btn" (click)="closeMap()">×</button>
+  </div>
+</div>

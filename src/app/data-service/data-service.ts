@@ -80,6 +80,7 @@ export class DataService {
   }
   // https://api.weatherapi.com/v1/forecast.json?key=ce3f4317d6204d0f99571656250108&q=UP East&days=8&aqi=no&alerts=no
   getWeatherForecast(location: string): Observable<any> {
+  
     const apiUrl = 'https://api.weatherapi.com/v1/forecast.json';
     const apiKey = 'ce3f4317d6204d0f99571656250108';
     return this.http.get(
@@ -124,7 +125,7 @@ export class DataService {
     return this.http.post(this.flaskAPIURL, formData);
     // return this.http.post(`http://127.0.0.1:6633/api-send-report`, formData);
   }
-  
+
   sendWeatherUserLog(method: string, payload: object): Observable<any> {
     const token = localStorage.getItem('token'); // or localStorage
     const headers = new HttpHeaders({

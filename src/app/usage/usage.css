@@ -300,3 +300,63 @@
   word-wrap: break-word; /* Break long words if needed */
   overflow-wrap: anywhere; /* Modern browsers wrapping */
 }
+
+/* Base radio styling */
+.green-radio {
+  width: 18px;
+  height: 18px;
+  /* border: 2px solid #28a745 !important; */
+  border-radius: 50%;
+  appearance: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Green background when selected */
+.green-radio:checked {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+/* White dot inside (bigger than default) */
+.green-radio:checked::after {
+  content: "";
+  width: 10px; /* inner dot size */
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Green focus shadow (replaces Bootstrap blue glow) */
+.green-radio:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.4) !important;
+}
+
+/* Normal checkbox border */
+.green-checkbox {
+  border: 2px solid #28a745 !important;
+}
+
+/* When checked: Green background + white checkmark */
+.green-checkbox:checked {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M12.97 4.97a.75.75 0 010 1.06l-6 6a.75.75 0 01-1.06 0l-3-3a.75.75 0 011.06-1.06L6.5 10.44l5.47-5.47a.75.75 0 011.06 0z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 140%;
+}
+
+/* Remove Bootstrap default checkmark */
+.green-checkbox:checked[type="checkbox"] {
+  background-image: none;
+}
+.green-checkbox:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.4) !important;
+}

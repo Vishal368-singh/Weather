@@ -1,69 +1,69 @@
 :root {
-    --extreme-color: #ff0000;
-    --high-color: #ffa500;
-    --moderate-color: #ffff00;
-    --low-color: #00ff00;
-  }
+  --extreme-color: #ff0000;
+  --high-color: #ffa500;
+  --moderate-color: #ffff00;
+  --low-color: #00ff00;
+  --other-color: #fff;
 
+  --min-extreme-color: #ff6666;
+  --min-high-color: #ffc266;
+  --min-moderate-color: #ffff99;
+  --min-low-color: #99ff99;
+  --min-other-color: #fff;
+}
 
-  .extreme{
-    background-color: var(--extreme-color);
-  }
-  
-
-  .legend-box.extreme {
-    background-color: var(--extreme-color);
-  }
-  .legend-box.high {
-    background-color: var(--high-color);
-  }
-  .legend-box.moderate {
-    background-color: var(--moderate-color);
-  }
-  .legend-box.low {
-    background-color: var(--low-color);
-  }
-  
-
+.extreme {
+  background-color: var(--extreme-color);
+}
+.legend-box.extreme {
+  background-color: var(--extreme-color);
+}
+.legend-box.high {
+  background-color: var(--high-color);
+}
+.legend-box.moderate {
+  background-color: var(--moderate-color);
+}
+.legend-box.low {
+  background-color: var(--low-color);
+}
 
 .pdf_cont {
-    background-color: #FAF2E9;
-    /* width: 210mm; */
-    padding: 5mm;
-    margin: 0 auto;
-    flex-direction: column;
-    align-items: center;
+  background-color: #faf2e9;
+  /* width: 210mm; */
+  padding: 5mm;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
 }
 
 .ol-viewport canvas {
-    border-bottom-left-radius: 15px !important;
-    border-bottom-right-radius: 15px !important;
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
 }
 
 .ol-attribution ul {
-    border-bottom-right-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
 }
 
-
-
 ::ng-deep .custom-error-snackbar {
-    background-color: #860c04 !important;
-    /* Red */
-    z-index: 99999 !important;
-    color: white;
-    font-weight: bold;
+  background-color: #860c04 !important;
+  /* Red */
+  z-index: 99999 !important;
+  color: white;
+  font-weight: bold;
 }
 
 ::ng-deep .custom-info-snackbar {
-    background-color: #025294 !important;
-    z-index: 99999 !important;
-    color: white;
-    font-weight: bold;
+  background-color: #025294 !important;
+  z-index: 99999 !important;
+  color: white;
+  font-weight: bold;
 }
 
 ::ng-deep .custom-success-snackbar {
-    background: rgb(3, 117, 18);
-    z-index: 99999 !important;
-    color: white;
-    font-weight: bold;
+  background: rgb(3, 117, 18);
+  z-index: 99999 !important;
+  color: white;
+  font-weight: bold;
 }

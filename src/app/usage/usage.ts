@@ -6,6 +6,9 @@ import { WeatherService } from '../services/weather';
 import { DataService } from '../data-service/data-service';
 import { catchError, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+declare var bootstrap: any; // needed for modal JS
 
 // ===== Interfaces =====
 interface WhatsAppRecord {
@@ -61,6 +64,19 @@ export class Usage implements OnInit {
   LstartDate: string = '';
   LendDate: string = '';
 
+  reportType: string = 'send'; // default
+
+  sendEmails: string = '';
+  selectedUser: string = '';
+  selectedExportUser: string = '';
+
+  sendingMail: boolean = false;
+  selectAll: boolean = false;
+  selectExportAll: boolean = false;
+  userList: { id: string; name: string; checked: boolean }[] = [];
+  sendUserList: { id: string; name: string; checked: boolean }[] = [];
+  exportUserList: { id: string; name: string; checked: boolean }[] = [];
+
   // WhatsApp data
   private originalWhatsAppData: WhatsAppRecord[] = [];
   filteredWhatsAppData: WhatsAppRecord[] = [];
@@ -78,6 +94,11 @@ export class Usage implements OnInit {
   storedDashboardUsageData: any = [];
 
   uploadedFileType: 'whatsapp' | null = null;
+
+  //For Faster Update
+  safeDetectChanges() {
+    this.cdr.markForCheck();
+  }
 
   // Hardcoded WhatsApp user mapping
   fixedUsers: { mobileNo: string; name: string; company: string }[] = [
@@ -125,6 +146,7 @@ export class Usage implements OnInit {
   ngOnInit() {
     this.filteredUserColumns = [...this.userColumns];
     // this.fetchLoginData();
+    this.bindUserListToOptions();
     this.fetch_dashboard_usages();
   }
 
@@ -205,7 +227,7 @@ export class Usage implements OnInit {
           }
         }
 
-        this.cdr.detectChanges();
+        this.safeDetectChanges();
       },
       error: (err) => {
         console.error('Failed to fetch login data:', err);
@@ -265,7 +287,7 @@ export class Usage implements OnInit {
         this.userNotFound = true;
         setTimeout(() => {
           this.userNotFound = false;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         }, 3000);
       }
     } else {
@@ -294,6 +316,15 @@ export class Usage implements OnInit {
     this.uploadedFileType = null;
     this.fileName = '';
     this.dashboardUsageData = this.storedDashboardUsageData;
+    const userids = this.dashboardUsageData.map((u: any) => u.userid);
+    const filteredUserList = this.userList.filter((u) =>
+      userids.includes(u.id)
+    );
+    this.sendUserList = filteredUserList.map((u) => ({ ...u, checked: false }));
+    this.exportUserList = filteredUserList.map((u) => ({
+      ...u,
+      checked: false,
+    }));
   }
 
   // ================= WhatsApp CSV Upload =================
@@ -493,6 +524,18 @@ export class Usage implements OnInit {
       .subscribe((response) => {
         if (response.status === 'success') {
           const responseData = response.data;
+          const userids = Object.keys(response.data).map((id) => id);
+          const filteredUserList = this.userList.filter((u) =>
+            userids.includes(u.id)
+          );
+          this.sendUserList = filteredUserList.map((u) => ({
+            ...u,
+            checked: false,
+          }));
+          this.exportUserList = filteredUserList.map((u) => ({
+            ...u,
+            checked: false,
+          }));
           for (const userId in responseData) {
             if (responseData.hasOwnProperty(userId)) {
               const userRows = responseData[userId];
@@ -507,13 +550,7 @@ export class Usage implements OnInit {
             }
           }
           this.storedDashboardUsageData = this.dashboardUsageData;
-          this.cdr.detectChanges();
-          this.snackBar.open(response.message, 'X', {
-            duration: 2000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['custom-success-snackbar'],
-          });
+          this.safeDetectChanges();
         }
       });
   };
@@ -535,8 +572,313 @@ export class Usage implements OnInit {
 
       return itemDate >= start && itemDate <= end;
     });
-
+    const userids = filtered.map((u: any) => u.userid);
+    const filteredUserList = this.userList.filter((u) =>
+      userids.includes(u.id)
+    );
     // Update or return filtered data
     this.dashboardUsageData = filtered;
+    this.sendUserList = filteredUserList.map((u) => ({
+      ...u,
+      checked: false,
+    }));
+    this.exportUserList = filteredUserList.map((u) => ({
+      ...u,
+      checked: false,
+    }));
+  }
+
+  /* handle Usages Report */
+
+  bindUserListToOptions() {
+    this.DataService.postData('get-user-list')
+      .pipe(
+        catchError((error) => {
+          const message = error?.error?.message || 'Internal Server Error';
+          this.snackBar.open(message, 'X', {
+            duration: 2000, // auto close after 3s
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['custom-success-snackbar'],
+          });
+          return throwError(() => error);
+        })
+      )
+      .subscribe((response) => {
+        if (response.status === 'success') {
+          const data = response.data;
+          data?.forEach((d: any) => {
+            let user = { id: d.userid, name: d.name, checked: false };
+            this.userList.push({ ...user });
+          });
+        }
+      });
+  }
+
+  toggleSelectAll() {
+    this.sendUserList.forEach((u) => (u.checked = this.selectAll));
+  }
+
+  updateSelectAll() {
+    this.selectAll = this.sendUserList.every((u) => u.checked);
+  }
+
+  getSelectedUserNames() {
+    const selected = this.sendUserList
+      .filter((u) => u.checked)
+      .map((u) => u.name);
+    return selected.length
+      ? selected.length === this.sendUserList.length
+        ? 'All'
+        : selected.join(', ')
+      : '';
+  }
+
+  toggleSelectExportUser() {
+    this.exportUserList.forEach((u) => (u.checked = this.selectExportAll));
+  }
+
+  updateSelectExportUser() {
+    this.selectExportAll = this.exportUserList.every((u) => u.checked);
+  }
+
+  getSelectedExportUserNames() {
+    const selected = this.exportUserList
+      .filter((u) => u.checked)
+      .map((u) => u.name);
+    return selected.length
+      ? selected.length === this.exportUserList.length
+        ? 'All'
+        : selected.join(', ')
+      : '';
+  }
+
+  calculateDuration(login: string, logout: string): string {
+    const start = new Date(login);
+    const end = new Date(logout);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return '0m';
+    let diff = Math.floor((end.getTime() - start.getTime()) / 1000); // seconds
+    const hours = Math.floor(diff / 3600);
+    diff %= 3600;
+    const minutes = Math.floor(diff / 60);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+
+  getFlattenedUsageData(dashboardData: any[], selectedUserIds: string[]) {
+    const allUsersFlattened: any[] = [];
+
+    selectedUserIds.forEach((userId) => {
+      const userRows: any[] = [];
+      const userRecords = dashboardData.filter((d) => d.userid === userId);
+
+      userRecords.forEach((day) => {
+        day.sessions.forEach((session: any) => {
+          if (!session.logout_time) return;
+
+          const user = this.userList.find((u) => u.id === day.userid);
+          const name = user ? user.name : '';
+
+          const duration = this.calculateDuration(
+            session.login_time,
+            session.logout_time
+          );
+          const durationMinutes = this.convertDurationToMinutes(duration);
+          if (durationMinutes < 1 || durationMinutes >= 60) {
+            return;
+          }
+
+          userRows.push({
+            User_Id: day.userid,
+            Name: name,
+            Login_Date_Time: session.login_time,
+            Logout_Date_Time: session.logout_time,
+            Total_Duration: duration,
+            User_Actions: session.fields ?? [],
+          });
+        });
+      });
+
+      allUsersFlattened.push(userRows);
+    });
+
+    return allUsersFlattened;
+  }
+
+  convertDurationToMinutes(duration: string): number {
+    let hours = 0;
+    let minutes = 0;
+
+    if (duration.includes('h')) {
+      const h = duration.split('h')[0].trim();
+      hours = Number(h);
+    }
+
+    if (duration.includes('m')) {
+      const parts = duration.split('h');
+      const minPart = parts.length > 1 ? parts[1] : parts[0];
+      minutes = Number(minPart.replace('m', '').trim());
+    }
+
+    return hours * 60 + minutes;
+  }
+
+  SendUsageReport() {
+    this.sendingMail = true;
+    const selectedUsers = this.sendUserList
+      .filter((u) => u.checked)
+      .map((u) => u.id);
+    const dataToSend = this.getFlattenedUsageData(
+      this.dashboardUsageData,
+      selectedUsers
+    );
+    const emails = this.sendEmails.split(',');
+    const payload = {
+      emails: emails,
+      data: dataToSend,
+    };
+
+    this.DataService.postData('send_usage_report', payload)
+      .pipe(
+        catchError((error) => {
+          const message = error?.error?.message || 'Internal Server Error';
+          return throwError(() => error);
+        })
+      )
+      .subscribe((response) => {
+        if (response.status === 'success') {
+          this.sendUserList = this.sendUserList.map((u) => ({
+            ...u,
+            checked: false,
+          }));
+          const modalEl = document.getElementById('usageReportModal');
+          const modal = bootstrap.Modal.getInstance(modalEl!);
+          modal.hide();
+          this.sendingMail = false;
+          this.snackBar.open(response.message, 'X', {
+            duration: 2000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['custom-success-snackbar'],
+          });
+          this.cancelSendingMail();
+        }
+      });
+  }
+
+  ExportUsageReport() {
+    const selectedUsers = this.exportUserList
+      .filter((u) => u.checked)
+      .map((u) => u.id);
+
+    const dataToSend = this.getFlattenedUsageData(
+      this.dashboardUsageData,
+      selectedUsers
+    );
+
+    if (!dataToSend?.length) {
+      alert('No data to export');
+      return;
+    }
+
+    const workbook = XLSX.utils.book_new();
+
+    dataToSend.forEach((userRows, index) => {
+      if (!userRows.length) return;
+
+      const name = userRows[0].Name || `User_${index + 1}`;
+
+      const formatHeader = (header: string) => {
+        if (header === 'Login_Date_Time') return 'Login Date & Time';
+        if (header === 'Logout_Date_Time') return 'Logout Date & Time';
+        return header.replace(/_/g, ' ');
+      };
+
+      const cleanRows = userRows.map((row: any) => {
+        const formattedRow: any = {};
+        Object.keys(row).forEach((key) => {
+          const newHeader = formatHeader(key);
+
+          let value = row[key];
+          if (Array.isArray(value)) value = value.join(', ');
+
+          formattedRow[newHeader] = value;
+        });
+        return formattedRow;
+      });
+
+      const sheet = XLSX.utils.json_to_sheet(cleanRows);
+
+      const headers = Object.keys(cleanRows[0]);
+      headers.forEach((header, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+
+        if (!sheet[cellAddress]) return;
+
+        sheet[cellAddress].s = {
+          font: { bold: true },
+        };
+      });
+
+      const columnWidths: any[] = [];
+      headers.forEach((header, colIndex) => {
+        let maxLen = header.length;
+        cleanRows.forEach((row: any) => {
+          const cellVal = row[header] ? String(row[header]) : '';
+          maxLen = Math.max(maxLen, cellVal.length);
+        });
+        columnWidths[colIndex] = { wch: maxLen + 3 };
+      });
+
+      sheet['!cols'] = columnWidths;
+
+      XLSX.utils.book_append_sheet(workbook, sheet, name.substring(0, 31));
+    });
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array',
+    });
+
+    const blob = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    saveAs(blob, 'usage_report.xlsx');
+    const modalEl = document.getElementById('usageReportModal');
+    const modal = bootstrap.Modal.getInstance(modalEl!);
+    modal.hide();
+    this.cancelSendingMail();
+  }
+
+  formattedHeaders(header: string) {
+    if (header === 'Login_Date_Time') return 'Login Date & Time';
+    if (header === 'Logout_Date_Time') return 'Logout Date & Time';
+    return header.split('_').join(' ');
+  }
+
+  cancelSendingMail() {
+    this.reportType = 'send';
+    this.sendEmails = '';
+    this.sendingMail = false;
+    this.selectAll = false;
+    this.selectExportAll = false;
+    const userids = this.dashboardUsageData.map((u: any) => u.userid);
+    const filteredUserList = this.userList.filter((u) =>
+      userids.includes(u.id)
+    );
+    this.sendUserList = filteredUserList.map((u) => ({ ...u, checked: false }));
+    this.exportUserList = filteredUserList.map((u) => ({
+      ...u,
+      checked: false,
+    }));
+  }
+
+  handleUsagesReport() {
+    const modalEl = document.getElementById('usageReportModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
   }
 }

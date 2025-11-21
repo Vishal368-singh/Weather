@@ -8,6 +8,8 @@ import {
   SimpleChanges,
   ElementRef,
   ViewChild,
+  ChangeDetectionStrategy,
+  NgZone,
 } from '@angular/core';
 import Map from 'ol/Map';
 import { containsCoordinate } from 'ol/extent';
@@ -57,6 +59,7 @@ declare const ol: any;
   standalone: true,
   templateUrl: './map-weather.html',
   styleUrl: './map-weather.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapWeather implements AfterViewInit {
   @ViewChild('screenshotContainer', { static: false })
@@ -143,14 +146,14 @@ export class MapWeather implements AfterViewInit {
     private mapExport: MapExportService,
     private dataService: DataService,
     private WeatherService: WeatherService,
-    private locationService: CurrentLocationService
+    private locationService: CurrentLocationService,
+    private ngZone: NgZone
   ) {
     // Listen for source load completion
   }
 
   logId: String = '';
   weatherApiData: any = {};
-  newTowerLayer!: VectorLayer<any>;
   newtowerSource = new VectorSource();
 
   hazardsSource = new VectorSource();
@@ -184,6 +187,12 @@ export class MapWeather implements AfterViewInit {
   zoneArray: any[] = ['All', 'East', 'West', 'North', 'South'];
   selectedZoneArray: any[] = [];
 
+  // Source of Indus Boundary
+  indusBNDVectorSource: any = new VectorSource({
+    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3AIndus_Boundary&outputFormat=application%2Fjson&maxFeatures=1000',
+    format: new GeoJSON(),
+  });
+
   // Source of District
   districtVectorSource: any = new VectorSource({
     url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3AIndusDistrict&outputFormat=application%2Fjson&maxFeatures=1000',
@@ -200,6 +209,16 @@ export class MapWeather implements AfterViewInit {
   Weather_LocationsVectorSource: any = new VectorSource({
     url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3Aweather_locations&outputFormat=application%2Fjson&maxFeatures=10000',
     format: new GeoJSON(),
+  });
+
+  //Layer of BND of Circle AT India Level
+  indusBNDVectorLayer: any = new VectorLayer({
+    properties: {
+      title: 'Indus Boundary',
+      legendFixed: true,
+    },
+    style: (feature) => this.styleFunctionBoundaryLayer(feature),
+    source: this.indusBNDVectorSource,
   });
 
   //Layer of District
@@ -255,10 +274,7 @@ export class MapWeather implements AfterViewInit {
     });
   };
 
-  // Flag for zoom once at the time of map load
-  private initialLoad = true;
-
-  // For Filter the
+  // For Filter the map through their circle name
   filterVectorLayerCircleName = () => {
     this.clearSearchMarker();
     if (this.selectedCircle !== 'All Circle') {
@@ -332,14 +348,7 @@ export class MapWeather implements AfterViewInit {
       );
       this.Weather_LocationsVectorLayer.setVisible(false);
 
-      // this.zoomToIndiaExtent();
-      if (this.initialLoad) {
-        // zoom on India
-        this.initialLoad = false;
-      } else {
-        const extent = this.circleVectorLayer.getSource().getExtent();
-        this.map.getView().fit(extent, { duration: 500 });
-      }
+      this.zoomToIndiaExtent();
     }
     this.districtVectorLayer.setVisible(true);
 
@@ -367,8 +376,8 @@ export class MapWeather implements AfterViewInit {
     const zoom: any = this.map.getView().getZoom();
 
     const style: any = new Style({
-      stroke: new Stroke({ color: '#010e09ff', width: 2 }),
-      fill: new Fill({ color: 'rgba(21, 115, 71, 0.05)' }),
+      stroke: new Stroke({ color: '#1518d6ff', width: 1.25 }),
+      fill: new Fill({ color: 'rgba(2, 32, 18, 0.05)' }),
     });
 
     if (zoom < 8) {
@@ -413,7 +422,7 @@ export class MapWeather implements AfterViewInit {
     const zoom: any = this.map.getView().getZoom();
 
     const style: any = new Style({
-      stroke: new Stroke({ color: '#07e67eff', width: 1 }),
+      stroke: new Stroke({ color: '#04a158ff', width: 0.5 }),
       fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
     });
     if (zoom > 11) {
@@ -469,6 +478,17 @@ export class MapWeather implements AfterViewInit {
     });
   };
 
+  styleFunctionBoundaryLayer = (feature: any) => {
+    const zoom: any = this.map.getView().getZoom();
+
+    const style: any = new Style({
+      stroke: new Stroke({ color: '#af10eeff', width: 3 }),
+      fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
+    });
+
+    return style;
+  };
+
   circleOptions: { value: string; label: string }[] = [];
   allCircleFeatures: any[] = [];
   allDistrictFeatures: Feature<Geometry>[] = [];
@@ -484,8 +504,12 @@ export class MapWeather implements AfterViewInit {
   isIDWLayer: boolean = false;
   circleArray: any[] = [];
   selectedCircleArray: any[] = [];
-  indiaExtent: any;
-  initialCenter = fromLonLat([82.8320187, 25.4463565]);
+
+  // Changes
+  indiaExtent: any = [
+    7582002.800582195, 901766.9151203264, 9739224.237484924, 4446120.279604534,
+  ];
+  initialCenter = fromLonLat([80.8320187, 22.4463565]);
   initialZoom = 4;
 
   minTemp: any;
@@ -648,8 +672,6 @@ export class MapWeather implements AfterViewInit {
       this.user = JSON.parse(storedUser);
       this.selectedCircle = this.user.indus_circle;
 
-      this.initialLoad = true;
-
       this.loadLayersFeatures();
       await this.initializeMap();
       await this.loadCircleListForDropdown();
@@ -685,7 +707,6 @@ export class MapWeather implements AfterViewInit {
     });
 
     this.WeatherService.searchLocation$.subscribe((location: string) => {
-
       if (location) {
         this.zoomOnLocationSearch(location);
       }
@@ -755,7 +776,6 @@ export class MapWeather implements AfterViewInit {
   }
 
   zoomOnLocationSearch = (location: string) => {
-
     const existing = this.map
       .getLayers()
       .getArray()
@@ -843,6 +863,7 @@ export class MapWeather implements AfterViewInit {
   }
 
   onCircleLevelChange(event: Event): void {
+   
     const selectEl = event.target as HTMLSelectElement;
     const selectedValues = Array.from(selectEl.selectedOptions).map(
       (opt) => opt.label
@@ -863,20 +884,6 @@ export class MapWeather implements AfterViewInit {
     }
 
     this.WeatherService.setCircleLocationChange(selectedCircleLocation);
-
-    if (this.selectedCircle === 'All Circle') {
-      this.callParentFunction2(['M&G']);
-      localStorage.setItem('selectedCircle', JSON.stringify(['M&G']));
-    } else {
-      this.selectedCircleArray = [this.selectedCircle];
-      this.WeatherService.setCircleChange(this.selectedCircle);
-      this.callParentFunction2([this.selectedCircle]);
-      localStorage.setItem(
-        'selectedCircle',
-        JSON.stringify([this.selectedCircle])
-      );
-    }
-
     this.filterVectorLayerCircleName();
   }
 
@@ -1177,6 +1184,7 @@ export class MapWeather implements AfterViewInit {
         this.districtVectorLayer,
         this.circleVectorLayer,
         this.Weather_LocationsVectorLayer,
+        this.indusBNDVectorLayer,
 
         this.imgIDWTempLayer,
         this.imgIDWRainFallLayer,
@@ -1200,7 +1208,6 @@ export class MapWeather implements AfterViewInit {
       controls: olDefaultControls({ zoom: false }).extend([
         new FullScreen({ source: 'map-component-container' }),
         new Zoom(),
-        // new LayerToggleControl(newTowerLayer),
       ]),
     });
 
@@ -1301,10 +1308,10 @@ export class MapWeather implements AfterViewInit {
 
                   <!-- Site Information -->
                   <div style="border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 8px;">
-                    <div><i class="fas fa-broadcast-tower" style="color:#007bff;"></i> <strong>SITE:</strong> ${
+                    <div><i class="fas fa-map-marker-alt" style="color:#007bff;"></i> <strong>Location:</strong> ${
                       resultData.location_name
                     }</div>
-                    <div><i class="fas fa-circle" style="color:#28a745;"></i> <strong>Circle:</strong> ${circle}</div>
+                    <div><i class="fas fa-map-marker-alt" style="color:#28a745;"></i> <strong>State/UT:</strong> ${circle}</div>
                     <div><i class="fas fa-map-marker-alt" style="color:#dc3545;"></i> <strong>District:</strong> ${district}</div>
                   </div>
 
@@ -1506,7 +1513,6 @@ export class MapWeather implements AfterViewInit {
     checkbox.style.width = '12px';
     checkbox.id = `layer-checkbox-${index}`;
 
-   
     checkbox.addEventListener('change', () => {
       this.closePopup();
       layer.setVisible(checkbox.checked);
@@ -1599,9 +1605,11 @@ export class MapWeather implements AfterViewInit {
   //#region IDW Layer
 
   zoomToIndiaExtent = () => {
-    this.map.getView().fit(this.indiaExtent, {
-      padding: [20, 20, 20, 20],
-      duration: 100,
+    const view = this.map.getView();
+    view.animate({
+      center: this.initialCenter,
+      zoom: this.initialZoom,
+      duration: 300,
     });
   };
 
@@ -1810,252 +1818,197 @@ export class MapWeather implements AfterViewInit {
     return { today: todayStr, tomorrow: tomorrowStr };
   };
 
-  generateRegionWiseWeatherIDW = async () => {
+  async generateRegionWiseWeatherIDW() {
     this.loading = true;
-    const selectedDate: any = this.getDatesWithHour(this.selectedHour);
-    let params = {
-      selectedDate: selectedDate[this.selectedDay],
-    };
-    this.dataService
-      .postRequest('get-current-weather', { params })
-      .subscribe(async (res: any) => {
-        const data = await res.data;
-        if (!res.status) {
-          throw new Error('Network response was not ok');
-        }
 
-        // let data = geojsonData.features;
-        this.minTemp = Math.min.apply(
-          null,
-          data.map((item: any) => parseFloat(item.temp_c))
-        );
-        this.minRain = Math.min.apply(
-          null,
-          data.map((item: any) => parseFloat(item.chance_of_rain))
-        );
-        this.minWind = Math.min.apply(
-          null,
-          data.map((item: any) => parseFloat(item.wind_kph))
-        );
-        this.minHumidity = Math.min.apply(
-          null,
-          data.map((item: any) => parseFloat(item.humidity))
-        );
-        this.minFog = Math.min.apply(
-          null,
-          data.map((item: any) => parseFloat(item.vis_km))
-        );
+    try {
+      const selectedDate: any = this.getDatesWithHour(this.selectedHour);
+      const params = { selectedDate: selectedDate[this.selectedDay] };
 
-        this.maxTemp = Math.max.apply(
-          null,
-          data.map((item: any) => parseFloat(item.temp_c))
-        );
-        this.maxRain = Math.max.apply(
-          null,
-          data.map((item: any) => parseFloat(item.chance_of_rain))
-        );
-        this.maxWind = Math.max.apply(
-          null,
-          data.map((item: any) => parseFloat(item.wind_kph))
-        );
-        this.maxHumidity = Math.max.apply(
-          null,
-          data.map((item: any) => parseFloat(item.humidity))
-        );
-        this.maxFog = Math.max.apply(
-          null,
-          data.map((item: any) => parseFloat(item.vis_km))
-        );
+      // Fetch API data (this must stay inside Angular zone)
+      const res: any = await this.dataService
+        .postRequest('get-current-weather', { params })
+        .toPromise();
 
-        data.forEach((item: any, index: any) => {
-          // TEMP
+      if (!res || !res.status || !Array.isArray(res.data)) {
+        console.error('Invalid API response');
+        this.loading = false;
+        return;
+      }
+
+      const data = res.data;
+
+      // ------------------------------
+      //     HEAVY WORK OUTSIDE ZONE
+      // ------------------------------
+      await this.ngZone.runOutsideAngular(async () => {
+        // ---- Compute min/max ----
+        this.minTemp = Math.min(...data.map((x: any) => +x.temp_c));
+        this.maxTemp = Math.max(...data.map((x: any) => +x.temp_c));
+
+        this.minRain = Math.min(...data.map((x: any) => +x.chance_of_rain));
+        this.maxRain = Math.max(...data.map((x: any) => +x.chance_of_rain));
+
+        this.minWind = Math.min(...data.map((x: any) => +x.wind_kph));
+        this.maxWind = Math.max(...data.map((x: any) => +x.wind_kph));
+
+        this.minHumidity = Math.min(...data.map((x: any) => +x.humidity));
+        this.maxHumidity = Math.max(...data.map((x: any) => +x.humidity));
+
+        this.minFog = Math.min(...data.map((x: any) => +x.vis_km));
+        this.maxFog = Math.max(...data.map((x: any) => +x.vis_km));
+
+        // Clear old vector sources
+        this.vectorSourceTemp.clear();
+        this.vectorSourceRain.clear();
+        this.vectorSourceWind.clear();
+        this.vectorSourceHumidity.clear();
+        this.vectorSourceFog.clear();
+
+        // Add features
+        data.forEach((item: any) => {
           const coord3857 = transform(
             [item.longitude, item.latitude],
             'EPSG:4326',
             'EPSG:3857'
           );
-          const featuresTemp = new ol.Feature({
-            geometry: new ol.geom.Point(coord3857),
-            total: item.temp_c,
-            count: Math.ceil((item.temp_c / this.maxTemp) * 100),
-          });
-          // RAIN
-          const featuresRain = new ol.Feature({
-            geometry: new ol.geom.Point(coord3857),
-            total: item.chance_of_rain,
-            count: Math.ceil((item.chance_of_rain / this.maxRain) * 100),
-          });
-          // WIND
-          const featureWind = new ol.Feature({
-            geometry: new ol.geom.Point(coord3857),
-            total: item.wind_kph,
-            count: Math.ceil((item.wind_kph / this.maxWind) * 100),
-          });
-          // HUMIDITY
-          const featureHumidity = new ol.Feature({
-            geometry: new ol.geom.Point(coord3857),
-            total: item.humidity,
-            count: Math.ceil((item.humidity / this.maxHumidity) * 100),
-          });
 
-          // FOG
-          const featureFog = new ol.Feature({
-            geometry: new ol.geom.Point(coord3857),
-            total: item.humidity,
-            count: Math.ceil(((this.maxFog - item.vis_km) / this.maxFog) * 100),
-          });
-          this.vectorSourceTemp.addFeature(featuresTemp);
-          this.vectorSourceRain.addFeature(featuresRain);
-          this.vectorSourceWind.addFeature(featureWind);
-          this.vectorSourceHumidity.addFeature(featureHumidity);
-          this.vectorSourceFog.addFeature(featureFog);
+          this.vectorSourceTemp.addFeature(
+            new ol.Feature({
+              geometry: new ol.geom.Point(coord3857),
+              total: item.temp_c,
+              count: Math.ceil((item.temp_c / this.maxTemp) * 100),
+            })
+          );
+
+          this.vectorSourceRain.addFeature(
+            new ol.Feature({
+              geometry: new ol.geom.Point(coord3857),
+              total: item.chance_of_rain,
+              count: Math.ceil((item.chance_of_rain / this.maxRain) * 100),
+            })
+          );
+
+          this.vectorSourceWind.addFeature(
+            new ol.Feature({
+              geometry: new ol.geom.Point(coord3857),
+              total: item.wind_kph,
+              count: Math.ceil((item.wind_kph / this.maxWind) * 100),
+            })
+          );
+
+          this.vectorSourceHumidity.addFeature(
+            new ol.Feature({
+              geometry: new ol.geom.Point(coord3857),
+              total: item.humidity,
+              count: Math.ceil((item.humidity / this.maxHumidity) * 100),
+            })
+          );
+
+          this.vectorSourceFog.addFeature(
+            new ol.Feature({
+              geometry: new ol.geom.Point(coord3857),
+              total: item.vis_km,
+              count: Math.ceil(
+                ((this.maxFog - item.vis_km) / this.maxFog) * 100
+              ),
+            })
+          );
         });
 
-        let idwTemp = await new ol.source.IDW({
+        // Build IDW sources
+        const idwTemp = new ol.source.IDW({
           source: this.vectorSourceTemp,
           weight: 'count',
         });
-        let idwRain = await new ol.source.IDW({
+        const idwRain = new ol.source.IDW({
           source: this.vectorSourceRain,
           weight: 'count',
         });
-        let idwWind = await new ol.source.IDW({
+        const idwWind = new ol.source.IDW({
           source: this.vectorSourceWind,
           weight: 'count',
         });
-        let idwHumidity = await new ol.source.IDW({
+        const idwHumidity = new ol.source.IDW({
           source: this.vectorSourceHumidity,
           weight: 'count',
         });
-        let idwFog = await new ol.source.IDW({
+        const idwFog = new ol.source.IDW({
           source: this.vectorSourceFog,
           weight: 'count',
         });
-        await this.imgIDWTempLayer.setSource(idwTemp);
-        await this.imgIDWRainFallLayer.setSource(idwRain);
-        await this.imgIDWWindLayer.setSource(idwWind);
-        await this.imgIDWHumidityLayer.setSource(idwHumidity);
-        await this.imgIDWFogLayer.setSource(idwFog);
+
+        this.imgIDWTempLayer.setSource(idwTemp);
+        this.imgIDWRainFallLayer.setSource(idwRain);
+        this.imgIDWWindLayer.setSource(idwWind);
+        this.imgIDWHumidityLayer.setSource(idwHumidity);
+        this.imgIDWFogLayer.setSource(idwFog);
 
         await this.cropHeatMapByBoundary();
-
-        // Convert to GeoJSON
-        const geojson: any = {
-          type: 'FeatureCollection',
-          features: data.map((item: any) => ({
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: transform(
-                [item.longitude, item.latitude],
-                'EPSG:4326',
-                'EPSG:3857'
-              ),
-            },
-            properties: {
-              temp_c: item.temp_c,
-              chance_of_rain: item.chance_of_rain,
-              wind_kph: item.wind_kph,
-              humidity: item.humidity,
-              vis_km: item.vis_km,
-              city: item.city_name,
-            },
-          })),
-        };
-
-        // Vector source from GeoJSON
-        const vectorSource = new VectorSource({
-          features: new GeoJSON().readFeatures(geojson, {
-            dataProjection: 'EPSG:3857', // your coords look like Web Mercator
-            featureProjection: 'EPSG:3857',
-          }),
-        });
-
-        // Style function based on temp or rain
-        const styleFunction = (feature: any) => {
-          const temp = feature.get('temp_c');
-          const rain = feature.get('chance_of_rain');
-          const city = feature.get('city');
-
-          let color = 'blue';
-          if (rain >= 80) {
-            color = 'skyblue';
-          } else if (temp > 33) {
-            color = 'red';
-          } else if (temp > 28) {
-            color = 'orange';
-          } else {
-            color = 'green';
-          }
-
-          return new Style({
-            image: new CircleStyle({
-              radius: 4,
-              fill: new Fill({ color }),
-              stroke: new Stroke({ color: 'white', width: 2 }),
-            }),
-            // text: new Text({
-            //   text: city,
-            //   font: '12px Calibri,sans-serif',
-            //   offsetY: -15,
-            //   fill: new Fill({ color: '#000' }),
-            //   stroke: new Stroke({ color: '#fff', width: 2 }),
-            // }),
-          });
-        };
-
-        // Vector layer
-        const vectorLayer = new VectorLayer({
-          source: vectorSource,
-          style: styleFunction,
-        });
       });
-  };
+    } catch (err) {
+      console.error('Weather IDW Error:', err);
+    } finally {
+      // ------------------------------
+      //     UPDATE UI INSIDE ZONE
+      // ------------------------------
+      this.ngZone.run(() => {
+        this.loading = false; // 🔥 NOW THIS ALWAYS UPDATES
+      });
+    }
+  }
 
   cropHeatMapByBoundary = async () => {
-    const response = await fetch('assets/geojson/India_BND_Simplified.geojson');
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+    try {
+      const response = await fetch('assets/geojson/indus_boundary.geojson');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const geojsonData = await response.json();
+
+      const format = new ol.format.GeoJSON();
+      const features = format.readFeatures(geojsonData, {
+        featureProjection: 'EPSG:3857',
+      });
+
+      const polygons = features.map((f: any) => f.getGeometry());
+
+      const multiPolygon = new ol.geom.MultiPolygon(
+        polygons
+          .map((poly: any) => {
+            if (poly instanceof ol.geom.Polygon) {
+              return [poly.getCoordinates()];
+            } else if (poly instanceof ol.geom.MultiPolygon) {
+              return poly.getCoordinates();
+            }
+            return [];
+          })
+          .flat()
+      );
+
+      const cropFeature = new ol.Feature(multiPolygon);
+
+      const crop = new ol.filter.Crop({
+        feature: cropFeature,
+        wrapX: true,
+        inner: false,
+      });
+
+      // THE IMPORTANT PART
+      this.ngZone.run(() => {
+        this.imgIDWTempLayer.addFilter(crop);
+        this.imgIDWRainFallLayer.addFilter(crop);
+        this.imgIDWWindLayer.addFilter(crop);
+        this.imgIDWHumidityLayer.addFilter(crop);
+        this.imgIDWFogLayer.addFilter(crop);
+
+        // If this function affects UI variables or tables
+        this.cdr.markForCheck(); // (Only if using OnPush)
+      });
+    } catch (error) {
+      console.error('Error in cropHeatMapByBoundary:', error);
     }
-
-    const geojsonData = await response.json();
-
-    const format = new ol.format.GeoJSON();
-    const features = format.readFeatures(geojsonData, {
-      featureProjection: 'EPSG:3857', // Adjust if your map uses a different projection
-    });
-
-    // Optional: collect all polygon geometries into one multipolygon
-    const polygons = features.map((f: any) => f.getGeometry());
-
-    // Merge all polygons into a single MultiPolygon
-    const multiPolygon = new ol.geom.MultiPolygon(
-      polygons
-        .map((poly: any) => {
-          if (poly instanceof ol.geom.Polygon) {
-            return [poly.getCoordinates()];
-          } else if (poly instanceof ol.geom.MultiPolygon) {
-            return poly.getCoordinates();
-          }
-          return [];
-        })
-        .flat()
-    );
-
-    const cropFeature = new ol.Feature(multiPolygon);
-
-    const crop = new ol.filter.Crop({
-      feature: cropFeature,
-      wrapX: true,
-      inner: false,
-    });
-    this.indiaExtent = multiPolygon.getExtent();
-
-    this.imgIDWTempLayer.addFilter(crop);
-    this.imgIDWRainFallLayer.addFilter(crop);
-    this.imgIDWWindLayer.addFilter(crop);
-    this.imgIDWHumidityLayer.addFilter(crop);
-    this.imgIDWFogLayer.addFilter(crop);
   };
 
   onClearButtonClick = () => {

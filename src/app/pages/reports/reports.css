@@ -1,3 +1,6 @@
+/* =========================================================================================
+   GLOBAL BASE STYLES
+========================================================================================= */
 * {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -8,47 +11,19 @@
   font-family: "Font Awesome 6 Free" !important;
 }
 
+.tab-content {
+  margin-bottom: 80px;
+}
+
+/* =========================================================================================
+   PANEL / CARD LAYOUTS
+========================================================================================= */
 .equal-height-panel {
   background-color: #f8f9fa;
   border-radius: 8px;
   padding: 1rem;
-  /* height: 100%; */
   display: flex;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.stylish-btn {
-  background-color: #fff;
-  /* light green bg */
-  color: #157347;
-  /* dark green text */
-  border: 1px solid #b4eba9;
-  font-weight: 500;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-  margin-right: 5px;
-}
-.dropdown-menu.show-dropdown {
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #cde8d0;
-}
-
-.Extreme {
-  background-color: var(--extreme-color);
-}
-
-.High {
-  background-color: var(--high-color);
-}
-
-.Moderate {
-  background-color: var(--moderate-color);
-}
-
-.Low {
-  background-color: var(--low-color);
 }
 
 @media (min-width: 1051px) and (max-width: 1350px) {
@@ -66,14 +41,73 @@
   }
 }
 
+/* =========================================================================================
+   BUTTONS / DROPDOWNS
+========================================================================================= */
+.stylish-btn {
+  background-color: #fff;
+  color: #157347;
+  border: 1px solid #b4eba9;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  margin-right: 5px;
+}
+
+.dropdown-menu.show-dropdown {
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #cde8d0;
+}
+
+/* =========================================================================================
+   MAX TEMP COLOR LEGENDS
+========================================================================================= */
+.Extreme {
+  background-color: var(--extreme-color);
+}
+.High {
+  background-color: var(--high-color);
+}
+.Low {
+  background-color: var(--low-color);
+}
+.Moderate {
+  background: var(--moderate-color);
+}
+.Other {
+  background: var(--other-color);
+}
+
+/* =========================================================================================
+   MIN TEMP COLOR LEGENDS
+========================================================================================= */
+.minExtreme {
+  background-color: var(--min-extreme-color);
+}
+.minHigh {
+  background-color: var(--min-high-color);
+}
+.minLow {
+  background-color: var(--min-low-color);
+}
+.minModerate {
+  background-color: var(--min-moderate-color);
+}
+.minOther {
+  background: var(--min-other-color);
+}
+
+/* =========================================================================================
+   WEATHER ICONS
+========================================================================================= */
 .weather-icon {
   width: 35px;
   height: 35px;
   object-fit: contain;
   text-align: start;
-
   background-color: #157347;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,7 +121,9 @@
   color: whitesmoke;
 }
 
-/* ------------------- TABS ------------------- */
+/* =========================================================================================
+   TABS
+========================================================================================= */
 .custom-tabs {
   background-color: #f9f9f9;
   border-radius: 0.5rem;
@@ -119,7 +155,9 @@
   color: #000;
 }
 
-/* ------------------- TABLE ------------------- */
+/* =========================================================================================
+   TABLE CORE
+========================================================================================= */
 .table-responsive-2 {
   width: 100%;
   overflow-x: auto;
@@ -152,73 +190,57 @@
   font-size: 13px;
 }
 
-.table-responsive-2 > th > .weather-icon {
-  width: 22px;
-  height: 22px;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
+/* =========================================================================================
+   TABLE SEVERITY COLORS
+========================================================================================= */
 .table-responsive-2 td.extreme {
   background-color: #f8d7da !important;
   color: #721c24;
 }
-
 .table-responsive-2 td.high {
   background-color: #ffeeba !important;
   color: #856404;
 }
-
 .table-responsive-2 td.moderate {
   background-color: #fff3cd !important;
   color: #856404;
 }
 
-/* --- Responsive: Table --- */
+/* =========================================================================================
+   RESPONSIVE TABLE
+========================================================================================= */
 @media screen and (max-width: 76px) {
   .table-responsive-2 {
     margin-bottom: 25%;
   }
-
   .table-responsive-2 .table {
     min-width: 600px;
   }
-
-  .table-responsive-2 .table thead th,
+  .table-responsive-2 th,
   .table tbody td {
     font-size: 13px;
     padding: 8px;
   }
-
-  .table-responsive-2 .table thead th img.icon-size {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 @media screen and (max-width: 480px) {
-  .table-responsive-2 .table thead th,
-  .table-responsive-2 .table tbody td {
+  .table-responsive-2 th,
+  .table-responsive-2 td {
     font-size: 12px;
     padding: 6px 4px;
   }
-
-  .table-responsive-2 .table thead th img.icon-size {
-    width: 16px;
-    height: 16px;
-  }
 }
 
-/* ------------------- KPI CARDS ------------------- */
-
-/* Weather Header */
+/* =========================================================================================
+   KPI CIRCULAR LAYOUT
+========================================================================================= */
 .weather-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Outer Circle - brighter background */
+/* Large outer ring */
 .circle-layout {
   position: relative;
   width: 240px;
@@ -234,7 +256,7 @@
   backdrop-filter: blur(6px);
 }
 
-/* KPI position - equal spacing */
+/* KPI positions */
 .circle-kpi {
   position: absolute;
   top: 50%;
@@ -245,26 +267,22 @@
 .circle-kpi:nth-child(1) {
   transform: translate(-50%, -50%) rotate(-90deg) translate(109px) rotate(90deg);
 }
-
 .circle-kpi:nth-child(2) {
   transform: translate(-50%, -50%) rotate(-18deg) translate(109px) rotate(18deg);
 }
-
 .circle-kpi:nth-child(3) {
   transform: translate(-50%, -50%) rotate(54deg) translate(109px) rotate(-54deg);
 }
-
 .circle-kpi:nth-child(4) {
   transform: translate(-50%, -50%) rotate(126deg) translate(109px)
     rotate(-126deg);
 }
-
 .circle-kpi:nth-child(5) {
   transform: translate(-50%, -50%) rotate(198deg) translate(109px)
     rotate(-198deg);
 }
 
-/* Inner KPI Circle - richer gradient */
+/* Inner KPI Circle */
 .circle-inner {
   width: 120px;
   height: 120px;
@@ -287,7 +305,6 @@
     inset 0 3px 8px rgba(255, 255, 255, 0.8);
 }
 
-/* Icon */
 .kpi-icon {
   width: 40px;
   height: 40px;
@@ -299,7 +316,6 @@
   transform: scale(1.15);
 }
 
-/* Max/Min values */
 .max-value,
 .min-value {
   font-size: 16px;
@@ -317,7 +333,7 @@
   text-shadow: 0 1px 2px rgba(209, 136, 0, 0.2);
 }
 
-/* Tooltip Label - stronger contrast */
+/* Tooltip */
 .circle-label {
   position: absolute;
   background: rgba(0, 123, 60, 0.95);
@@ -334,39 +350,37 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Show tooltip on hover */
+/* KPI Hover Tooltip */
 .circle-inner:hover + .circle-label {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* Tooltip positions for top-start layout - closer to circles */
+/* Tooltip Offset Positions */
 .circle-kpi:nth-child(1) .circle-label {
   top: -20px;
   left: 40%;
 }
-
 .circle-kpi:nth-child(2) .circle-label {
   top: 15%;
   left: 125%;
 }
-
 .circle-kpi:nth-child(3) .circle-label {
   top: 105%;
   left: 110%;
 }
-
 .circle-kpi:nth-child(4) .circle-label {
   top: 105%;
   left: -10%;
 }
-
 .circle-kpi:nth-child(5) .circle-label {
   top: 15%;
   left: -18%;
 }
 
-/* ---------------------- LARGE MOBILE (<= 768px) ---------------------- */
+/* =========================================================================================
+   MOBILE (<= 768px)
+========================================================================================= */
 @media (max-width: 768px) {
   .row.align-items-stretch {
     --bs-gutter-x: 0 !important;
@@ -375,29 +389,24 @@
     width: 100%;
   }
 
-  /* Make both panels same width */
   .crpd,
   .map-panel {
     width: 100% !important;
     max-width: 100% !important;
   }
 
-  /* Remove inner padding only from map so it aligns with weather card */
   .map-panel .equal-height-panel {
     padding: 16px !important;
   }
 
-  /* Keep consistent padding on weather side */
   .crpd .equal-height-panel {
     padding: 0 !important;
   }
 
-  /* Add spacing between stacked cards */
   .equal-height-panel {
     margin-bottom: 1rem;
   }
 
-  /* Keep map credit inside the map container */
   .map-panel,
   .map-panel .equal-height-panel,
   .map-panel app-map-weather {
@@ -406,7 +415,6 @@
     display: block;
   }
 
-  /* Circle layout smaller for mobile */
   .circle-layout {
     width: 200px;
     height: 180px;
@@ -417,22 +425,18 @@
     transform: translate(-50%, -50%) rotate(-90deg) translate(102px)
       rotate(90deg);
   }
-
   .circle-kpi:nth-child(2) {
     transform: translate(-50%, -50%) rotate(-18deg) translate(102px)
       rotate(18deg);
   }
-
   .circle-kpi:nth-child(3) {
     transform: translate(-50%, -50%) rotate(54deg) translate(102px)
       rotate(-54deg);
   }
-
   .circle-kpi:nth-child(4) {
     transform: translate(-50%, -50%) rotate(126deg) translate(102px)
       rotate(-126deg);
   }
-
   .circle-kpi:nth-child(5) {
     transform: translate(-50%, -50%) rotate(198deg) translate(109px)
       rotate(-198deg);
@@ -458,16 +462,11 @@
     font-size: 9px;
     padding: 3px 6px;
   }
-
-  .circle-kpi {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform-origin: center;
-  }
 }
 
-/* ---------------------- SMALL MOBILE (<= 480px) ---------------------- */
+/* =========================================================================================
+   SMALL MOBILE (<= 480px)
+========================================================================================= */
 @media (max-width: 480px) {
   .circle-layout {
     width: 150px;
@@ -479,22 +478,18 @@
     transform: translate(-50%, -50%) rotate(-90deg) translate(65px)
       rotate(90deg);
   }
-
   .circle-kpi:nth-child(2) {
     transform: translate(-50%, -50%) rotate(-18deg) translate(65px)
       rotate(18deg);
   }
-
   .circle-kpi:nth-child(3) {
     transform: translate(-50%, -50%) rotate(54deg) translate(65px)
       rotate(-54deg);
   }
-
   .circle-kpi:nth-child(4) {
     transform: translate(-50%, -50%) rotate(126deg) translate(65px)
       rotate(-126deg);
   }
-
   .circle-kpi:nth-child(5) {
     transform: translate(-50%, -50%) rotate(198deg) translate(65px)
       rotate(-198deg);
@@ -522,8 +517,9 @@
   }
 }
 
-/* ------------------- CHARTS ------------------- */
-
+/* =========================================================================================
+   CHARTS
+========================================================================================= */
 .twochart {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   padding: 1.5rem;
@@ -542,7 +538,6 @@
 
 .chart-row {
   gap: 1rem;
-  /* your custom spacing */
 }
 
 .responsive-title {
@@ -564,13 +559,14 @@
   .chart-box {
     padding: 16px;
   }
-
   .chart-row > .col-lg-6 {
     width: 100% !important;
   }
 }
 
-/* ------------------- TOWER CARD ------------------- */
+/* =========================================================================================
+   TOWER CARD
+========================================================================================= */
 .towerdiv {
   display: flex;
   flex-direction: row;
@@ -583,7 +579,9 @@
   width: 200px;
 }
 
-/* ------------------- FORECAST DASHBOARD ------------------- */
+/* =========================================================================================
+   FORECAST DASHBOARD (Horizontal Scroll)
+========================================================================================= */
 .dashboard-container {
   display: flex;
   align-items: flex-start;
@@ -630,7 +628,7 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .value-row {
@@ -651,11 +649,9 @@
 .red {
   background-color: var(--high-color);
 }
-
 .orange {
   background-color: var(--moderate-color);
 }
-
 .yellow {
   background-color: var(--low-color);
 }
@@ -664,20 +660,9 @@
   --bs-table-bg: unset !important;
 }
 
-.severity-extreme-1 {
-  /* background-color: var(--high-color) !important; */
-  font-weight: bold;
-  vertical-align: middle;
-}
-
-.severity-high-1 {
-  /* background-color: var(--moderate-color) !important; */
-  font-weight: bold;
-  vertical-align: middle;
-}
-
+.severity-extreme-1,
+.severity-high-1,
 .severity-moderate-1 {
-  /* background-color: var(--low-color) !important; */
   font-weight: bold;
   vertical-align: middle;
 }
@@ -686,7 +671,6 @@
   .dashboard-container {
     justify-content: space-between;
     overflow-x: hidden;
-    flex-wrap: nowrap;
     gap: 24px;
   }
 
@@ -694,7 +678,6 @@
     flex: 1;
     display: flex;
     justify-content: space-between;
-    flex-wrap: nowrap;
     gap: 16px;
     white-space: normal;
   }
@@ -702,7 +685,6 @@
   .day-card {
     flex: 1;
     min-width: 0;
-    max-width: 100%;
     padding: 16px;
   }
 
@@ -741,14 +723,15 @@
   padding-left: 20px;
 }
 
-/* ..........Prediction Table..............   */
+/* =========================================================================================
+   PREDICTION TABLE + ACCORDION
+========================================================================================= */
 .summary-table {
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* ==================== Accordion Button ==================== */
 .accordion-button.bg-prediction {
   background-color: #bcf1d1 !important;
   color: #1f5135;
@@ -758,11 +741,6 @@
   font-size: 21px;
 }
 
-/* Accordion container */
-/* .accordion-item {
-  border: none;
-  background-color: transparent;
-} */
 .accordion-button {
   font-weight: bold;
   background-color: #f0fdf4;
@@ -776,14 +754,12 @@
   font-size: 21px;
 }
 
-/* ==================== Prediction Option Buttons ==================== */
-
 .summary-table-container .btn {
   width: 150px;
   border-radius: 8px;
   font-size: 0.9rem;
   padding: 3px 10px;
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
   margin-left: 25px;
 }
 
@@ -794,7 +770,9 @@
   border-color: #090e0b;
 }
 
-/* ==================== Prediction Table ==================== */
+/* =========================================================================================
+   PREDICTION TABLE HEADERS
+========================================================================================= */
 .prediction-table h6 {
   font-size: 1rem;
   color: #1f5135;
@@ -813,67 +791,58 @@
   padding: 8px 12px;
   font-size: 13px;
   width: 100px;
-  align-items: center;
-  justify-content: center;
   vertical-align: middle;
 }
 
-/* ==================== Table Header Colors ==================== */
+/* colored headers */
 .table-success th {
   background-color: #bcf1d1 !important;
   color: #1f5135;
 }
-
 .table-danger th {
   background-color: #fddede !important;
   color: #a94442;
 }
-
 .table-warning th {
   background-color: #fff3cd !important;
   color: #856404;
 }
-
 .table-info th {
   background-color: #d1ecf1 !important;
   color: #0c5460;
 }
 
-/* ==================== Responsive Layout ==================== */
+/* =========================================================================================
+   RESPONSIVE PREDICTION TABLE
+========================================================================================= */
 @media (max-width: 768px) {
   .prediction-options {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
-
   .prediction-options .btn {
     flex: 1 1 calc(50% - 10px);
     font-size: 0.85rem;
   }
-
   .accordion-button.bg-prediction {
     font-size: 0.95rem;
     padding: 10px 14px;
   }
-
   .prediction-table h6 {
     font-size: 0.95rem;
   }
-
   .prediction-table th,
   .prediction-table td {
     font-size: 0.85rem;
     padding: 6px 10px;
   }
-
   .rainfall-table-container thead th,
   .temperature-table-container thead th,
   .wind-table-container thead th,
   .fog-table-container thead th {
     font-size: 14px !important;
     padding: 0.25rem !important;
-    /* optional: reduce padding */
   }
 }
 
@@ -881,18 +850,18 @@
   .prediction-options .btn {
     flex: 1 1 100%;
   }
-
   .accordion-button.bg-prediction {
     font-size: 14px !important;
   }
-
   .prediction-table th,
   .prediction-table td {
     font-size: 0.8rem;
   }
 }
 
-/* ==================== Forecast Table Containers (Rainfall, Wind, Fog, Temperature) ==================== */
+/* =========================================================================================
+   FORECAST TABLE GROUP (Rainfall, Wind, Fog, Temperature)
+========================================================================================= */
 .fog-table-container,
 .wind-table-container,
 .temperature-table-container,
@@ -900,7 +869,7 @@
   margin-top: 1rem;
   width: 100%;
   overflow-x: auto;
-  background-color: #ffffff;
+  background-color: #fff;
   border: black;
 }
 
@@ -951,18 +920,19 @@
   white-space: nowrap;
 }
 
-/* new  */
+/* =========================================================================================
+   RAINFALL TABLE
+========================================================================================= */
 .rainfall-table-wrapper {
   width: 100%;
-
   padding: 0;
   overflow-x: auto;
 }
 
 .legend {
-  background: #eaf6f2;
+  background: #fff;
   display: flex;
-  flex-direction: column; /* stack legend label on top */
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   padding: 10px 15px;
@@ -975,30 +945,42 @@
 .no-risk {
   background-color: whitesmoke;
 }
+
+.heading-7dfc {
+  background: #198754;
+  color: #fff;
+  text-align: center;
+  font-size: 20px !important;
+}
+
 .legend-item p.rainfall-legend {
   margin: 0;
   font-size: 13px;
   font-weight: bold;
 }
+
 .legend_center {
   display: flex;
-  flex-direction: column; /* two stacked rows: top and bottom */
+  flex-direction: column;
   align-items: center;
   width: 100%;
   gap: 10px;
 }
+
 .legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
 }
+
 .legend-swatch {
   width: 16px;
   height: 16px;
   border: 1px solid #ccc;
   border-radius: 2px;
 }
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -1014,12 +996,11 @@ td {
 }
 
 thead th {
-  /* background: #f7fbf9; */
   font-weight: 600;
 }
 
 .group-header {
-  background: #dff3ea;
+  background: #d9d5d5;
   font-weight: 700;
 }
 
@@ -1027,12 +1008,7 @@ thead th {
   text-align: left;
   padding: 5px;
   font-weight: 600;
-  background: #fff;
-}
-
-/* Rainfall color codes */
-.no-risk {
-  background: #fff;
+  background: #d9d5d5;
 }
 
 .low {
@@ -1043,7 +1019,6 @@ thead th {
   table {
     font-size: 10px;
   }
-
   .legend {
     justify-content: flex-start;
     padding: 8px;
@@ -1055,10 +1030,9 @@ thead th {
   }
 }
 
-/* new :end */
-
-/* temperature new  */
-
+/* =========================================================================================
+   TEMPERATURE TABLE
+========================================================================================= */
 .temperature-table-wrapper {
   width: 100%;
   font-family: Arial, sans-serif;
@@ -1109,104 +1083,49 @@ thead th {
   border-radius: 2px;
 }
 
-/* Table */
-/* table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-
-th, td {
-  border: 1px solid #d4d4d4;
-  padding: 3px;
-  text-align: center;
-}
-
-thead th {
-   
-   font-weight: 700; 
-} */
-
-/* .district { 
-  background: #fff;
-  font-weight: 600;
-  text-align: left;
-  padding: 2px;
-} */
-
-/* Temperature color codes */
-.low {
-  background: var(--green);
-}
-
-.moderate {
-  background: var(--moderate-color);
-}
-
-.high {
-  background: var(--high-color);
-}
-
-.extreme {
-  background: var(--extreme-color);
-  color: #fff;
-}
-
-/* temperatuire new end  */
-
-/* ------------------- CHARTS ------------------- */
+/* =========================================================================================
+   CHART-BOX EXTRA
+========================================================================================= */
 .chart-box {
   padding: 20px;
   height: 100%;
-
   display: flex;
   flex-direction: column;
 }
-
 .chart-box > canvas {
   width: 100%;
   height: 100%;
   max-height: 400px;
 }
 
-/* chart heading*/
 .chart-box .row.g-3 > h1 {
   text-align: center;
   width: 100%;
-
   font-weight: bold;
 }
 
-/*chart sub headings*/
 .chart-box > h6 {
   text-align: center;
   margin-bottom: 1rem;
-  /* optional spacing below the heading */
   width: 100%;
 }
 
-/* Tablet 768px - 1200px */
 @media screen and (min-width: 768px) and (max-width: 1200px) {
   .chart-box {
     padding: 0px;
   }
-
   .chart-box > canvas {
     max-height: 400px;
   }
-
-  #weather-tab {
-    font-size: 12px;
-  }
-
+  #weather-tab,
   #haz {
     font-size: 12px;
   }
 }
 
-/*------------------charts ends here------------------------------*/
-
-/* ==================== Responsive Forecast Table Font ==================== */
+/* =========================================================================================
+   RESPONSIVE FORECAST TABLE FONTS
+========================================================================================= */
 @media (max-width: 768px) {
   .fog-table-container table,
   .wind-table-container table,
@@ -1214,7 +1133,6 @@ thead th {
   .rainfall-table-container table {
     font-size: 0.85rem;
   }
-
   .fog-table-container th,
   .fog-table-container td,
   .wind-table-container th,
@@ -1225,13 +1143,10 @@ thead th {
   .rainfall-table-container td {
     padding: 8px;
   }
-
   .summary-table-container .btn {
     width: 140px;
   }
 }
-
-/* Mobile < 768px */
 
 @media (max-width: 480px) {
   .fog-table-container table,
@@ -1240,9 +1155,8 @@ thead th {
   .rainfall-table-container table {
     font-size: 0.75rem;
   }
-
   .summary-table-container .btn {
-    width: 136px;
+    width: 125px;
   }
 }
 
@@ -1254,51 +1168,34 @@ thead th {
     margin-bottom: 6px;
     padding: 2px;
   }
-
-  .chart-box h6 {
-    font-size: 12px;
-    margin: 0 0 8px 0;
-    /* ensure spacing stays inside */
-    text-align: center;
-    /* center heading inside chart */
-    word-wrap: break-word;
-    /* prevent overflow */
-  }
-
   .day-card {
     width: 230px;
   }
-
   .chart-box {
     height: auto;
-    /* let content define height instead of fixed % */
     padding: 12px;
-    /* ensure heading has breathing room */
   }
-
   .line {
     margin-top: 8px;
   }
-
   .chart-box canvas {
     max-height: 250px !important;
-    /* smaller chart */
   }
-
   .dashboard-wrapper {
     margin-bottom: -15px;
   }
-
   .gapcard {
     margin-top: -25px;
   }
-
   .cardwidth {
     width: 100%;
     margin-right: 20px;
   }
 }
 
+/* =========================================================================================
+   WEATHER RISK TABLE
+========================================================================================= */
 .weatherRisk-container {
   margin-top: 16px;
   color: #000;
@@ -1315,45 +1212,41 @@ thead th {
 
 .weatherRisk-subtitle {
   text-align: center;
-  font-size: 12px;
+  font-size: 8px;
   font-weight: bold;
   margin-bottom: 7px;
   margin-top: 2px;
   color: #333;
 }
 
-/* Table container for responsive scrolling */
 .weatherRisk-table-wrapper {
   width: 100%;
   overflow-x: auto;
 }
 
-/* Keep table formatting intact */
 .weatherRisk-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 25px;
-  background-color: #e8f3e9;
+  background-color: #fff;
   font-size: 11px;
   min-width: 600px;
-  /* ensures scroll on small screens */
 }
 
-/* Borders and spacing */
 .weatherRisk-table th,
 .weatherRisk-table td {
   border: 1px solid #2b6642;
   padding: 8px 10px;
   text-align: center;
   vertical-align: middle;
+  width: 20%;
 }
 
-/* First column alignment */
 .weatherRisk-table td:first-child {
   text-align: left;
   font-weight: bold;
 }
-/* Header Colors */
+
 .param-header {
   background-color: #f0f0f0;
   font-weight: bold;
@@ -1380,12 +1273,6 @@ thead th {
 .risk-low {
   background-color: var(--low-color);
   color: black;
-  font-weight: bold;
-}
-
-/* Table rows */
-.weatherRisk-table td:first-child {
-  text-align: left;
   font-weight: bold;
 }
 
@@ -1423,13 +1310,11 @@ thead th {
     height: 198px;
     margin: 35px auto;
   }
-
   .circle-inner {
     width: 111px;
     height: 108px;
     padding: 13px;
   }
-
   .kpi-icon {
     width: 42px;
     height: 35px;
@@ -1441,24 +1326,20 @@ thead th {
   .min-value {
     font-size: 15px;
   }
-
   .circle-label {
     font-size: 9px;
     padding: 3px 6px;
   }
-
   .circle-kpi {
     position: absolute;
     top: 50%;
     left: 50%;
     transform-origin: center;
   }
-
   .circle-kpi:nth-child(1) {
     transform: translate(-50%, -50%) rotate(-90deg) translate(109px)
       rotate(90deg);
   }
-
   .circle-kpi:nth-child(2) {
     transform: translate(-50%, -50%) rotate(-18deg) translate(109px)
       rotate(18deg);
@@ -1467,12 +1348,10 @@ thead th {
     transform: translate(-50%, -50%) rotate(54deg) translate(109px)
       rotate(-54deg);
   }
-
   .circle-kpi:nth-child(4) {
     transform: translate(-50%, -50%) rotate(126deg) translate(109px)
       rotate(-126deg);
   }
-
   .circle-kpi:nth-child(5) {
     transform: translate(-50%, -50%) rotate(198deg) translate(109px)
       rotate(-198deg);
@@ -1486,36 +1365,26 @@ thead th {
   .itemtwo {
     margin-bottom: 15%;
   }
-
   .chart-box {
     font-size: 12px;
   }
   .summary-table-container .btn {
     margin-left: 12px;
   }
-
   .accordion-button {
     font-size: 16px !important;
+  }
+  .heading {
+    font-size: 12px;
   }
   .chart-box {
     padding: 0px;
   }
-
   .custom-tabs {
     font-size: 14px;
   }
   .district-table-wrapper table {
     font-size: 11px;
-  }
-  .wrap_extream_high {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .wrap_modrate_low {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
   }
 }
 
@@ -1529,74 +1398,67 @@ thead th {
   .weatherRisk-table {
     font-size: 9px;
   }
-
+  .chart-box h6 {
+    font-size: 8px;
+    margin: 8px 0;
+    text-align: center;
+    word-wrap: break-word;
+  }
   .weatherRisk-table-wrapper {
     overflow-x: auto;
   }
-
   .accordion-button {
     font-size: 10px !important;
   }
-
   .chart-box {
     font-size: 8px;
   }
-
   .summary-table-container {
-    margin-left: -13px !important;
+    margin-left: 10px !important;
     gap: 8px !important;
   }
-
   .data {
     overflow-x: auto;
   }
-
   .itemtwo {
     margin-bottom: 140px;
   }
 }
 
-/* Wrap table for scrollability */
-.district-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Table base styling */
-.district-table-wrapper table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #f9f9f9;
-  font-size: 12px;
-  min-width: 800px;
-  /* ensures scroll on small devices */
-}
-
-/* Header + cells */
-.district-table-wrapper th,
-.district-table-wrapper td {
-  border: 1px solid #ccc;
-  text-align: center;
+/* =========================================================================================
+   LEGENDS - BOTTOM
+========================================================================================= */
+.legend-wrapper {
   padding: 6px;
-  white-space: nowrap;
-  /* prevents text from wrapping and disappearing */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
-
-/* First column fixed style */
-.district-table-wrapper td.district,
-.district-table-wrapper th.district {
-  text-align: left;
-  font-weight: bold;
-}
-
-/* Responsive font adjustments */
 
 .legend_center {
   display: flex;
-  justify-content: space-around;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  width: 80%;
+  width: 100%;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex: 1 1 160px;
+}
+
+.legend-swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 1px solid #333;
 }
 
 @media (min-width: 637px) {
@@ -1604,20 +1466,17 @@ thead th {
     display: flex;
     flex-direction: row;
   }
-  .wrap_extream_high {
-    display: contents;
-  }
-  .wrap_modrate_low {
-    display: contents;
-  }
   .legend {
     flex-direction: row;
     padding: 1px;
   }
+  .legend-swatch {
+    margin-left: 8px;
+  }
 }
+
 @media (min-width: 320px) and (max-width: 636px) {
   .legend_center {
-    display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
@@ -1628,21 +1487,5 @@ thead th {
   }
   .legend-swatch.high {
     margin-left: 24px;
-  }
-
-  .wrap_extream_high,
-  .wrap_modrate_low {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 15px;
-  }
-
-  .wrap_extream_high .legend-item,
-  .wrap_modrate_low .legend-item {
-    flex: 1 1 45%;
-    display: flex;
-    white-space: nowrap; /* ✅ Keeps label text on one line */
   }
 }

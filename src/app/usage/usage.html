@@ -2,12 +2,14 @@
   <!-- ===== Upload Form Card ===== -->
   <div class="equal-height-panel shadow-sm bg-white rounded p-3 mb-4">
     <h4 class="text-success text-center fw-bold mb-3">
-      <i class="fa-solid fa-file-arrow-up me-2"></i> Upload WhatsApp CSV
+      <!-- <i class="fa-solid fa-file-arrow-up me-2"></i>  -->
+      Dashboard Usage
     </h4>
 
     <div class="form-grid">
       <!-- WhatsApp File Upload -->
-      <div class="form-field">
+
+      <!-- <div class="form-field">
         <label class="fw-semibold">Upload CSV</label>
         <input
           type="file"
@@ -15,7 +17,7 @@
           accept=".csv"
           (change)="onFileUpload($event)"
         />
-      </div>
+      </div> -->
 
       <!-- Date Range -->
       <div class="form-field">
@@ -35,8 +37,13 @@
         >
           <i class="fa-solid fa-filter me-1"></i> Apply Filter
         </button>
-        <button class="btn btn-outline-secondary" (click)="clearFilter()">
+
+        <!-- <button class="btn btn-outline-secondary" (click)="clearFilter()">
           <i class="fa-solid fa-xmark me-1"></i> Clear
+        </button> -->
+
+        <button class="btn btn-outline-success" (click)="handleUsagesReport()">
+          Send/Export Usage Report
         </button>
       </div>
     </div>
@@ -193,6 +200,247 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Usages Report Modal -->
+<div
+  class="modal fade"
+  id="usageReportModal"
+  tabindex="-1"
+  aria-labelledby="usageReportModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="usageReportModalLabel">Usage Report</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <!-- Radio Buttons -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Select Action</label>
+            <div class="form-check">
+              <label class="form-check-label" style="cursor: pointer">
+                <input
+                  class="form-check-input green-radio"
+                  type="radio"
+                  name="reportType"
+                  value="send"
+                  [(ngModel)]="reportType"
+                />
+                Send Report via Email</label
+              >
+            </div>
+
+            <div class="form-check">
+              <label class="form-check-label" style="cursor: pointer">
+                <input
+                  class="form-check-input green-radio"
+                  type="radio"
+                  name="reportType"
+                  value="export"
+                  [(ngModel)]="reportType"
+                />
+                Export Report in Excel Format</label
+              >
+            </div>
+          </div>
+
+          <hr />
+
+          <!-- SEND REPORT SECTION -->
+          <div *ngIf="reportType === 'send'">
+            <div class="row g-3">
+              <!-- Email(s) -->
+              <div class="col-md-6">
+                <label class="form-label">Enter Email(s)</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Email1, Email2, ... "
+                  [(ngModel)]="sendEmails"
+                  name="sendEmails"
+                />
+              </div>
+
+              <!-- User List -->
+              <div class="col-md-6">
+                <label class="form-label">User List</label>
+
+                <div class="dropdown w-100" data-bs-auto-close="outside">
+                  <button
+                    class="form-select text-start"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    style="
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                    "
+                  >
+                    {{ getSelectedUserNames() || '-- Select Users --' }}
+                  </button>
+
+                  <ul
+                    class="dropdown-menu w-100 p-2"
+                    style="max-height: 200px; overflow-y: auto"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <!-- Select All -->
+                    <li class="form-check">
+                      <label class="form-check-label" style="cursor: pointer">
+                        <input
+                          class="form-check-input green-checkbox"
+                          type="checkbox"
+                          [(ngModel)]="selectAll"
+                          name="selectAll"
+                          (change)="toggleSelectAll()"
+                          (click)="$event.stopPropagation()"
+                        />
+                        Select All</label
+                      >
+                    </li>
+
+                    <li><hr class="dropdown-divider" /></li>
+
+                    <!-- Each User -->
+                    <li
+                      *ngFor="let user of sendUserList"
+                      class="form-check ms-2"
+                    >
+                      <label class="form-check-label" style="cursor: pointer">
+                        <input
+                          class="form-check-input green-checkbox"
+                          type="checkbox"
+                          [(ngModel)]="user.checked"
+                          name="send_user_{{ user.id }}"
+                          (change)="updateSelectAll()"
+                          (click)="$event.stopPropagation()"
+                        />
+                        {{ user.name }}
+                      </label>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXPORT REPORT SECTION -->
+          <div *ngIf="reportType === 'export'">
+            <div class="col-md-6">
+              <label class="form-label">User List</label>
+
+              <!-- Custom Multi-Select Box -->
+              <div class="dropdown w-100">
+                <button
+                  class="form-select text-start"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {{ getSelectedExportUserNames() || '-- Select Users --' }}
+                </button>
+
+                <ul
+                  class="dropdown-menu w-100 p-2"
+                  style="max-height: 200px; overflow-y: auto"
+                  (click)="$event.stopPropagation()"
+                >
+                  <!-- Select All -->
+                  <li class="form-check">
+                    <label class="form-check-label" style="cursor: pointer">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="selectExportAll"
+                        name="selectExportAll"
+                        (change)="toggleSelectExportUser()"
+                        (click)="$event.stopPropagation()"
+                      />
+                      Select All</label
+                    >
+                  </li>
+
+                  <li><hr class="dropdown-divider" /></li>
+
+                  <!-- Each User -->
+                  <li
+                    *ngFor="let user of exportUserList"
+                    class="form-check ms-2"
+                  >
+                    <label class="form-check-label" style="cursor: pointer">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="user.checked"
+                        name="export_user_{{ user.id }}"
+                        (change)="updateSelectExportUser()"
+                        (click)="$event.stopPropagation()"
+                      />
+                      {{ user.name }}</label
+                    >
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div
+        class="modal-footer d-flex justify-content-between align-items-center"
+      >
+        <div>
+          <span
+            *ngIf="sendingMail"
+            class="text-success d-flex align-items-center fw-bold"
+          >
+            Sending mail<span class="loading-dots"></span>
+          </span>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            class="btn btn-secondary me-2"
+            data-bs-dismiss="modal"
+            (click)="cancelSendingMail()"
+          >
+            Cancel
+          </button>
+
+          <button
+            *ngIf="reportType === 'send'"
+            type="button"
+            class="btn btn-success"
+            (click)="SendUsageReport()"
+            [disabled]="sendingMail === true"
+          >
+            Send
+          </button>
+
+          <button
+            *ngIf="reportType === 'export'"
+            type="button"
+            class="btn btn-success"
+            (click)="ExportUsageReport()"
+          >
+            Export
+          </button>
         </div>
       </div>
     </div>

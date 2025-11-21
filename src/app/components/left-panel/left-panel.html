@@ -8,7 +8,6 @@
       <div class="menu-title text-success fw-bold">DASHBOARD</div>
       <a
         class="menu-item d-block"
-        (click)="onDashboardClick()"
         routerLink="/dashboard"
         routerLinkActive="active"
       >
@@ -25,12 +24,11 @@
 
       <a
         class="menu-item d-block"
-        (click)="onCircleLevelClick()"
         routerLink="/reports/circle-level"
         routerLinkActive="active"
       >
         <img src="assets/icons/circleLevelReports.svg" alt="CIRCLE LEVEL" />
-        <div class="menu-text">{{indus_circle}} Circle</div>
+        <div class="menu-text">{{indus_circle}} CIRCLE</div>
       </a>
 
       <!-- <a
@@ -48,7 +46,6 @@
       <a
         *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
         class="menu-item d-block"
-        (click)="onUsageClick()"
         routerLink="/reports/usage"
         routerLinkActive="active"
         title="Usage Report"
@@ -87,7 +84,6 @@
       <div class="menu-title text-success fw-bold">MANAGE</div>
       <a
         class="menu-item d-block"
-        (click)="onProfileClick()"
         routerLink="/profile"
         routerLinkActive="active"
       >
@@ -97,7 +93,6 @@
 
       <a
         class="menu-item d-block mt-2"
-        (click)="onSeverityRangesClick()"
         routerLink="/severity-ranges"
         routerLinkActive="active"
       >
@@ -140,6 +135,14 @@
           class="btn-change-pass fw-bold text-success"
         >
           Password
+        </button>
+      </div>
+      <div class="profile-div">
+        <button
+          class="btn-change-pass fw-bold text-success"
+          routerLink="/hazards-feed"
+        >
+          Hazard
         </button>
       </div>
       <div
