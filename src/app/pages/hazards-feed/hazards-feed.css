@@ -45,7 +45,7 @@ html {
 /* ======== CUSTOM DROPDOWN ======== */
 .custom-dropdown .form-select {
   cursor: pointer;
-  background-color: #fff;
+  /* background: #fff; */
 }
 
 .custom-dropdown .dropdown-menu {
@@ -68,7 +68,7 @@ button.active {
 
 /* ======== TABLE SCROLL & RESPONSIVE ======== */
 table {
-  width: 100%;
+  width: 100vw;
   border-collapse: collapse;
 }
 
@@ -86,7 +86,7 @@ table th {
 
 /* Prevent shrinking of table text */
 td, th {
-  white-space: nowrap;
+  white-space: wrap;
 }
 
 .fullscreen-map {

@@ -11,10 +11,11 @@ import { DataService } from '../../data-service/data-service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
 import { HazardsFeed } from '../../pages/hazards-feed/hazards-feed';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './header.html',
   styleUrl: './header.css',
   standalone: true,

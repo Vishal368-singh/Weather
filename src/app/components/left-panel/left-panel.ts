@@ -40,6 +40,11 @@ export class LeftPanel implements OnInit {
   userName: string = '';
   userId: string = '';
   indus_circle: string = '';
+
+  safeDetectChanges() {
+    this.cdr.markForCheck();
+  }
+
   ngOnInit() {
     const sessionUser: any = localStorage.getItem('user');
     this.user = JSON.parse(sessionUser);
@@ -50,10 +55,9 @@ export class LeftPanel implements OnInit {
     // this.indus_circle = this.user.indus_circle;
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     });
     this.WeatherService.circleChangedIs$.subscribe((CircleLebel) => {
-     
       if (CircleLebel) {
         this.indus_circle = CircleLebel;
       }

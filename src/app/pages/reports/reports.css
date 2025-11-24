@@ -86,22 +86,38 @@
 .minExtreme {
   background-color: var(--min-extreme-color);
 }
+
 .minHigh {
   background-color: var(--min-high-color);
 }
+
 .minLow {
   background-color: var(--min-low-color);
 }
+
 .minModerate {
   background-color: var(--min-moderate-color);
 }
+
 .minOther {
   background: var(--min-other-color);
 }
 
-/* =========================================================================================
-   WEATHER ICONS
-========================================================================================= */
+@media (min-width: 1051px) and (max-width: 1350px) {
+  .map-panel {
+    width: 55%;
+  }
+
+  .equal-height-panel {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .weather-icon {
   width: 35px;
   height: 35px;
@@ -190,9 +206,13 @@
   font-size: 13px;
 }
 
-/* =========================================================================================
-   TABLE SEVERITY COLORS
-========================================================================================= */
+.table-responsive-2 > th > .weather-icon {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
 .table-responsive-2 td.extreme {
   background-color: #f8d7da !important;
   color: #721c24;
@@ -216,31 +236,42 @@
   .table-responsive-2 .table {
     min-width: 600px;
   }
-  .table-responsive-2 th,
+
+  .table-responsive-2 .table thead th,
   .table tbody td {
     font-size: 13px;
     padding: 8px;
   }
-}
 
-@media screen and (max-width: 480px) {
-  .table-responsive-2 th,
-  .table-responsive-2 td {
-    font-size: 12px;
-    padding: 6px 4px;
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 18px;
+    height: 18px;
   }
 }
 
-/* =========================================================================================
-   KPI CIRCULAR LAYOUT
-========================================================================================= */
+@media screen and (max-width: 480px) {
+  .table-responsive-2 .table thead th,
+  .table-responsive-2 .table tbody td {
+    font-size: 12px;
+    padding: 6px 4px;
+  }
+
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ------------------- KPI CARDS ------------------- */
+
+/* Weather Header */
 .weather-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Large outer ring */
+/* Outer Circle - brighter background */
 .circle-layout {
   position: relative;
   width: 240px;
@@ -378,9 +409,42 @@
   left: -18%;
 }
 
-/* =========================================================================================
-   MOBILE (<= 768px)
-========================================================================================= */
+/* --- Responsive: Table --- */
+@media screen and (max-width: 76px) {
+  .table-responsive-2 {
+    margin-bottom: 25%;
+  }
+
+  .table-responsive-2 .table {
+    min-width: 600px;
+  }
+
+  .table-responsive-2 .table thead th,
+  .table tbody td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .table-responsive-2 .table thead th,
+  .table-responsive-2 .table tbody td {
+    font-size: 12px;
+    padding: 6px 4px;
+  }
+
+  .table-responsive-2 .table thead th img.icon-size {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ---------------------- LARGE MOBILE (<= 768px) ---------------------- */
 @media (max-width: 768px) {
   .row.align-items-stretch {
     --bs-gutter-x: 0 !important;
@@ -461,6 +525,13 @@
   .circle-label {
     font-size: 9px;
     padding: 3px 6px;
+  }
+
+  .circle-kpi {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
   }
 }
 
@@ -660,8 +731,18 @@
   --bs-table-bg: unset !important;
 }
 
-.severity-extreme-1,
-.severity-high-1,
+.severity-extreme-1 {
+  /* background-color: var(--high-color) !important; */
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.severity-high-1 {
+  /* background-color: var(--moderate-color) !important; */
+  font-weight: bold;
+  vertical-align: middle;
+}
+
 .severity-moderate-1 {
   font-weight: bold;
   vertical-align: middle;
@@ -671,6 +752,7 @@
   .dashboard-container {
     justify-content: space-between;
     overflow-x: hidden;
+    flex-wrap: nowrap;
     gap: 24px;
   }
 
@@ -678,6 +760,7 @@
     flex: 1;
     display: flex;
     justify-content: space-between;
+    flex-wrap: nowrap;
     gap: 16px;
     white-space: normal;
   }
@@ -685,6 +768,7 @@
   .day-card {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
     padding: 16px;
   }
 
@@ -760,7 +844,7 @@
   font-size: 0.9rem;
   padding: 3px 10px;
   transition: 0.3s ease;
-  margin-left: 25px;
+  margin-left: 18px;
 }
 
 .summary-table-container .btn:hover,
@@ -791,6 +875,8 @@
   padding: 8px 12px;
   font-size: 13px;
   width: 100px;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
 }
 
@@ -932,7 +1018,7 @@
 .legend {
   background: #fff;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* stack legend label on top */
   align-items: center;
   gap: 10px;
   padding: 10px 15px;
@@ -950,7 +1036,7 @@
   background: #198754;
   color: #fff;
   text-align: center;
-  font-size: 20px !important;
+  font-size: 18px !important;
 }
 
 .legend-item p.rainfall-legend {
@@ -961,7 +1047,7 @@
 
 .legend_center {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* two stacked rows: top and bottom */
   align-items: center;
   width: 100%;
   gap: 10px;
@@ -1011,6 +1097,11 @@ thead th {
   background: #d9d5d5;
 }
 
+/* Rainfall color codes */
+.no-risk {
+  background: #fff;
+}
+
 .low {
   background: var(--green);
 }
@@ -1019,6 +1110,10 @@ thead th {
   table {
     font-size: 10px;
   }
+  .heading-7dfc {
+    font-size: 16px !important;
+  }
+
   .legend {
     justify-content: flex-start;
     padding: 8px;
@@ -1117,7 +1212,11 @@ thead th {
   .chart-box > canvas {
     max-height: 400px;
   }
-  #weather-tab,
+
+  #weather-tab {
+    font-size: 12px;
+  }
+
   #haz {
     font-size: 12px;
   }
@@ -1144,7 +1243,10 @@ thead th {
     padding: 8px;
   }
   .summary-table-container .btn {
-    width: 140px;
+    width: 125px;
+  }
+  .chart-box h6 {
+    margin-top: 1rem;
   }
 }
 
@@ -1206,13 +1308,13 @@ thead th {
   background-color: #2b6642;
   color: #fff;
   padding: 4px;
-  font-size: 14px;
+  font-size: 12px;
   margin-bottom: 5px;
 }
 
 .weatherRisk-subtitle {
   text-align: center;
-  font-size: 8px;
+  font-size: 14px;
   font-weight: bold;
   margin-bottom: 7px;
   margin-top: 2px;
@@ -1273,6 +1375,12 @@ thead th {
 .risk-low {
   background-color: var(--low-color);
   color: black;
+  font-weight: bold;
+}
+
+/* Table rows */
+.weatherRisk-table td:first-child {
+  text-align: left;
   font-weight: bold;
 }
 
@@ -1369,7 +1477,9 @@ thead th {
     font-size: 12px;
   }
   .summary-table-container .btn {
-    margin-left: 12px;
+    margin-left: 12px !important ;
+    width: 120px;
+    font-size: 0.8rem;
   }
   .accordion-button {
     font-size: 16px !important;
@@ -1380,6 +1490,11 @@ thead th {
   .chart-box {
     padding: 0px;
   }
+  .tableoverflow {
+    overflow-x: auto;
+    width: 100%;
+  }
+
   .custom-tabs {
     font-size: 14px;
   }
@@ -1392,29 +1507,50 @@ thead th {
   .district-table-wrapper table {
     font-size: 10px;
   }
+  #dashboardAccordion {
+    margin-bottom: 49%;
+  }
+}
+@media (min-width: 330px) and (max-width: 375px) {
+  .summary-table-container {
+    margin-left: 20px !important;
+  }
+}
+@media (min-width: 376px) and (max-width: 425px) {
+  .summary-table-container .btn {
+    margin-left: 12px;
+    width: 116px;
+    font-size: 0.7rem !important;
+    margin-left: 8px !important;
+  }
 }
 
 @media (max-width: 450px) {
   .weatherRisk-table {
     font-size: 9px;
   }
+
   .chart-box h6 {
-    font-size: 8px;
-    margin: 8px 0;
+    font-size: 10px;
+    margin: 8px 0 8px 0;
+    /* ensure spacing stays inside */
     text-align: center;
     word-wrap: break-word;
   }
+  .heading-7dfc {
+    font-size: 14px !important;
+  }
+
   .weatherRisk-table-wrapper {
     overflow-x: auto;
   }
   .accordion-button {
-    font-size: 10px !important;
+    font-size: 0.8rem !important;
   }
   .chart-box {
-    font-size: 8px;
+    font-size: 10px;
   }
   .summary-table-container {
-    margin-left: 10px !important;
     gap: 8px !important;
   }
   .data {
@@ -1477,6 +1613,7 @@ thead th {
 
 @media (min-width: 320px) and (max-width: 636px) {
   .legend_center {
+    display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
@@ -1484,8 +1621,48 @@ thead th {
     max-width: 90%;
     margin: 0 auto;
     gap: 10px;
+    align-items: start;
+  }
+  .legend-wrapper {
+    display: flex;
+    flex-direction: row;
+  }
+  .legend-item {
+    flex: none;
+  }
+  .weatherRisk-subtitle {
+    font-size: 0.6rem;
+  }
+  .legend-wrapper {
+    display: flex;
+    flex-direction: row; /* default */
+  }
+
+  /* Apply when temperature tab is active */
+  .legend-wrapper.temp-flex {
+    flex-direction: column; /* or row-reverse, or whatever you want */
+  }
+  .legend- {
+    margin-right: 12px;
   }
   .legend-swatch.high {
     margin-left: 24px;
   }
+}
+.table-fixed {
+  width: max-content !important;
+  min-width: 100% !important;
+  white-space: nowrap !important;
+  border-collapse: collapse;
+}
+.table-fixed th:first-child,
+.table-fixed td:first-child {
+  white-space: normal !important;
+  max-width: 140px; /* adjust as needed */
+  word-wrap: break-word;
+}
+
+/* Apply when temperature tab is active */
+.legend-wrapper.temp-flex {
+  flex-direction: column; /* or row-reverse, or whatever you want */
 }

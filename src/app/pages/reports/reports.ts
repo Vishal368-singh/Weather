@@ -6,6 +6,8 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   HostListener,
+  ChangeDetectionStrategy,
+  NgZone,
 } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { CommonModule, NgIf } from '@angular/common';
@@ -81,6 +83,7 @@ type SeverityRow = {
   imports: [CommonModule, NgIf, BaseChartDirective, MapWeather, FormsModule],
   templateUrl: './reports.html',
   styleUrls: ['./reports.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Reports implements OnInit {
   constructor(
@@ -88,7 +91,8 @@ export class Reports implements OnInit {
     private dataService: DataService,
     private cdr: ChangeDetectorRef,
     private WeatherService: WeatherService,
-    private dateTimeService: DateTimeService
+    private dateTimeService: DateTimeService,
+    private ngZone: NgZone
   ) {
     this.barThickness();
   }
@@ -222,7 +226,8 @@ export class Reports implements OnInit {
   weatherData: DailyWeather[] = [];
   mappedTowerData: any;
   activeTab: string = 'rainfall';
-  activeHazTab: string = 'flood';
+  activeHazTab: string = 'Flood';
+  hazardData: any[] = [];
   activeKPIUnit: string = ' °C';
   datesRange: string[] = [];
   datesRangeHaz: string[] = [];
@@ -244,11 +249,11 @@ export class Reports implements OnInit {
 
   /* Heading For 7 -dHfc table */
   headingMapHaz: Record<string, string> = {
-    flood: 'Flood Forecast for next 5-days ( Affected Area % )',
-    cyclone: 'Cyclone Forecast for next 5-days ( Affected Area % )',
-    snowfall: 'Snowfall Forecast for next 5-days ( Affected Area % )',
-    avalanche: 'Avlanche Forecast for next 5-days ( Affected Area % )',
-    cloudburst: 'Cloudburst for next 5-days ( Affected Area % )',
+    Flood: 'Flood Forecast for next 7-days ( Affected Area % )',
+    Cyclone: 'Cyclone Forecast for next 7-days ( Affected Area % )',
+    Snowfall: 'Snowfall Forecast for next 7-days ( Affected Area % )',
+    Avalanche: 'Avlanche Forecast for next 7-days ( Affected Area % )',
+    Cloudburst: 'Cloudburst for next 7-days ( Affected Area % )',
   };
 
   setActive(tab: string) {
@@ -279,27 +284,7 @@ export class Reports implements OnInit {
 
   setActiveHaz(tab: string) {
     this.activeHazTab = tab;
-
-    // Only call Accu API when needed
-    if (tab === 'flood') {
-      // this.fetchDistrictWiseAccu_Rainfall();
-    } else {
-      // this.fetchDistrictWiseKPIValues();
-    }
-
-    this.getDateLabelsHaz();
-  }
-
-  // -- Functions for getting date  in array of Hazard
-  getDateLabelsHaz(): string[] {
-    const today = new Date();
-    this.datesRangeHaz = [];
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      this.datesRangeHaz.push(this.formatShortDate(d));
-    }
-    return this.datesRangeHaz;
+    this.fetchDistrictWiseHazardValues();
   }
 
   selectTab(tabNumber: number) {
@@ -309,67 +294,60 @@ export class Reports implements OnInit {
   ngOnInit(): void {
     const { formattedDate } = this.dateTimeService.getCurrentDateTime();
     this.currentDate = formattedDate;
+
     localStorage.removeItem('selectedCircle');
+
     let storedUser = localStorage.getItem('user');
+
     if (storedUser) {
       this.user = JSON.parse(storedUser);
 
+      // Set default location
       if (this.user.indus_circle === 'All Circle') {
         this.location = 'M&G';
       } else {
         this.location = this.user.indus_circle;
       }
 
+      // If user has no circle 
       if (this.user.circle === '') {
         this.getUserCurrentLocation();
         this.safeDetectChanges();
-      } else {
-        this.fetch7daysForecastData();
-        this.safeDetectChanges();
       }
     }
+
+    // Load dropdown (only once)
     this.loadCircleListForDropdown();
 
+    // 🔥 MAIN: Run all reports only when circle changes
     this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
-      if (circle) {
-        if (circle === 'All Circle') {
-          this.location = 'M&G';
-        } else {
-          this.location = circle;
-        }
-        this.fetchWeatherData();
-        this.setActive('rainfall');
-        this.safeDetectChanges();
-      }
+      if (!circle) return;
+
+      this.location = circle === 'All Circle' ? 'M&G' : circle;
+
+      // All API calls ONCE
+      this.fetchWeatherData();
+      this.fetchSeverityKPIRanges();
+      this.fetch7daysForecastData();
+      this.fetchDistrictWiseKPIValues();
+      this.fetchDistrictNamesSeverityWise();
+      this.fetchlegend_with_color();
+
+      // Tabs refresh
+      this.setActive(this.activeTab);
+      this.setActiveHaz(this.activeHazTab);
+
+      this.safeDetectChanges();
     });
 
-    this.WeatherService.panIndia$.subscribe((location: string) => {
-      if (location) {
-        this.location = location;
-        this.fetchSeverityKPIRanges();
-        this.fetchWeatherData();
-        this.fetchDistrictWiseKPIValues();
-        this.fetchDistrictNamesSeverityWise();
-        this.safeDetectChanges();
-      } else {
-        this.location =
-          this.user.indus_circle === 'All Circle'
-            ? 'M&G'
-            : this.user.indus_circle;
-
-        this.fetchSeverityKPIRanges();
-        this.fetchDistrictWiseKPIValues();
-        this.fetchDistrictNamesSeverityWise();
-        this.fetchDistrictWiseAccu_Rainfall();
-        this.fetchWeatherData();
-        this.safeDetectChanges();
-      }
-    });
-
+    // 🔥 First page load → run once
+    this.fetchWeatherData();
+    this.fetchSeverityKPIRanges();
+    this.fetch7daysForecastData();
     this.fetchDistrictWiseKPIValues();
+    this.fetchDistrictNamesSeverityWise();
     this.fetchlegend_with_color();
     this.getDateLabels();
-    this.getDateLabelsHaz();
   }
 
   towerData: any = [];
@@ -409,7 +387,7 @@ export class Reports implements OnInit {
           });
         });
         this.fetchWeatherData();
-        this.fetchSeverityKPIRanges();
+        // this.fetchSeverityKPIRanges();
         this.fetchDistrictWiseKPIValues();
         this.fetchDistrictNamesSeverityWise();
         // this.buildBarChartData();
@@ -538,138 +516,94 @@ export class Reports implements OnInit {
     try {
       const payload = { circle: this.location };
 
-      this.dataService
-        .postRequest('/fetch_district_wise_KPI_values', payload)
-        .pipe(
-          catchError((error: any) => {
-            console.error(error?.error?.message || 'Internal Server Error');
-            return throwError(() => error);
-          })
-        )
-        .subscribe({
-          next: (response: any) => {
-            if (!response) return;
+      // 🚀 Run API + mapping outside Angular to avoid UI blocking
+      this.ngZone.runOutsideAngular(() => {
+        this.dataService
+          .postRequest('/fetch_district_wise_KPI_values', payload)
+          .pipe(
+            catchError((error: any) => {
+              console.error(error?.error?.message || 'Internal Server Error');
+              return throwError(() => error);
+            })
+          )
+          .subscribe({
+            next: (response: any) => {
+              if (!response) return;
 
-            const kpidata = response[0]?.district_wise_kpi_values ?? [];
-            let result: any[] = [];
+              const kpidata = response[0]?.district_wise_kpi_values ?? [];
 
-            if (this.activeTab === 'temperature') {
-              result = kpidata.map((ele: any) => ({
-                district: ele.district,
+              // ⭐ Config for mapping fields based on active tab
+              const config: any = {
+                temperature: {
+                  value: 'temp_max',
+                  severity: 'temp_max_severity',
+                  minValue: 'temp_min',
+                  minSeverity: 'temp_min_severity',
+                  includeMin: true,
+                },
+                rainfall: { value: 'rain_precip', severity: 'rain_severity' },
+                humidity: { value: 'humidity', severity: 'humidity_severity' },
+                visibility: {
+                  value: 'visibility',
+                  severity: 'visibility_severity',
+                },
+                wind: { value: 'wind', severity: 'wind_severity' },
+              };
 
-                day1: ele.day1.temp_max,
-                day2: ele.day2.temp_max,
-                day3: ele.day3.temp_max,
-                day4: ele.day4.temp_max,
-                day5: ele.day5.temp_max,
-                day6: ele.day6.temp_max,
-                day7: ele.day7.temp_max,
+              const cfg = config[this.activeTab];
+              if (!cfg) return;
 
-                day1_severity: ele.day1.temp_max_severity,
-                day2_severity: ele.day2.temp_max_severity,
-                day3_severity: ele.day3.temp_max_severity,
-                day4_severity: ele.day4.temp_max_severity,
-                day5_severity: ele.day5.temp_max_severity,
-                day6_severity: ele.day6.temp_max_severity,
-                day7_severity: ele.day7.temp_max_severity,
+              // ⭐ Fast severity-color lookup (no DOM, lightweight)
+              const severityColors: any = {
+                Extreme: getComputedStyle(document.documentElement)
+                  .getPropertyValue('--extreme-color')
+                  .trim(),
+                High: getComputedStyle(document.documentElement)
+                  .getPropertyValue('--high-color')
+                  .trim(),
+                Moderate: getComputedStyle(document.documentElement)
+                  .getPropertyValue('--moderate-color')
+                  .trim(),
+                Low: getComputedStyle(document.documentElement)
+                  .getPropertyValue('--low-color')
+                  .trim(),
+              };
 
-                min1: ele.day1.temp_min,
-                min2: ele.day2.temp_min,
-                min3: ele.day3.temp_min,
-                min4: ele.day4.temp_min,
-                min5: ele.day5.temp_min,
-                min6: ele.day6.temp_min,
-                min7: ele.day7.temp_min,
+              // 🚀 Heavy data mapping (completely outside Angular)
+              const result = kpidata.map((ele: any) => {
+                const row: any = { district: ele.district };
 
-                min1_severity: ele.day1.temp_min_severity,
-                min2_severity: ele.day2.temp_min_severity,
-                min3_severity: ele.day3.temp_min_severity,
-                min4_severity: ele.day4.temp_min_severity,
-                min5_severity: ele.day5.temp_min_severity,
-                min6_severity: ele.day6.temp_min_severity,
-                min7_severity: ele.day7.temp_min_severity,
-              }));
-            } else if (this.activeTab === 'rainfall') {
-              result = kpidata.map((ele: any) => ({
-                district: ele.district,
-                day1: ele.day1.rain_precip,
-                day2: ele.day2.rain_precip,
-                day3: ele.day3.rain_precip,
-                day4: ele.day4.rain_precip,
-                day5: ele.day5.rain_precip,
-                day6: ele.day6.rain_precip,
-                day7: ele.day7.rain_precip,
+                for (let i = 1; i <= 7; i++) {
+                  const day = `day${i}`;
 
-                day1_severity: ele.day1.rain_severity,
-                day2_severity: ele.day2.rain_severity,
-                day3_severity: ele.day3.rain_severity,
-                day4_severity: ele.day4.rain_severity,
-                day5_severity: ele.day5.rain_severity,
-                day6_severity: ele.day6.rain_severity,
-                day7_severity: ele.day7.rain_severity,
-              }));
-            } else if (this.activeTab === 'humidity') {
-              result = kpidata.map((ele: any) => ({
-                district: ele.district,
-                day1: ele.day1.humidity,
-                day2: ele.day2.humidity,
-                day3: ele.day3.humidity,
-                day4: ele.day4.humidity,
-                day5: ele.day5.humidity,
-                day6: ele.day6.humidity,
-                day7: ele.day7.humidity,
+                  // Max/Primary KPI
+                  row[`day${i}`] = ele[day][cfg.value];
+                  row[`day${i}_severity`] = ele[day][cfg.severity];
+                  row[`day${i}_color`] = severityColors[ele[day][cfg.severity]];
 
-                day1_severity: ele.day1.humidity_severity,
-                day2_severity: ele.day2.humidity_severity,
-                day3_severity: ele.day3.humidity_severity,
-                day4_severity: ele.day4.humidity_severity,
-                day5_severity: ele.day5.humidity_severity,
-                day6_severity: ele.day6.humidity_severity,
-                day7_severity: ele.day7.humidity_severity,
-              }));
-            } else if (this.activeTab === 'visibility') {
-              result = kpidata.map((ele: any) => ({
-                district: ele.district,
-                day1: ele.day1.visibility,
-                day2: ele.day2.visibility,
-                day3: ele.day3.visibility,
-                day4: ele.day4.visibility,
-                day5: ele.day5.visibility,
-                day6: ele.day6.visibility,
-                day7: ele.day7.visibility,
+                  // Min KPI (Temperature only)
+                  if (cfg.includeMin) {
+                    row[`min${i}`] = ele[day][cfg.minValue];
+                    row[`min${i}_severity`] = ele[day][cfg.minSeverity];
+                    row[`min${i}_color`] =
+                      severityColors[ele[day][cfg.minSeverity]];
+                  }
+                }
+                return row;
+              });
 
-                day1_severity: ele.day1.visibility_severity,
-                day2_severity: ele.day2.visibility_severity,
-                day3_severity: ele.day3.visibility_severity,
-                day4_severity: ele.day4.visibility_severity,
-                day5_severity: ele.day5.visibility_severity,
-                day6_severity: ele.day6.visibility_severity,
-                day7_severity: ele.day7.visibility_severity,
-              }));
-            } else if (this.activeTab === 'wind') {
-              result = kpidata.map((ele: any) => ({
-                district: ele.district,
-                day1: ele.day1.wind,
-                day2: ele.day2.wind,
-                day3: ele.day3.wind,
-                day4: ele.day4.wind,
-                day5: ele.day5.wind,
-                day6: ele.day6.wind,
-                day7: ele.day7.wind,
+              // 🟢 Only now update Angular UI
+              this.ngZone.run(() => {
+                this.responseDataDistrictWise = result;
+                this.safeDetectChanges(); // markForCheck
+              });
+            },
 
-                day1_severity: ele.day1.wind_severity,
-                day2_severity: ele.day2.wind_severity,
-                day3_severity: ele.day3.wind_severity,
-                day4_severity: ele.day4.wind_severity,
-                day5_severity: ele.day5.wind_severity,
-                day6_severity: ele.day6.wind_severity,
-                day7_severity: ele.day7.wind_severity,
-              }));
-            }
-            this.responseDataDistrictWise = result;
-            this.safeDetectChanges();
-          },
-        });
+            error: (err) => {
+              this.ngZone.run(() => console.error(err));
+            },
+          });
+      });
     } catch (error) {
       console.error(error);
     }
@@ -750,42 +684,44 @@ export class Reports implements OnInit {
   /* Load Circle list dropdown */
   async loadCircleListForDropdown() {
     try {
-      let apiPayload: { circle: string };
-      if (['Admin', 'MLAdmin'].includes(this.user.userrole)) {
-        apiPayload = { circle: 'All Circle' };
-      } else {
-        apiPayload = { circle: this.user.indus_circle };
+      const userRole = this.user.userrole;
+      const userCircle = this.user.indus_circle;
+
+      // If normal user → show only their circle, skip API
+      if (!['Admin', 'MLAdmin'].includes(userRole)) {
+        this.circleOptions = [
+          {
+            value: userCircle,
+            label: userCircle,
+          },
+        ];
+        this.safeDetectChanges();
+        return;
       }
+
+      // Admin / MLAdmin → fetch full list
+      const apiPayload = { circle: 'All Circle' };
 
       const res: any = await this.dataService
         .postData('get_circle_list', apiPayload)
         .toPromise();
 
-      if (res && res.status && Array.isArray(res.data)) {
+      if (res?.status && Array.isArray(res?.data)) {
         this.circleOptions = res.data
-          .filter(
-            (item: { circle: string; location: string }) =>
-              item.circle !== 'All Circle'
-          )
-          .map((circleName: { circle: string; location: string }) => ({
-            value: circleName.location,
-            label: circleName.circle,
+          .filter((item: any) => item.circle !== 'All Circle')
+          .map((item: any) => ({
+            value: item.location,
+            label: item.circle,
           }))
-          .sort(
-            (
-              a: { label: string; value: string },
-              b: { label: string; value: string }
-            ) => a.label.localeCompare(b.label)
-          );
+          .sort((a: any, b: any) => a.label.localeCompare(b.label));
       } else {
-        console.error(
-          'Failed to load circle list: Invalid API response format'
-        );
+        console.error('Invalid API response for circle list');
         this.circleOptions = [];
       }
+
       this.safeDetectChanges();
     } catch (error) {
-      console.error('❌ Failed to load circle list from API:', error);
+      console.error('❌ Failed to load circle list:', error);
       this.circleOptions = [];
     }
   }
@@ -811,7 +747,7 @@ export class Reports implements OnInit {
           return throwError(() => error);
         })
       )
-      .subscribe((res) => {
+      .subscribe((res: any) => {
         if (res) {
           circle_pdf_url = res.url;
           if (circle_pdf_url) {
@@ -1654,5 +1590,22 @@ export class Reports implements OnInit {
     }
     this.location = changedCircle;
     this.fetch7daysForecastData();
+  };
+
+  //.....................get-district-wise-hazards..................................................
+
+  fetchDistrictWiseHazardValues = () => {
+    const payload = { circle: this.location, hazardType: this.activeHazTab };
+    this.dataService
+      .postRequest('/get-district-wise-hazards', payload)
+      .subscribe({
+        next: (res: any) => {
+          if (res?.status === 'success') {
+            this.hazardData = res.data;
+            this.safeDetectChanges();
+          }
+        },
+        error: (err) => console.error('Hazard load failed:', err),
+      });
   };
 }

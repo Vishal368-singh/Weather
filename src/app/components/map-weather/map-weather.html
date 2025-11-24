@@ -39,7 +39,7 @@
         [value]="selectedCircle"
         (change)="onCircleLevelChange($event)"
         [disabled]="circleOptions.length === 1"
-        [attr.size]="circleOptions.length > 6 ? 6 : circleOptions.length"
+        [attr.size]="circleOptions.length > 6 ? 6 : circleOptions.length+1"
       >
         <ng-container *ngFor="let option of circleOptions">
           <option [value]="option.label">{{ option.label }}</option>

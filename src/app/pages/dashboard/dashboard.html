@@ -182,13 +182,6 @@
             class="weather-filters-button d-flex justify-content-between flex-wrap gap-2 mb-3 responsive-button-group"
           >
             <button
-              (click)="selectLayer('temperature');callToggleTempIDW()"
-              [class.active]="selectedLayer  === 'temperature'"
-              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
-            >
-              <i class="fas fa-temperature-high"></i> Temperature
-            </button>
-            <button
               (click)="selectLayer('rainfall');callToggleRainIDW()"
               [class.active]="selectedLayer  === 'rainfall'"
               class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
@@ -216,6 +209,14 @@
             >
               <i class="fa-solid fa-eye"></i> Visibility
             </button>
+            <button
+              (click)="selectLayer('temperature');callToggleTempIDW()"
+              [class.active]="selectedLayer  === 'temperature'"
+              class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
+            >
+              <i class="fas fa-temperature-high"></i> Temperature
+            </button>
+            
           </div>
 
           <!-- Map Component -->

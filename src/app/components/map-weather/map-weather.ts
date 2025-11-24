@@ -686,6 +686,7 @@ export class MapWeather implements AfterViewInit {
 
     this.WeatherService.circleLabelClicked$.subscribe((clicked: boolean) => {
       this.isCircleLabelClicked = clicked;
+      this.clearSearchMarker();
       this.cdr.detectChanges();
     });
 
@@ -741,13 +742,15 @@ export class MapWeather implements AfterViewInit {
       const res: any = await this.dataService
         .postData('get_circle_list', apiPayload)
         .toPromise();
+
       if (res && res.status && Array.isArray(res.data)) {
         let circles = res.data;
 
-        //  Exclude "All Circle" only for user role
+        // If user.role === 'User' → show ONLY their own circle
+        // If user.role === 'User' → show ONLY their own circle
         if (this.user.userrole === 'User') {
           circles = circles.filter(
-            (item: { circle: string }) => item.circle !== 'All Circle'
+            (item: { circle: string }) => item.circle === this.user.usercircle // match user circle only
           );
         }
 
@@ -863,7 +866,6 @@ export class MapWeather implements AfterViewInit {
   }
 
   onCircleLevelChange(event: Event): void {
-   
     const selectEl = event.target as HTMLSelectElement;
     const selectedValues = Array.from(selectEl.selectedOptions).map(
       (opt) => opt.label
@@ -1117,6 +1119,7 @@ export class MapWeather implements AfterViewInit {
           const forecastweather =
             data.forecast.forecastday[1].hour[currentHour];
           let hoursGap = 23 - currentHour;
+          let location_name = data.location.name;
           for (let i: any = 1; i <= hoursGap; i++) {
             if (i > 6) break;
             const forecastweather =
@@ -1136,6 +1139,7 @@ export class MapWeather implements AfterViewInit {
             condition_text: forecastweather.condition.text,
             icon: forecastweather.condition.icon,
             rain6Dyas: rain6Dyas,
+            location_name: location_name,
           };
           return resultData;
         }
@@ -1183,7 +1187,7 @@ export class MapWeather implements AfterViewInit {
         // this.districtLayer,
         this.districtVectorLayer,
         this.circleVectorLayer,
-        this.Weather_LocationsVectorLayer,
+        // this.Weather_LocationsVectorLayer,
         this.indusBNDVectorLayer,
 
         this.imgIDWTempLayer,
@@ -1253,6 +1257,7 @@ export class MapWeather implements AfterViewInit {
     //#region Map OnClick
     this.map.on('click', async (evt) => {
       this.closePopup();
+      debugger;
       var pixel = this.map.getEventPixel(evt.originalEvent);
       const coord = evt.coordinate;
       this.map.forEachFeatureAtPixel(pixel, async (feature: any, layer) => {
@@ -1296,6 +1301,7 @@ export class MapWeather implements AfterViewInit {
               if (Lat && Lon) {
                 this.WeatherService.setLocation(`${Lat},${Lon}`);
               }
+              debugger;
               const resultData = await this.getWeatherFromLatLong(Lat, Lon);
               if (!resultData) return;
 
@@ -1613,10 +1619,10 @@ export class MapWeather implements AfterViewInit {
     });
   };
 
-  toggleTempIDW = () => {
+  toggleTempIDW = async () => {
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
-    this.generateRegionWiseWeatherIDW();
+    await this.generateRegionWiseWeatherIDW();
     this.minRange = `${this.minTemp} (°C)`;
     this.maxRange = `${this.maxTemp} (°C)`;
     this.isIDWLayer = true;
@@ -1629,10 +1635,11 @@ export class MapWeather implements AfterViewInit {
     this.closePopup();
     this.zoomToIndiaExtent();
   };
-  toggleRainIDW = () => {
+
+  toggleRainIDW = async () => {
     this.isRainIDWLayer = true;
     this.selectedHour = new Date().getHours();
-    this.generateRegionWiseWeatherIDW();
+    await this.generateRegionWiseWeatherIDW();
     // this.minRange = `${this.minRain} (%)`;
     // this.maxRange = `${this.maxRain} (%)`;
     this.isIDWLayer = true;
@@ -1645,10 +1652,10 @@ export class MapWeather implements AfterViewInit {
     this.closePopup();
     this.zoomToIndiaExtent();
   };
-  toggleWindIDW = () => {
+  toggleWindIDW = async () => {
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
-    this.generateRegionWiseWeatherIDW();
+    await this.generateRegionWiseWeatherIDW();
     this.minRange = `${this.minWind} (kph)`;
     this.maxRange = `${this.maxWind} (kph)`;
     this.isIDWLayer = true;
@@ -1661,10 +1668,10 @@ export class MapWeather implements AfterViewInit {
     this.closePopup();
     this.zoomToIndiaExtent();
   };
-  toggleHumidiyIDW = () => {
+  toggleHumidiyIDW = async () => {
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
-    this.generateRegionWiseWeatherIDW();
+    await this.generateRegionWiseWeatherIDW();
     this.minRange = `${this.minHumidity} (%)`;
     this.maxRange = `${this.maxHumidity} (%)`;
     this.isIDWLayer = true;
@@ -2002,8 +2009,6 @@ export class MapWeather implements AfterViewInit {
         this.imgIDWWindLayer.addFilter(crop);
         this.imgIDWHumidityLayer.addFilter(crop);
         this.imgIDWFogLayer.addFilter(crop);
-
-        // If this function affects UI variables or tables
         this.cdr.markForCheck(); // (Only if using OnPush)
       });
     } catch (error) {

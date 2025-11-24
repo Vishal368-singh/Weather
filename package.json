@@ -11,6 +11,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^20.0.4",
+    "@angular/cdk": "^20.2.14",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
@@ -27,7 +28,6 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "file-saver": "^2.0.5",
-    "xlsx": "^0.18.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "lottie-web": "^5.13.0",
@@ -40,6 +40,7 @@
     "ol-ext": "^4.0.33",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
@@ -47,9 +48,9 @@
     "@angular/cli": "^20.0.3",
     "@angular/compiler-cli": "^20.0.0",
     "@siedlerchr/types-ol-ext": "^3.6.2",
+    "@types/file-saver": "^2.0.7",
     "@types/jasmine": "~5.1.0",
     "@types/luxon": "^3.7.1",
-    "@types/file-saver": "^2.0.7",
     "@types/ol": "^6.5.3",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",

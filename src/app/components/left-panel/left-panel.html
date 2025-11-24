@@ -8,6 +8,7 @@
       <div class="menu-title text-success fw-bold">DASHBOARD</div>
       <a
         class="menu-item d-block"
+        (click)="onDashboardClick()"
         routerLink="/dashboard"
         routerLinkActive="active"
       >
@@ -24,6 +25,7 @@
 
       <a
         class="menu-item d-block"
+        (click)="onCircleLevelClick()"
         routerLink="/reports/circle-level"
         routerLinkActive="active"
       >
@@ -46,10 +48,10 @@
       <a
         *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
         class="menu-item d-block"
+        (click)="onUsageClick(); $event.stopPropagation()"
         routerLink="/reports/usage"
         routerLinkActive="active"
         title="Usage Report"
-        (click)="$event.preventDefault()"
       >
         <img src="assets/icons/reports.svg" alt="USAGE" />
         <div class="menu-text">USAGE</div>
@@ -82,6 +84,7 @@
       class="menu-section text-center"
     >
       <div class="menu-title text-success fw-bold">MANAGE</div>
+      <!-- (click)="onProfileClick()" -->
       <a
         class="menu-item d-block"
         routerLink="/profile"
@@ -90,6 +93,7 @@
         <img src="assets/icons/users.svg" alt="Real-Time" />
         <div class="menu-text">USERS</div>
       </a>
+      <!-- (click)="onSeverityRangesClick()" -->
 
       <a
         class="menu-item d-block mt-2"

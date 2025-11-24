@@ -121,7 +121,7 @@
 
 .profile-area {
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .profileDropdown {
@@ -201,4 +201,36 @@
 }
 .isPanIndiaActive {
   background: #e6ffe6 !important;
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .sidebar {
+    width: 135px !important;
+  }
+
+  .menu-item img {
+    height: 26px !important;
+  }
+
+  /* Reduce menu text */
+  .menu-text {
+    font-size: 11px !important;
+  }
+
+  /* Reduce profile icon size */
+  .fancy-profile {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 2px !important;
+  }
+
+  /* Adjust profile dropdown */
+  .profileDropdown {
+    transform: translateX(-45%) !important;
+    min-width: 120px !important;
+  }
+
+  .user-name {
+    font-size: 12px !important;
+  }
 }

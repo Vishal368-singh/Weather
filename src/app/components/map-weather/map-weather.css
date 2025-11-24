@@ -601,7 +601,7 @@
   }
 
   .layer-legend {
-    top: 200px;
+    top: 100px;
     padding: 3px !important;
   }
 
@@ -610,7 +610,7 @@
   }
 
   .layer-legend ul#legend-list {
-    font-size: 8px !important;
+    font-size: 10px !important;
   }
 
   ::ng-deep #layer-legend input[type="checkbox"] {
@@ -714,7 +714,7 @@
   }
 
   .map-credit {
-    bottom: 38px;
+    bottom: 30px;
   }
 }
 

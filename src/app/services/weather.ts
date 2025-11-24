@@ -29,6 +29,7 @@ export class WeatherService {
   circleLocationChangedIs$ = this.circleLocationChanged.asObservable();
 
   setLocation(location: string): void {
+    debugger;
     this.locationSubject.next(location);
   }
 
@@ -73,7 +74,6 @@ export class WeatherService {
   }
 
   setCircleLocationChange(circleLocation: string): void {
-    
     this.circleLocationChanged.next(circleLocation);
   }
 

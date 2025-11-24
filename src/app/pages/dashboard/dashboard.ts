@@ -368,13 +368,15 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.loadWeather();
 
     this.WeatherService.location$.subscribe((location: string) => {
-
+      debugger;
       if (this.selectedDay === 'TODAY') {
         this.selectedLocation = location;
         this.loadWeather();
       } else {
         this.isLoading = true;
         this.dataService.getWeatherForecast(location).subscribe({});
+        this.selectedLocation = location;
+        this.loadWeather();
       }
     });
 

@@ -1,3 +1,4 @@
+import { Severity } from './../../components/severity/severity';
 import {
   Component,
   OnInit,
@@ -10,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MapWeather } from '../../components/map-weather/map-weather';
 import { DataService } from '../../data-service/data-service';
+import { circle } from '@turf/turf';
 
 @Component({
   selector: 'app-hazards-feed , map-weather',
@@ -26,11 +28,18 @@ export class HazardsFeed {
   showMapFull = false;
   selectedDayDate: any;
 
+  districtSearch: string = '';
+  filteredDistrictList: any = [];
   circleList: any = [];
+  insertedCircleList: any = [];
   districtList: any = [];
 
   severityList = ['Extreme', 'High', 'Moderate', 'Low'];
   days = ['Day1', 'Day2', 'Day3', 'Day4', 'Day5', 'Day6', 'Day7'];
+
+  selectedCircle: any = '';
+  selectedSeverity: any = '';
+  selectedDay: any = '';
 
   hazardValue: any = '';
   description: any = '';
@@ -100,7 +109,7 @@ export class HazardsFeed {
 
   ngOnInit() {
     this.loadCircleListForDropdown();
-    this.getSelectedtHazardData();
+    // this.getSelectedtHazardData();
   }
 
   async setActive(tab: string) {
@@ -114,7 +123,8 @@ export class HazardsFeed {
       description: '',
     };
     this.activeHazardTab = tab;
-    this.getSelectedtHazardData();
+    this.tableData = [];
+    this.loadCircleListForDropdown();
   }
 
   toggleDistrict(district: string, event: any) {
@@ -132,10 +142,28 @@ export class HazardsFeed {
       alert('No data to submit!');
       return;
     }
-
     this.finalSubmittedData = [...this.tableData];
-    console.log('Final Submitted Data:', this.finalSubmittedData);
-    this.insertHazards(this.finalSubmittedData);
+    // console.log('Final Submitted Data:', this.finalSubmittedData);
+    const hasAllDays = this.days.every((day) =>
+      this.finalSubmittedData.some((item) => item.day === day)
+    );
+
+    if (!hasAllDays) {
+      alert('Please add all days in the table!');
+    } else {
+      this.insertHazards(this.finalSubmittedData);
+      this.form = {
+        circle: '',
+        districts: [],
+        severity: '',
+        day: '',
+        date: '',
+        hazardValue: '',
+        description: '',
+      };
+      this.tableData = [];
+      this.districtList = [];
+    }
   }
 
   showmap() {
@@ -145,7 +173,7 @@ export class HazardsFeed {
   closeMap() {
     this.showMapFull = false;
   }
-  delete(index: number) {
+  deleteSelectedRow(index: number) {
     this.tableData.splice(index, 1);
     if (this.editingIndex === index) {
       this.editingIndex = null;
@@ -161,7 +189,7 @@ export class HazardsFeed {
     }
   }
 
-  edit(index: number) {
+  editTableRecords(index: number) {
     this.editingIndex = index;
 
     const row = this.tableData[index];
@@ -175,10 +203,13 @@ export class HazardsFeed {
       hazardValue: row.hazardValue,
       description: row.description,
     };
+    this.selectedSeverity = row.severity;
+    this.selectedDay = row.day;
+    this.addDistrictInDropdownList(row);
   }
 
   // Submit / Update
-  addNew() {
+  addNewRecord() {
     if (this.editingIndex !== null) {
       // Update existing row
       this.tableData[this.editingIndex] = {
@@ -191,7 +222,6 @@ export class HazardsFeed {
         hazardValue: this.form.hazardValue,
         description: this.form.description,
       };
-
       this.editingIndex = null;
     } else {
       // Add new row
@@ -206,18 +236,37 @@ export class HazardsFeed {
         description: this.form.description,
       });
     }
+    this.selectedSeverity = this.form.severity;
+    this.selectedDay = this.form.day;
+    this.getAvailableSeverities(this.selectedDay);
+    this.removeDistrictsForDropodwn(this.tableData);
 
     // Reset form
     this.form = {
-      circle: '',
+      circle: this.selectedCircle,
       districts: [],
       severity: '',
-      day: '',
+      day: this.selectedDay,
       date: '',
       hazardValue: '',
       description: '',
     };
   }
+
+  getAvailableSeverities = (day: any) => {
+    debugger;
+    const record = this.tableData.filter((item) => item.day === day);
+    let alreadySelectedSeverity: any = record.map((item) => item.severity);
+    if (alreadySelectedSeverity.length > 0) {
+      const setSeverity = new Set(alreadySelectedSeverity);
+      this.severityList = this.severityList.filter(
+        (s: any) => !setSeverity.has(s)
+      );
+      this.severityList.sort();
+    } else {
+      this.severityList = ['Extreme', 'High', 'Moderate', 'Low'];
+    }
+  };
 
   getDateFromSelectedDay = (day: any) => {
     const today = new Date();
@@ -231,7 +280,8 @@ export class HazardsFeed {
 
     const recordDateStr = `${dd}-${mm}-${yyyy}`;
     this.selectedDayDate = recordDateStr;
-    console.log(this.selectedDayDate);
+    this.getAvailableSeverities(day);
+    console.log(this.tableData);
   };
 
   changeDateFormat = (dateStr: any) => {
@@ -244,25 +294,105 @@ export class HazardsFeed {
     return formattedDate;
   };
 
+  onCircleChange = () => {
+    this.selectedCircle = this.form.circle;
+    this.loadDistrictListForDropdown();
+  };
+
+  onDistrictSearch() {
+    const search = this.districtSearch.toLowerCase();
+    this.filteredDistrictList = this.districtList.filter((d: any) =>
+      d.district.toLowerCase().includes(search)
+    );
+  }
+
+  removeDistrictsForDropodwn = (tableData: any) => {
+    // District
+    const usedDistricts = new Set(
+      tableData.flatMap((item: any) => item.districts)
+    );
+    this.districtList = this.districtList.filter(
+      (d: any) => !usedDistricts.has(d.district)
+    );
+    this.districtList.sort((a: any, b: any) =>
+      a.district.localeCompare(b.district)
+    );
+
+    this.filteredDistrictList = this.filteredDistrictList.filter(
+      (d: any) => !usedDistricts.has(d.district)
+    );
+    this.filteredDistrictList.sort((a: any, b: any) =>
+      a.district.localeCompare(b.district)
+    );
+    // Severity
+    // this.severityList = this.severityList.filter(
+    //   (d) => d !== this.selectedSeverity
+    // );
+    // this.severityList.sort();
+
+    // D-ays
+    // this.days = this.days.filter((d) => d !== this.selectedDay);
+    // this.days.sort();
+  };
+
+  addDistrictInDropdownList = (row: any) => {
+    row.districts.forEach((dist: string) => {
+      // Add only if district not already present
+      if (!this.districtList.some((d: any) => d.district === dist)) {
+        this.districtList.push({ district: dist });
+      }
+      if (!this.filteredDistrictList.some((d: any) => d.district === dist)) {
+        this.filteredDistrictList.push({ district: dist });
+      }
+    });
+    this.districtList.sort((a: any, b: any) =>
+      a.district.localeCompare(b.district)
+    );
+    this.filteredDistrictList.sort((a: any, b: any) =>
+      a.district.localeCompare(b.district)
+    );
+
+    // Severity
+    this.getAvailableSeverities(row.day);
+    if (row.severity !== '' && !this.severityList.includes(row.severity)) {
+      this.severityList.push(row.severity);
+      this.severityList.sort();
+    }
+
+    // D-ays
+    // if (row.day !== '') {
+    //   this.days.push(row.day);
+    //   this.days.sort();
+    // }
+  };
+
   //#region API CaLL
-  loadCircleListForDropdown() {
+  loadCircleListForDropdown = () => {
     this.dataService
       .postData('get_circle_list', { circle: 'All Circle' })
       .subscribe((res: any) => {
-        this.ngZone.run(() => {
+        this.ngZone.run(async () => {
           if (res && res.status && Array.isArray(res.data)) {
             let circles = res.data.filter(
               (c: any) => c.circle !== 'All Circle'
             );
 
-            // VERY IMPORTANT: always create a NEW array reference
-            const mapped = circles
+            // Remove already inserted circle
+            const insertedCircleList: any =
+              await this.insertedHazardCirclesList();
+            const usedCircle = insertedCircleList.map(
+              (item: any) => item.indus_circle
+            );
+            const filterCircles = circles.filter(
+              (c: any) => !usedCircle.includes(c.circle)
+            );
+
+            const mapped = filterCircles
               .map((circleName: { circle: string; location: string }) => ({
                 value: circleName.location,
                 label: circleName.circle,
               }))
-              .sort((a:any, b:any) => a.label.localeCompare(b.label));
-
+              .sort((a: any, b: any) => a.label.localeCompare(b.label));
             this.circleList = [...mapped]; // <-- new reference
             // If using OnPush:
             this.cdr.markForCheck();
@@ -272,21 +402,41 @@ export class HazardsFeed {
           }
         });
       });
+  };
+
+  async insertedHazardCirclesList() {
+    try {
+      const res: any = await this.dataService
+        .postData('inserted_hazard_circle_list', {
+          hazard: this.activeHazardTab,
+        })
+        .toPromise();
+
+      if (res && res.status && Array.isArray(res.data)) {
+        this.insertedCircleList = [...res.data]; // new array reference
+      } else {
+        console.error('Invalid API response format');
+        this.insertedCircleList = [];
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      this.insertedCircleList = [];
+    }
+
+    return this.insertedCircleList;
   }
 
   async loadDistrictListForDropdown() {
-    let selectedCircle = this.form.circle;
-
     try {
       const res: any = await this.dataService
-        .postData('get_district_list', { circle: selectedCircle })
+        .postData('get_district_list', { circle: this.selectedCircle })
         .toPromise();
 
       this.ngZone.run(() => {
         if (res && res.status && Array.isArray(res.data)) {
           // ALWAYS create new array reference
           this.districtList = [...res.data];
-
+          this.filteredDistrictList = [...this.districtList];
           // If using ChangeDetectionStrategy.OnPush
           this.cdr.markForCheck();
         } else {
@@ -294,6 +444,7 @@ export class HazardsFeed {
             'Failed to load district list: Invalid API response format'
           );
           this.districtList = [];
+          this.filteredDistrictList = [];
           this.cdr.markForCheck();
         }
       });
@@ -301,6 +452,7 @@ export class HazardsFeed {
       console.error('Failed to load district list from API:', error);
       this.ngZone.run(() => {
         this.districtList = [];
+        this.filteredDistrictList = [];
         this.cdr.markForCheck();
       });
     }
@@ -345,7 +497,7 @@ export class HazardsFeed {
             description: ele.description,
           }));
 
-          // ❗ FIX: flat array, not nested array
+          // FIX: flat array, not nested array
           this.tableData = [...data];
 
           // OnPush: trigger UI update

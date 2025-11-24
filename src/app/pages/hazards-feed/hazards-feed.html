@@ -51,9 +51,10 @@
       <div class="custom-col mb-3">
         <label>Circle</label>
         <select
+          [disabled]="tableData?.length > 0"
           class="form-select"
           [(ngModel)]="form.circle"
-          (change)="loadDistrictListForDropdown()"
+          (change)="onCircleChange()"
         >
           <option value="" disabled selected>Select Circle</option>
           <option *ngFor="let c of circleList" [value]="c.label">
@@ -68,43 +69,50 @@
 
         <div class="dropdown custom-dropdown">
           <button
-            style="text-align: left"
+            style="
+              text-align: left;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            "
             class="form-select"
             type="button"
             data-bs-toggle="dropdown"
+            [disabled]="selectedCircle == ''"
           >
-            {{ form.districts.length > 0 ? form.districts.join(', ') : 'Select
-            Districts' }}
+            {{ form.districts.length > 0 ? form.districts.join(', ') :
+            'SelectDistricts' }}
           </button>
 
           <ul
             class="dropdown-menu p-2"
             style="max-height: 200px; overflow-y: auto"
           >
+            <input
+              type="text"
+              class="form-control mb-2"
+              placeholder="Search district..."
+              [(ngModel)]="districtSearch"
+              (input)="onDistrictSearch()"
+            />
             <li
               class="dropdown-item d-flex align-items-center"
-              *ngFor="let d of districtList"
+              *ngFor="let d of filteredDistrictList"
+              (click)="$event.stopPropagation()"
             >
               <input
+                [id]="d.district"
                 type="checkbox"
                 class="form-check-input"
                 [checked]="form.districts.includes(d.district)"
                 (change)="toggleDistrict(d.district, $event)"
               />
 
-              <label class="ms-2">{{ d.district }}</label>
+              <label [for]="d.district" class="ms-2">{{ d.district }}</label>
             </li>
           </ul>
         </div>
       </div>
-      <div class="custom-col mb-3">
-        <label>Severity</label>
-        <select class="form-select" [(ngModel)]="form.severity">
-          <option value="" disabled>Select Severity</option>
-          <option *ngFor="let s of severityList" [value]="s">{{s}}</option>
-        </select>
-      </div>
-
       <!-- DAYS -->
       <div class="custom-col mb-3">
         <label>Days</label>
@@ -115,6 +123,13 @@
         >
           <option value="" disabled>Select Day</option>
           <option *ngFor="let d of days" [value]="d">{{d}}</option>
+        </select>
+      </div>
+      <div class="custom-col mb-3">
+        <label>Severity</label>
+        <select class="form-select" [(ngModel)]="form.severity">
+          <option value="" disabled>Select Severity</option>
+          <option *ngFor="let s of severityList" [value]="s">{{s}}</option>
         </select>
       </div>
     </div>
@@ -145,9 +160,15 @@
   <!-- BUTTONS -->
   <div class="d-flex gap-3 mt-3">
     <!-- <button class="btn btn-success" (click)="edit()">Edit</button> -->
-    <button class="btn btn-success" (click)="addNew()">Add New</button>
+    <button
+      *ngIf="selectedCircle !== ''"
+      class="btn btn-success"
+      (click)="addNewRecord()"
+    >
+      Add New
+    </button>
     <div>
-      <button class="btn btn-success" (click)="showmap()">View in Map</button>
+      <button class="btn btn-success" (click)="showmap()">View Map</button>
     </div>
   </div>
 
@@ -179,7 +200,6 @@
       >
         <div class="accordion-body">
           <ul class="list-group">
-            <!-- SHOW LIST ONLY IF LINKS EXIST -->
             <ng-container
               *ngIf="linksData[activeHazardTab]?.length > 0; else noLinks"
             >
@@ -235,10 +255,16 @@
 
             <!-- EDIT BUTTON -->
             <td class="d-flex spacebetween gap-2">
-              <button class="btn btn-success btn-sm" (click)="edit(i)">
+              <button
+                class="btn btn-success btn-sm"
+                (click)="editTableRecords(i)"
+              >
                 Edit
               </button>
-              <button class="btn btn-success btn-sm" (click)="delete(i)">
+              <button
+                class="btn btn-success btn-sm"
+                (click)="deleteSelectedRow(i)"
+              >
                 Delete
               </button>
             </td>
