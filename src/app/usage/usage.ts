@@ -236,7 +236,8 @@ export class Usage implements OnInit {
   }
 
   // ================= Filters =================
-  applyFilter() {
+  applyFilter(startInput: HTMLInputElement, endInput: HTMLInputElement) {
+   
     if (!this.startDate) {
       this.snackBar.open('Select start and end date', 'X', {
         duration: 2000,
@@ -561,23 +562,28 @@ export class Usage implements OnInit {
     return `${hrs > 0 ? hrs + 'h ' : ''}${mins}m`;
   }
 
+  // Corrected code for usage.ts
+
   filterDashboardData(startDate: string, endDate: string) {
+   
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Filter the dashboardUsageData
-    const filtered = this.dashboardUsageData.filter((item: any) => {
-      // Parse item.date (format: 25-Sep-2025)
+    const filtered = this.storedDashboardUsageData.filter((item: any) => {
       const itemDate = new Date(item.date.replace(/-/g, ' '));
+      if (isNaN(itemDate.getTime())) return false;
 
       return itemDate >= start && itemDate <= end;
     });
+
     const userids = filtered.map((u: any) => u.userid);
     const filteredUserList = this.userList.filter((u) =>
       userids.includes(u.id)
     );
-    // Update or return filtered data
+
+    // Update dashboardUsageData for display
     this.dashboardUsageData = filtered;
+
     this.sendUserList = filteredUserList.map((u) => ({
       ...u,
       checked: false,

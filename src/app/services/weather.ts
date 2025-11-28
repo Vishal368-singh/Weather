@@ -29,7 +29,6 @@ export class WeatherService {
   circleLocationChangedIs$ = this.circleLocationChanged.asObservable();
 
   setLocation(location: string): void {
-    debugger;
     this.locationSubject.next(location);
   }
 

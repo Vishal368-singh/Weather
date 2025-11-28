@@ -97,6 +97,8 @@ export class Reports implements OnInit {
     this.barThickness();
   }
 
+
+
   public isBrowser = typeof window !== 'undefined';
   selectedPage = 'dashboard';
   showForecast = false;
@@ -115,6 +117,7 @@ export class Reports implements OnInit {
   responseData: any = {};
   responseDataDistrictWise: any[] = [];
   responseDataSeverityWise: any = {};
+  responseDataHazardWise: any = {};
   selectedCircle: string = '';
   selectedCircleSeverityRange: any = {};
 
@@ -239,21 +242,23 @@ export class Reports implements OnInit {
 
   /* Heading For 7 -dfc table */
   headingMap: Record<string, string> = {
-    temperature: 'Temparture Departure For Next 7 Days (W.r.t to Normal) (°C)',
-    rainfall: 'Rainfall Advisory For Next 7 Days (mm)',
-    accu_rainfall: 'Accumulated Rainfall Advisory For Next 3 Days (mm)',
-    humidity: 'Humidity Forecast For Next 7 Days (%)',
-    wind: 'Wind Forecast For Next 7 Days (kmph)',
-    visibility: 'Fog/Visibility Forecast For Next 7 Days (km)',
+    temperature: 'Temparture Departure - 7 Days (W.r.t to Normal) (°C)',
+    rainfall: 'Rainfall Forecast - 7 Days (mm)',
+    accu_rainfall: 'Accumulated Rainfall Forecast - 3 Days (mm)',
+    humidity: 'Humidity Forecast - 7 Days (%)',
+    wind: 'Wind Forecast - 7 Days (kmph)',
+    visibility: 'Fog/Visibility Forecast - 7 Days (km)',
   };
 
   /* Heading For 7 -dHfc table */
   headingMapHaz: Record<string, string> = {
-    Flood: 'Flood Forecast for next 7-days ( Affected Area % )',
-    Cyclone: 'Cyclone Forecast for next 7-days ( Affected Area % )',
-    Snowfall: 'Snowfall Forecast for next 7-days ( Affected Area % )',
-    Avalanche: 'Avlanche Forecast for next 7-days ( Affected Area % )',
-    Cloudburst: 'Cloudburst for next 7-days ( Affected Area % )',
+    Flood: 'Flood Forecast - 7 Days (Affected Area %)',
+    Cyclone: 'Cyclone Forecast - 7 Days (Affected Area %)',
+    Snowfall: 'Snowfall Forecast - 7 Days (Affected Area %)',
+    Avalanche: 'Avalanche Forecast - 7 Days (Affected Area %)',
+    Cloudburst: 'Cloudburst Forecast - 7 Days (Affected Area %)',
+    Lightning: 'Lightning Forecast - 7 Days (Affected Area %)',
+    Landslide: 'Landslide Forecast - 7 Days (Affected Area %)',
   };
 
   setActive(tab: string) {
@@ -303,14 +308,22 @@ export class Reports implements OnInit {
       this.user = JSON.parse(storedUser);
 
       // Set default location
-      if (this.user.indus_circle === 'All Circle') {
+      if (
+        this.user.indus_circle === 'Upper North (HP)' ||
+        this.user.indus_circle === 'Upper North (JK)' ||
+        this.user.indus_circle === 'Upper North (HAR)' ||
+        this.user.indus_circle === 'Upper North (PUN)'
+      ) {
+        this.location = 'Upper North';
+      } else if (this.user.indus_circle === 'All Circle') {
         this.location = 'M&G';
       } else {
         this.location = this.user.indus_circle;
       }
 
-      // If user has no circle 
+      // If user has no circle
       if (this.user.circle === '') {
+        this.location = 'M&G';
         this.getUserCurrentLocation();
         this.safeDetectChanges();
       }
@@ -319,19 +332,31 @@ export class Reports implements OnInit {
     // Load dropdown (only once)
     this.loadCircleListForDropdown();
 
-    // 🔥 MAIN: Run all reports only when circle changes
+    // MAIN: Run all reports only when circle changes
     this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
       if (!circle) return;
 
-      this.location = circle === 'All Circle' ? 'M&G' : circle;
+      if (
+        circle === 'Upper North (HP)' ||
+        circle === 'Upper North (JK)' ||
+        circle === 'Upper North (HAR)' ||
+        circle === 'Upper North (PUN)'
+      ) {
+        this.location = 'Upper North';
+      } else if (circle === 'All Circle') {
+        this.location = 'M&G';
+      } else {
+        this.location = circle;
+      }
+
+      // this.location = circle === 'All Circle' ? 'M&G' : circle;
 
       // All API calls ONCE
       this.fetchWeatherData();
       this.fetchSeverityKPIRanges();
       this.fetch7daysForecastData();
-      this.fetchDistrictWiseKPIValues();
-      this.fetchDistrictNamesSeverityWise();
       this.fetchlegend_with_color();
+      this.fetchDistrictNamesHazardWise();
 
       // Tabs refresh
       this.setActive(this.activeTab);
@@ -340,30 +365,25 @@ export class Reports implements OnInit {
       this.safeDetectChanges();
     });
 
-    // 🔥 First page load → run once
+    this.setActive('rainfall');
+    this.setActiveHaz('Flood');
     this.fetchWeatherData();
     this.fetchSeverityKPIRanges();
     this.fetch7daysForecastData();
-    this.fetchDistrictWiseKPIValues();
-    this.fetchDistrictNamesSeverityWise();
     this.fetchlegend_with_color();
-    this.getDateLabels();
+    this.fetchDistrictNamesHazardWise();
+    // this.getDateLabels();
   }
 
   towerData: any = [];
+  // in Reports class
   fetch7daysForecastData() {
     const payload = {
       circle: this.location,
     };
     this.dataService
       .postRequest('fetch_circle_report', payload)
-      .pipe(
-        catchError((error) => {
-          const errorMessage = error?.error?.message || 'Internal Server Error';
-          console.error(errorMessage);
-          return throwError(() => error);
-        })
-      )
+      // ... (omitted pipe and error handling) ...
       .subscribe((response: any) => {
         // Order of severity mapping must match your towerData order:
         const severityOrder = [
@@ -387,10 +407,18 @@ export class Reports implements OnInit {
           });
         });
         this.fetchWeatherData();
-        // this.fetchSeverityKPIRanges();
-        this.fetchDistrictWiseKPIValues();
+
+        // ➡️ CRITICAL ADDITION: If severity ranges are already loaded, run the chart/table logic now.
+        if (this.selectedCircleSeverityRange) {
+          this.populateSeverityTable();
+          this.buildBarChartData();
+          this.bind7DaysForecastWithColor();
+        }
+        // ⬅️ CRITICAL ADDITION END
+
+        // after towerData is ready
+        this.setActive(this.activeTab); // this calls fetchDistrictWiseKPIValues()
         this.fetchDistrictNamesSeverityWise();
-        // this.buildBarChartData();
         this.safeDetectChanges();
       });
   }
@@ -681,6 +709,80 @@ export class Reports implements OnInit {
     }
   };
 
+  fetchDistrictNamesHazardWise = () => {
+    try {
+      const payload = { circle: this.location };
+
+      this.dataService
+        .postData('get-hazard-affected-district', payload)
+        .pipe(
+          catchError((error: any) => {
+            const errorMessage =
+              error?.error?.message || 'Internal Server Error';
+            console.error(errorMessage);
+            return throwError(() => error);
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            if (response?.data) {
+              const d = response.data[0];
+
+              this.responseDataHazardWise = {
+                Avalanche: {
+                  extreme: d.Avalanche?.Extreme || [],
+                  high: d.Avalanche?.High || [],
+                  moderate: d.Avalanche?.Moderate || [],
+                  low: d.Avalanche?.Low || [],
+                },
+                Cloudburst: {
+                  extreme: d.Cloudburst?.Extreme || [],
+                  high: d.Cloudburst?.High || [],
+                  moderate: d.Cloudburst?.Moderate || [],
+                  low: d.Cloudburst?.Low || [],
+                },
+                Cyclone: {
+                  extreme: d.Cyclone?.Extreme || [],
+                  high: d.Cyclone?.High || [],
+                  moderate: d.Cyclone?.Moderate || [],
+                  low: d.Cyclone?.Low || [],
+                },
+                Flood: {
+                  extreme: d.Flood?.Extreme || [],
+                  high: d.Flood?.High || [],
+                  moderate: d.Flood?.Moderate || [],
+                  low: d.Flood?.Low || [],
+                },
+                Lightning: {
+                  extreme: d.Lightning?.Extreme || [],
+                  high: d.Lightning?.High || [],
+                  moderate: d.Lightning?.Moderate || [],
+                  low: d.Lightning?.Low || [],
+                },
+                Snowfall: {
+                  extreme: d.Snowfall?.Extreme || [],
+                  high: d.Snowfall?.High || [],
+                  moderate: d.Snowfall?.Moderate || [],
+                  low: d.Snowfall?.Low || [],
+                },
+              };
+
+              // console.log(
+              //   'Final hazard-wise severity:',
+              //   this.responseDataHazardWise
+              // );
+            }
+          },
+
+          error: (err: any) => {
+            console.error('Error fetching district names severity-wise:', err);
+          },
+        });
+    } catch (error) {
+      console.error('Unexpected error in fetchDistrictWiseKPIValues:', error);
+    }
+  };
+
   /* Load Circle list dropdown */
   async loadCircleListForDropdown() {
     try {
@@ -872,13 +974,33 @@ export class Reports implements OnInit {
   getNext6Days() {
     const daysArr = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
     for (let i = 0; i < 6; i++) {
       const dateObj = new Date();
       dateObj.setDate(dateObj.getDate() + i + 1);
 
+      const day = dayNames[dateObj.getDay()];
+      const date = dateObj.getDate();
+      const month = monthNames[dateObj.getMonth()];
+      const year = dateObj.getFullYear();
+
       daysArr.push({
-        name: dayNames[dateObj.getDay()],
-        date: dateObj.getDate(),
+        name: day,
+        date: `${date} ${month}, ${year}`, // ← formatted here
       });
     }
 

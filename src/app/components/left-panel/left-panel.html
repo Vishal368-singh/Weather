@@ -7,6 +7,7 @@
     <div class="menu-section text-center">
       <div class="menu-title text-success fw-bold">DASHBOARD</div>
       <a
+        [class.disabled]="['H_MGMT'].includes(user.userrole)"
         class="menu-item d-block"
         (click)="onDashboardClick()"
         routerLink="/dashboard"
@@ -25,6 +26,7 @@
 
       <a
         class="menu-item d-block"
+        [class.disabled]="['H_MGMT'].includes(user.userrole)"
         (click)="onCircleLevelClick()"
         routerLink="/reports/circle-level"
         routerLinkActive="active"
@@ -143,6 +145,7 @@
       </div>
       <div class="profile-div">
         <button
+          *ngIf="userRole === 'H_MGMT' || userRole === 'MLAdmin'"
           class="btn-change-pass fw-bold text-success"
           routerLink="/hazards-feed"
         >

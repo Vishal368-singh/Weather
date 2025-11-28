@@ -1,4 +1,11 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+  HostListener,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../data-service/data-service';
 import { catchError } from 'rxjs/operators';
@@ -17,15 +24,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./login.css'],
 })
 export class Login implements AfterViewInit {
-  @ViewChild('networkCanvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('networkCanvas', { static: true })
+  canvasRef!: ElementRef<HTMLCanvasElement>;
 
   email: string = '';
   password: string = '';
   errorMessage: string = '';
-  deviceInfo: any = "";
-  isMobile: any = "";
-  isTablet: any = "";
-  isDesktop: any = "";
+  deviceInfo: any = '';
+  isMobile: any = '';
+  isTablet: any = '';
+  isDesktop: any = '';
+  isLoading: boolean = false;
 
   private ctx!: CanvasRenderingContext2D;
   private width!: number;
@@ -40,7 +49,8 @@ export class Login implements AfterViewInit {
     private weatherService: WeatherService,
     private dateTimeService: DateTimeService,
     private snackBar: MatSnackBar,
-  ) { }
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngAfterViewInit() {
     const canvas = this.canvasRef.nativeElement;
@@ -71,7 +81,9 @@ export class Login implements AfterViewInit {
         vx: (Math.random() - 0.5) * 1,
         vy: (Math.random() - 0.5) * 1,
         radius: Math.random() * 3 + 3,
-        color: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 255, 1)`,
+        color: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
+          Math.random() * 255
+        )}, 255, 1)`,
       });
     }
   }
@@ -94,7 +106,14 @@ export class Login implements AfterViewInit {
 
       // 💡 Bulb-like glow using radial gradient
       const glowRadius = d.radius * 8;
-      const radial = this.ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, glowRadius);
+      const radial = this.ctx.createRadialGradient(
+        d.x,
+        d.y,
+        0,
+        d.x,
+        d.y,
+        glowRadius
+      );
       radial.addColorStop(0, d.color);
       radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
       this.ctx.beginPath();
@@ -116,7 +135,8 @@ export class Login implements AfterViewInit {
           this.ctx.beginPath();
           this.ctx.moveTo(d.x, d.y);
           this.ctx.lineTo(d2.x, d2.y);
-          this.ctx.strokeStyle = 'rgba(255, 255, 255, ' + (1 - dist / this.config.maxDistance) + ')';
+          this.ctx.strokeStyle =
+            'rgba(255, 255, 255, ' + (1 - dist / this.config.maxDistance) + ')';
           this.ctx.lineWidth = 2;
           this.ctx.stroke();
         }
@@ -125,9 +145,9 @@ export class Login implements AfterViewInit {
     requestAnimationFrame(this.draw);
   };
 
-
   // login handlining logic
   handleLogin() {
+    this.isLoading = true;
     const params = {
       username: this.email,
       userpassword: this.password,
@@ -137,13 +157,16 @@ export class Login implements AfterViewInit {
       .postData(`userLogin`, params)
       .pipe(
         catchError((error) => {
-          const errorMessage = error?.error?.message || 'Login failed. Please try again.';
+          const errorMessage =
+            error?.error?.message || 'Login failed. Please try again.';
           this.snackBar.open(errorMessage, 'X', {
             duration: 2000, // auto close after 3s
             horizontalPosition: 'center',
             verticalPosition: 'bottom',
-            panelClass: ['custom-error-snackbar']
+            panelClass: ['custom-error-snackbar'],
           });
+          this.isLoading = false;
+          this.cdr.detectChanges();
           return throwError(() => error);
         })
       )
@@ -151,45 +174,60 @@ export class Login implements AfterViewInit {
         if (res?.token) {
           localStorage.setItem('user', JSON.stringify(res.resultUser));
           localStorage.setItem('token', res.token);
+
           this.deviceInfo = this.deviceService.getDeviceInfo();
-          const Dev_Type = this.deviceInfo.deviceType //'desktop'
-          const Dev_Os = this.deviceInfo.os  //'Windows'
-          const Dev_Brow = this.deviceInfo.browser  //'Chrome'
-          const Dev_Os_ver = this.deviceInfo.os_version //'windows-10'
-          const { formattedDate, formattedTime } = this.dateTimeService.getCurrentDateTime();
+          const Dev_Type = this.deviceInfo.deviceType;
+          const Dev_Os = this.deviceInfo.os;
+          const Dev_Brow = this.deviceInfo.browser;
+          const Dev_Os_ver = this.deviceInfo.os_version;
+
+          const { formattedDate, formattedTime } =
+            this.dateTimeService.getCurrentDateTime();
+
           let payload = {
-            "type": "login",
-            "data": {
-              "userid": res.resultUser.userid,
-              "username": res.resultUser.username,
-              "loggedin_device": `${Dev_Type}-${Dev_Os}-${Dev_Brow}-${Dev_Os_ver}`,
-              "login_time": `${formattedDate} ${formattedTime}`
-            }
-          }
-          this.dataService
-            .sendWeatherUserLog(`weather_user_activity`, payload)
-            .pipe(
-              catchError((error) => {
-                const errorMessage = error?.error?.message || 'User log insertion failed';
-                alert(errorMessage);
-                return throwError(() => `${errorMessage} \n ${error}`);
-              })).subscribe((res: any) => {
-                if (res?.status === "success") {
-                  let id = res.id;
-                  localStorage.setItem('logId', res.id);
-                  this.weatherService.setWeatherLogId(id)
-                  return;
-                }
-              })
-          this.router.navigate(['/dashboard']), {
-            queryParams: { from: 'login' },
+            type: 'login',
+            data: {
+              userid: res.resultUser.userid,
+              username: res.resultUser.username,
+              loggedin_device: `${Dev_Type}-${Dev_Os}-${Dev_Brow}-${Dev_Os_ver}`,
+              login_time: `${formattedDate} ${formattedTime}`,
+            },
           };
+          this.isLoading = false;
+          //  IMMEDIATE NAVIGATION (NO WAITING)
+          // Immediately navigate user
+          if (res.resultUser.userrole === 'H_MGMT') {
+            this.router.navigate(['/hazards-feed'], {
+              queryParams: { from: 'login' },
+            });
+          } else {
+            this.router.navigate(['/dashboard'], {
+              queryParams: { from: 'login' },
+            });
+          }
+
+          // Fire user activity log in background (non-blocking)
+          setTimeout(() => {
+            this.dataService
+              .sendWeatherUserLog(`weather_user_activity`, payload)
+              .subscribe({
+                next: (res: any) => {
+                  if (res?.status === 'success') {
+                    localStorage.setItem('logId', res.id);
+                    this.weatherService.setWeatherLogId(res.id);
+                  }
+                },
+                error: () => {},
+              });
+          }, 0);
+          
         } else {
+          this.isLoading = false;
           this.snackBar.open('Invalid login response', 'X', {
-            duration: 2000, // auto close after 3s
+            duration: 2000,
             horizontalPosition: 'center',
             verticalPosition: 'bottom',
-            panelClass: ['custom-error-snackbar']
+            panelClass: ['custom-error-snackbar'],
           });
         }
       });

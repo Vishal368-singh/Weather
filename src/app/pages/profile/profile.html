@@ -55,6 +55,7 @@
           >
             <thead class="table-light sticky-header">
               <tr>
+                <th>S.No.</th>
                 <th>Name</th>
                 <th>Role</th>
                 <th>Circle</th>
@@ -67,7 +68,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let user of userList" class="table-body-row">
+              <tr
+                *ngFor="let user of userList ; let i = index"
+                class="table-body-row"
+              >
+                <td class="text-dark">{{i+1}}</td>
                 <td class="text-dark">{{ user.name }}</td>
                 <td class="text-dark">{{ user.role }}</td>
                 <td class="text-dark">{{ user.indus_circle}}</td>
@@ -102,6 +107,7 @@
           >
             <thead class="table-light sticky-header">
               <tr>
+                <th>S.No.</th>
                 <th>Name</th>
                 <th>Circle</th>
                 <th>Mobile</th>
@@ -113,7 +119,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let user of reportUserList" class="table-body-row">
+              <tr
+                *ngFor="let user of reportUserList ; let i = index"
+                class="table-body-row"
+              >
+                <td class="text-dark">{{i+1}}</td>
                 <td class="text-dark">{{ user.name }}</td>
                 <td class="text-dark">{{ user.indus_circle}}</td>
                 <td class="text-dark">{{ user.mobile }}</td>
@@ -143,10 +153,7 @@
           </table>
         </div>
         <div class="add-user-div" *ngIf="userRole === 'MLAdmin'">
-          <button
-            class="text-success fw-bold my-2"
-            (click)="handleAdd()"
-          >
+          <button class="text-success fw-bold my-2" (click)="handleAdd()">
             Add User
           </button>
         </div>

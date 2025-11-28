@@ -130,6 +130,11 @@ export class MapWeather implements AfterViewInit {
     { label: 'Tomorrow', value: 'tomorrow' },
   ];
 
+  // Change Detection Safe
+  safeDetectChanges() {
+    this.cdr.markForCheck();
+  }
+
   // default selection
   selectedDay: string = 'today';
 
@@ -253,24 +258,32 @@ export class MapWeather implements AfterViewInit {
   });
 
   // Features added of circles, district, Weather_Locations
-  loadLayersFeatures = () => {
-    //Load Features Of Circle Layers
-    this.circleVectorSource.on('featuresloadend', () => {
+  loadLayersFeatures = (onComplete?: () => void) => {
+    let loadedCount = 0;
+    const totalLayers = 3;
+
+    const checkComplete = () => {
+      loadedCount++;
+      if (loadedCount === totalLayers && onComplete) onComplete();
+    };
+
+    // Circle Layer
+    this.circleVectorSource.once('featuresloadend', () => {
       this.allCircleFeatures = this.circleVectorSource.getFeatures();
-      // console.log('Circle features loaded:', this.allCircleFeatures);
+      checkComplete();
     });
 
-    //Load Features Of District Layers
-    this.districtVectorSource.on('featuresloadend', () => {
+    // District Layer
+    this.districtVectorSource.once('featuresloadend', () => {
       this.allDistrictFeatures = this.districtVectorSource.getFeatures();
-      // console.log('District features loaded:', this.allDistrictFeatures);
+      checkComplete();
     });
 
-    //Load Features Of Weather_Locations Layers
-    this.Weather_LocationsVectorSource.on('featuresloadend', () => {
+    // Weather Locations Layer
+    this.Weather_LocationsVectorSource.once('featuresloadend', () => {
       this.allWeather_LocationsFeatures =
         this.Weather_LocationsVectorSource.getFeatures();
-      // console.log('District features loaded:', this.allDistrictFeatures);
+      checkComplete();
     });
   };
 
@@ -293,6 +306,7 @@ export class MapWeather implements AfterViewInit {
           this.map.getView().fit(extent, { duration: 500 });
         }
       });
+
       vectorSource.clear();
       vectorSource.addFeatures(filteredFeatures);
       // this.vectorStateLayer.setVisible(true)
@@ -425,7 +439,7 @@ export class MapWeather implements AfterViewInit {
       stroke: new Stroke({ color: '#04a158ff', width: 0.5 }),
       fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
     });
-    if (zoom > 11) {
+    if (zoom > 10) {
       style.setText(
         new Text({
           text: districtName,
@@ -662,7 +676,7 @@ export class MapWeather implements AfterViewInit {
       this.popupOverlay.setPosition(undefined);
     });
 
-    this.cdr.detectChanges();
+    this.safeDetectChanges();
   }
 
   async ngOnInit(): Promise<void> {
@@ -670,12 +684,28 @@ export class MapWeather implements AfterViewInit {
 
     if (storedUser) {
       this.user = JSON.parse(storedUser);
-      this.selectedCircle = this.user.indus_circle;
+
+      const upperNorthGroup = [
+        'Upper North (HP)',
+        'Upper North (JK)',
+        'Upper North (HAR)',
+        'Upper North (PUN)',
+      ];
+
+      if (upperNorthGroup.includes(this.user.indus_circle)) {
+        this.selectedCircle = 'Upper North';
+      } else {
+        this.selectedCircle = this.user.indus_circle;
+      }
 
       this.loadLayersFeatures();
       await this.initializeMap();
       await this.loadCircleListForDropdown();
-      this.filterVectorLayerCircleName();
+      setTimeout(() => {
+        this.filterVectorLayerCircleName(); // run once AFTER ready
+      }, 2000);
+
+      // this.filterVectorLayerCircleName();
     }
 
     const circleClicked = localStorage.getItem('circleClicked');
@@ -687,7 +717,7 @@ export class MapWeather implements AfterViewInit {
     this.WeatherService.circleLabelClicked$.subscribe((clicked: boolean) => {
       this.isCircleLabelClicked = clicked;
       this.clearSearchMarker();
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     });
 
     this.WeatherService.panIndia$.subscribe((location: string) => {
@@ -724,7 +754,7 @@ export class MapWeather implements AfterViewInit {
 
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     });
     this.circleVectorLayer.setStyle(this.styleFunctionCircleLayer);
   }
@@ -750,7 +780,7 @@ export class MapWeather implements AfterViewInit {
         // If user.role === 'User' → show ONLY their own circle
         if (this.user.userrole === 'User') {
           circles = circles.filter(
-            (item: { circle: string }) => item.circle === this.user.usercircle // match user circle only
+            (item: { circle: string }) => item.circle === this.user.indus_circle // match user circle only
           );
         }
 
@@ -771,7 +801,7 @@ export class MapWeather implements AfterViewInit {
         );
         this.circleOptions = [];
       }
-      this.cdr.detectChanges();
+      this.safeDetectChanges();
     } catch (error) {
       console.error('❌ Failed to load circle list from API:', error);
       this.circleOptions = [];
@@ -1257,7 +1287,7 @@ export class MapWeather implements AfterViewInit {
     //#region Map OnClick
     this.map.on('click', async (evt) => {
       this.closePopup();
-      debugger;
+
       var pixel = this.map.getEventPixel(evt.originalEvent);
       const coord = evt.coordinate;
       this.map.forEachFeatureAtPixel(pixel, async (feature: any, layer) => {
@@ -1301,7 +1331,7 @@ export class MapWeather implements AfterViewInit {
               if (Lat && Lon) {
                 this.WeatherService.setLocation(`${Lat},${Lon}`);
               }
-              debugger;
+
               const resultData = await this.getWeatherFromLatLong(Lat, Lon);
               if (!resultData) return;
 
@@ -1420,7 +1450,7 @@ export class MapWeather implements AfterViewInit {
     tooltip.style.pointerEvents = 'none';
     tooltip.style.fontSize = '12px';
 
-    this.cdr.detectChanges();
+    this.safeDetectChanges();
   }
 
   getIDWValueAtCoord(coord3857: any, vectorSource: any, power = 2) {
@@ -1577,7 +1607,7 @@ export class MapWeather implements AfterViewInit {
           // Reset your flag
           this.WeatherService.clearSelectedLayer();
           this.isIDWLayer = false;
-          this.cdr.detectChanges();
+          this.safeDetectChanges();
         } else {
           // Some other IDW layer is still visible – just remove this one from legend
           existingItem.remove();

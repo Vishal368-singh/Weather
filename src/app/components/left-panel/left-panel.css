@@ -9,8 +9,8 @@
 }
 
 .menu-title {
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 14px;
+  margin-bottom: 5px;
 }
 
 .menu-item {
@@ -21,8 +21,8 @@
 }
 
 .menu-item img {
-  height: 32px;
-  margin-bottom: 4px;
+  height: 25px;
+  margin-bottom: 2px;
   transition: filter 0.3s ease, transform 0.2s ease;
 }
 
@@ -121,7 +121,7 @@
 
 .profile-area {
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .profileDropdown {
@@ -203,7 +203,7 @@
   background: #e6ffe6 !important;
 }
 
-@media (min-width: 769px) and (max-width: 1200px) {
+@media (min-width: 769px) and (max-width: 1300px) {
   .sidebar {
     width: 135px !important;
   }
@@ -232,5 +232,24 @@
 
   .user-name {
     font-size: 12px !important;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .menu-item img {
+    height: 22px !important;
+    margin-bottom: 1px !important;
+  }
+  .menu-item {
+    padding: 5px 0 !important;
+  }
+  .menu-title {
+    font-size: 10px;
+  }
+  .menu-text {
+    font-size: 9px !important;
+  }
+  .my-2 {
+    margin-bottom: 4px !important;
+    margin-top: 4px !important;
   }
 }

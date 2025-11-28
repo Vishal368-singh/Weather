@@ -102,7 +102,8 @@
               <div class="row g-0 chart-row">
                 <div class="col-12 p-0 border bg-light">
                   <div class="chart-box bg-white">
-                    <h6 class="fw-bold">Number of Districts</h6>
+                    <h6 class="fw-bold">Districts at Risk (Count)</h6>
+                    <p>Today's Weather by Parameters</p>
                     <canvas
                       baseChart
                       [data]="barChartData1"
@@ -116,8 +117,7 @@
             </div>
             <div class="shadow-sm p-3 bg-white rounded">
               <h6 class="chart-box fw-bold">
-                Weather Intensity Breakdown by Category (Next 6-days) District
-                Count
+                District Count of Weather Parameter for Next 6 Days
               </h6>
               <div class="d-flex" style="overflow-x: auto">
                 <div class="icon-column bg-light rounded shadow-sm me-3">
@@ -181,7 +181,7 @@
               <table class="table text-center align-middle">
                 <thead>
                   <tr>
-                    <th>Severity</th>
+                    <th class="text-start">Severity</th>
 
                     <th>
                       <!-- <img src="assets/icons/rainfall.svg" class="icon-size me-1" /> -->
@@ -258,7 +258,7 @@
                 <tbody *ngIf="severityTable?.length">
                   <tr *ngFor="let severity of severityTable">
                     <td
-                      class="fw-bold"
+                      class="fw-bold text-start"
                       [style.background-color]="severity.temperatureColor"
                     >
                       {{ severity.label }}
@@ -268,19 +268,17 @@
                     <td>{{ severity.humidity }}</td>
                     <td>{{ severity.visibility }}</td>
                     <td>{{ severity.temperature }}</td>
-                    <td>
-                      <input
-                        type="color"
-                        [value]="severity.min_tempColor"
+                    <td style="display: flex; align-items: center">
+                      <div
                         [ngStyle]="{
-                                    width: '20px',
-                                    height: '20px',
-                                    border: 'none',
-                                    padding: '0',
-                                    'margin-right': severity.label === 'Extreme' ? '15px' : '10px'
-                                  }"
-                      />
-                      {{ severity.min_temp }}
+                          width: '20px',
+                          height: '20px',
+                          'background-color': severity.min_tempColor,
+                          'margin-right': severity.label === 'Extreme' ? '15px' : '10px'
+                        }"
+                      ></div>
+
+                      <span>{{ severity.min_temp }}</span>
                     </td>
                   </tr>
                 </tbody>
@@ -289,7 +287,7 @@
           </div>
         </div>
 
-        <!-- Accordion: Districts At Varying Risk -->
+        <!-- Accordion:  Today's Risk Intensity of Districts for Weather Parameters -->
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingSeverity">
             <button
@@ -301,7 +299,7 @@
               aria-controls="collapseSeverity"
               style="font-size: 20px"
             >
-              Districts At Varying Risk On {{ currentDate }}
+              Today's Risk Intensity of Districts for Weather Parameters
             </button>
           </h2>
 
@@ -315,7 +313,7 @@
                 <!-- Section subtitle -->
                 <p class="weatherRisk-subtitle">
                   The table provides the distribution of districts under varying
-                  weather risk category for {{ currentDate }}.
+                  weather risk category for today {{ currentDate }}.
                 </p>
 
                 <div class="weatherRisk-table-wrapper">
@@ -323,7 +321,9 @@
                     <!-- TABLE HEADER -->
                     <thead>
                       <tr>
-                        <th class="param-header">Weather Parameters</th>
+                        <th class="param-header text-start">
+                          Weather Parameters
+                        </th>
                         <th class="risk-extreme">Extreme</th>
                         <th class="risk-high">High</th>
                         <th class="risk-moderate">Moderate</th>
@@ -337,30 +337,32 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i
-                              class="fas fa-cloud-showers-heavy weather-icon"
-                            ></i>
+                            <div class="weather-icon">
+                              <i
+                                class="fas fa-cloud-showers-heavy weather-icon"
+                              ></i>
+                            </div>
                             <span>Rainfall</span>
                           </div>
                         </td>
                         <td>
-                          {{responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',')
-                          || "Nil" }}
+                          {{responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Rainfall?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Rainfall?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Rainfall?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Rainfall?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Rainfall?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Rainfall?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -368,29 +370,31 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i class="fa-solid fa-compass weather-icon"></i>
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-wind"></i>
+                            </div>
                             Wind
                           </div>
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Wind?.extreme_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Wind?.extreme_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Wind?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Wind?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Wind?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Wind?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Wind?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Wind?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -398,29 +402,31 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i class="fa-solid fa-droplet weather-icon"></i>
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-droplet weather-icon"></i>
+                            </div>
                             Humidity
                           </div>
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Humidity?.extreme_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Humidity?.extreme_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Humidity?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Humidity?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Humidity?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Humidity?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Humidity?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Humidity?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -428,29 +434,31 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i class="fa-solid fa-eye weather-icon"></i>
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-eye"></i>
+                            </div>
                             Visibility
                           </div>
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Visibility?.extreme_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Visibility?.extreme_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Visibility?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Visibility?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Visibility?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Visibility?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Visibility?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Visibility?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -458,31 +466,31 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i
-                              class="fa-solid fa-temperature-half weather-icon"
-                            ></i>
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-temperature-half"></i>
+                            </div>
                             Temp (max)
                           </div>
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Max?.extreme_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Max?.extreme_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Max?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Max?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Max?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Max?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Max?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Max?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -490,31 +498,32 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
-                            <i
-                              class="fa-solid fa-temperature-half weather-icon"
-                            ></i>
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-temperature-half"></i>
+                            </div>
+
                             Temp (min)
                           </div>
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Min?.extreme_districts?.join(',')
-                          || 'Nil' }}
+                          responseDataSeverityWise?.Temperature_Min?.extreme_districts?.join(',
+                          ') || 'Nil' }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Min?.high_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Min?.high_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Min?.moderate_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Min?.moderate_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                         <td>
                           {{
-                          responseDataSeverityWise?.Temperature_Min?.low_districts?.join(',')
-                          || "Nil" }}
+                          responseDataSeverityWise?.Temperature_Min?.low_districts?.join(',
+                          ') || "Nil" }}
                         </td>
                       </tr>
 
@@ -540,7 +549,207 @@
           </div>
         </div>
 
-        <!-- Accordion: 7 - Day Forecast-->
+        <!-- Accordion:  Today's Risk Intensity of Districts for Hazard -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingHazardHeader">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#headinghazard"
+              aria-expanded="false"
+              aria-controls="headinghazard"
+              style="font-size: 20px"
+            >
+              Today's Risk Intensity of Districts for Hazard
+            </button>
+          </h2>
+
+          <div
+            id="headinghazard"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingHazardHeader"
+          >
+            <div class="bg-white">
+              <div class="weatherRisk-container">
+                <!-- Section subtitle -->
+                <p class="weatherRisk-subtitle">
+                  The table provides the distribution of districts under varying
+                  Hazard category for today {{ currentDate }}.
+                </p>
+
+                <div class="weatherRisk-table-wrapper">
+                  <table class="weatherRisk-table">
+                    <!-- TABLE HEADER -->
+                    <thead>
+                      <tr>
+                        <th class="param-header text-start">Hazards</th>
+                        <th class="risk-extreme">Extreme</th>
+                        <th class="risk-high">High</th>
+                        <th class="risk-moderate">Moderate</th>
+                        <th class="risk-low">Low</th>
+                      </tr>
+                    </thead>
+
+                    <!-- TABLE BODY -->
+                    <tbody>
+                      <!-- Flood -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fas fa-water"></i>
+                            </div>
+                            <span>Flood</span>
+                          </div>
+                        </td>
+                        <td>
+                          {{responseDataHazardWise?.Flood?.extreme.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.high.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.moderate.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.low.join(', ') ||
+                          "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!-- Cyclone -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <img
+                                src="assets/icons/cyclone.svg"
+                                alt=""
+                                width="20"
+                                style="
+                                  /* Default filter that approximates Bootstrap's success green */
+                                  filter: brightness(0) invert(1);
+                                  transition: 0.2s;
+                                "
+                              />
+                            </div>
+                            Cyclone
+                          </div>
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Cyclone?.extreme.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Cyclone?.high.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Cyclone?.moderate.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Cyclone?.low.join(', ') ||
+                          "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!-- Snowfall -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-snowflake"></i>
+                            </div>
+                            Snowfall
+                          </div>
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Snowfall?.extreme.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Snowfall?.high.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Snowfall?.moderate.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Snowfall?.low.join(', ') ||
+                          "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!--Avalanche -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fas fa-mountain"></i>
+                            </div>
+                            Avalanche
+                          </div>
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Avalanche?.extreme.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Avalanche?.high.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Avalanche?.moderate.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Avalanche?.low.join(', ')
+                          || "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!-- Lightning -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fa-solid fa-bolt-lightning"></i>
+                            </div>
+                            Lightning
+                          </div>
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Lightning?.extreme.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Lightning?.high.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Lightning?.moderate.join(',
+                          ') || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Lightning?.low.join(', ')
+                          || "Nil" }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion:Weather Forecast-->
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingForecast">
             <button
@@ -552,7 +761,7 @@
               aria-controls="collapseForecast"
               style="font-size: 20px"
             >
-              7 Day - Weather Forecast
+              Weather Forecast
             </button>
           </h2>
 
@@ -659,10 +868,10 @@
                           Low ({{ legendData['min_temp']?.low }})
                         </div>
 
-                        <div class="legend-item">
+                        <!-- <div class="legend-item">
                           <div class="legend-swatch minOther"></div>
                           Other (&gt;-1.5)
-                        </div>
+                        </div> -->
                       </div>
 
                       <!-- MAX TEMP + OTHER SECTIONS -->
@@ -694,21 +903,21 @@
                           Low ({{ legendData[activeTab]?.low }})
                         </div>
 
-                        <div
+                        <!-- <div
                           class="legend-item"
                           *ngIf="activeTab === 'temperature'"
                         >
                           <div class="legend-swatch minLow"></div>
                           Other (&lt;1.5)
-                        </div>
+                        </div> -->
 
-                        <div
+                        <!-- <div
                           class="legend-item"
                           *ngIf="activeTab === 'accu_rainfall'"
                         >
                           <div class="legend-swatch minLow"></div>
                           Other (&lt;7.2)
-                        </div>
+                        </div> -->
                       </div>
                     </div>
                   </div>
@@ -822,7 +1031,7 @@
           </div>
         </div>
 
-        <!-- Accordion: 7 - Day Hazard Forecast-->
+        <!-- Accordion:  Hazard Forecast-->
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingHazard">
             <button
@@ -834,7 +1043,7 @@
               aria-controls="collapseHazard"
               style="font-size: 20px"
             >
-              7 Day - Hazard Forecast
+              Hazard Forecast
             </button>
           </h2>
 
@@ -857,11 +1066,26 @@
                 </button>
 
                 <button
-                  class="btn btn-outline-success"
+                  class="btn btn-outline-success justify-content-center"
                   [ngClass]="{ 'active': activeHazTab === 'Cyclone' }"
                   (click)="setActiveHaz('Cyclone')"
+                  style="display: flex; align-items: center; gap: 6px"
+                  onmouseover="this.querySelector('img').style.filter='brightness(0) invert(1)'"
+                  onmouseout="if(!this.classList.contains('active')) this.querySelector('img').style.filter='invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg) brightness(80%) contrast(100%)'"
                 >
-                  <i class="fas fa-wind"></i> Cyclone
+                  <img
+                    src="assets/icons/cyclone.svg"
+                    alt=""
+                    width="20"
+                    style="
+                      /* Default filter that approximates Bootstrap's success green */
+                      filter: invert(42%) sepia(85%) saturate(300%)
+                        hue-rotate(90deg) brightness(80%) contrast(100%);
+                      transition: 0.2s;
+                    "
+                    [style.filter]="activeHazTab === 'Cyclone' ? 'brightness(0) invert(1)' : 'invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg) brightness(80%) contrast(100%)'"
+                  />
+                  Cyclone
                 </button>
 
                 <button
@@ -879,14 +1103,33 @@
                 >
                   <i class="fas fa-mountain"></i> Avalanche
                 </button>
-
                 <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeHazTab === 'Lightning' }"
+                  (click)="setActiveHaz('Lightning')"
+                >
+                  <i class="fa-solid fa-bolt-lightning"></i>
+                  Lightning
+                </button>
+
+                <!-- 
+                <button
+                  class="btn btn-outline-success"
+                  [ngClass]="{ 'active': activeHazTab === 'Landslide' }"
+                  (click)="setActiveHaz('Landslide')"
+                >
+                  <i class="fa-solid fa-mountain-city"></i>
+
+                  Landslide
+                </button> -->
+
+                <!-- <button
                   class="btn btn-outline-success"
                   [ngClass]="{ 'active': activeHazTab === 'Cloudburst' }"
                   (click)="setActiveHaz('Cloudburst')"
                 >
                   <i class="fas fa-cloud-bolt"></i> Cloudburst
-                </button>
+                </button> -->
               </div>
 
               <!-- MAIN TABLE WRAPPER -->
@@ -908,28 +1151,32 @@
                       <div class="legend_center">
                         <div class="legend-item">
                           <div class="legend-swatch Extreme"></div>
-                          Extreme (> = 25%)
+                          Extreme ({{
+                          legendData[activeHazTab.toLowerCase()]?.extreme }})
                         </div>
 
                         <div class="legend-item">
                           <div class="legend-swatch High"></div>
-                          High (10% - 25%)
+                          High ({{ legendData[activeHazTab.toLowerCase()]?.high
+                          }})
                         </div>
 
                         <div class="legend-item">
                           <div class="legend-swatch Moderate"></div>
-                          Moderate (5% - 10%)
+                          Moderate ({{
+                          legendData[activeHazTab.toLowerCase()]?.moderate }})
                         </div>
 
                         <div class="legend-item">
                           <div class="legend-swatch Low"></div>
-                          Low (2% - 5%)
+                          Low ({{ legendData[activeHazTab.toLowerCase()]?.low
+                          }})
                         </div>
 
-                        <div class="legend-item">
+                        <!-- <div class="legend-item">
                           <div class="legend-swatch minLow"></div>
                           Other (&lt;1.5)
-                        </div>
+                        </div> -->
                       </div>
                     </div>
                   </div>
@@ -940,11 +1187,25 @@
                       <thead>
                         <tr class="district">
                           <th rowspan="2" class="text-start">Districts</th>
+                          <th colspan="3" class="group-header">
+                            Short Range Prediction
+                          </th>
+                          <th colspan="4" class="group-header">
+                            Long Range Prediction
+                          </th>
                         </tr>
 
                         <tr class="district">
                           <th *ngFor="let d of datesRange">{{ d }}</th>
                         </tr>
+
+                        <!-- <th rowspan="3" class="text-start">Districts</th>
+                        
+                      </tr>
+
+                      <tr class="district">
+                        <th *ngFor="let d of datesRange">{{ d }}</th>
+                      </tr> -->
                       </thead>
 
                       <tbody>

@@ -63,10 +63,21 @@
 
 
         <!-- Login Button -->
-        <div class="text-center">
-          <button type="submit" class="btn btn-primary shadow-sm" [disabled]="loginForm.invalid"
-            style="background-color: #107010; border: none; width: 30%;">
-            Log In
+        <div class="d-flex justify-content-center mt-3">
+          <button 
+            type="submit" 
+            class="btn btn-primary shadow-sm d-flex align-items-center gap-2"
+            [disabled]="loginForm.invalid || isLoading"
+            style="background-color: #107010; border: none; width: 150px; justify-content: center;">
+        
+            <!-- Show text when not loading -->
+            <span *ngIf="!isLoading">Log In</span>
+        
+            <!-- Show spinner when loading -->
+            <span *ngIf="isLoading">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Logging in...
+            </span>
           </button>
         </div>
       </form>

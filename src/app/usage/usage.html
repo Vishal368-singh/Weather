@@ -22,18 +22,18 @@
       <!-- Date Range -->
       <div class="form-field">
         <label class="fw-semibold">Start Date</label>
-        <input type="date" [(ngModel)]="startDate" />
+        <input type="date" [(ngModel)]="startDate" #startInput />
       </div>
       <div class="form-field">
         <label class="fw-semibold">End Date</label>
-        <input type="date" [(ngModel)]="endDate" />
+        <input type="date" [(ngModel)]="endDate" #endInput />
       </div>
 
       <!-- Submit / Clear -->
       <div class="submit-field d-flex gap-2">
         <button
           class="btn btn-outline-success flex-end"
-          (click)="applyFilter()"
+          (click)="applyFilter(startInput, endInput)"
         >
           <i class="fa-solid fa-filter me-1"></i> Apply Filter
         </button>

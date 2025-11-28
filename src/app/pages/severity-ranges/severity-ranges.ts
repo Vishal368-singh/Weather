@@ -27,6 +27,8 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   circles: any = [];
   selectedCircle: string = '';
   editableKPIData: any = {};
+  backups: { [index: number]: any } = {};
+
   userRole: string = '';
 
   kpiList = [
@@ -129,15 +131,15 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       low: '',
       editMode: false,
     },
-    {
-      name: 'Landslide (probability %)',
-      field: 'landslide',
-      extreme: '',
-      high: '',
-      moderate: '',
-      low: '',
-      editMode: false,
-    },
+    // {
+    //   name: 'Landslide (probability %)',
+    //   field: 'landslide',
+    //   extreme: '',
+    //   high: '',
+    //   moderate: '',
+    //   low: '',
+    //   editMode: false,
+    // },
     {
       name: 'Avalanche (probability %)',
       field: 'avalanche',
@@ -178,6 +180,66 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {}
+
+  //Generate  format based on reference value
+  generateValidFormat(referenceValue: string): string {
+    referenceValue = referenceValue.trim();
+
+    if (referenceValue.includes(' to ')) {
+      return "Format: 5 to 10   (use 'to' for ranges)";
+    }
+    if (/^-?\d+(\.\d+)?\s*-\s*-?\d+/.test(referenceValue)) {
+      return "Format: 5-10   (use '-' for ranges)";
+    }
+    if (referenceValue.startsWith('>') || referenceValue.startsWith('<')) {
+      return 'Format: >5 , <10 , >=4 , <=3';
+    }
+    if (referenceValue.includes('%')) {
+      return 'Format: 50% , 40% to 75% , <30%';
+    }
+    return 'Format: numeric values like 5 , 10 , 3-6';
+  }
+
+  //Detect traits dynamically from production reference
+  validateKpiValue(value: string, referenceValue: string): boolean {
+    if (!value || !referenceValue) return false;
+
+    value = value.trim();
+    referenceValue = referenceValue.trim();
+
+    // Detect traits dynamically from production reference
+    const requiresPercent = referenceValue.includes('%');
+    const allowsNegative = referenceValue.includes('-');
+    const usesTo = referenceValue.includes(' to ');
+    const usesDash =
+      /-/.test(referenceValue) && !referenceValue.includes(' to ');
+    const usesCompare =
+      referenceValue.startsWith('>') || referenceValue.startsWith('<');
+
+    const numberUnit = requiresPercent
+      ? '-?\\d+(\\.\\d+)?%'
+      : '-?\\d+(\\.\\d+)?';
+
+    let finalRegex;
+
+    if (usesCompare) {
+      finalRegex = new RegExp(`^(>=|<=|>|<)\\s*${numberUnit}$`);
+    } else if (usesTo) {
+      finalRegex = new RegExp(`^${numberUnit}\\s+to\\s+${numberUnit}$`);
+    } else if (usesDash) {
+      finalRegex = new RegExp(`^${numberUnit}\\s*-\\s*${numberUnit}$`);
+    } else {
+      finalRegex = new RegExp(`^${numberUnit}$`);
+    }
+
+    // Format validation
+    if (!finalRegex.test(value)) return false;
+
+    // Negative restriction
+    if (!allowsNegative && value.includes('-')) return false;
+
+    return true;
+  }
 
   /* Fetch Severity KPI Ranges */
   fetchKPIRanges = () => {
@@ -260,20 +322,6 @@ export class SeverityRanges implements OnInit, AfterViewInit {
     }
   }
 
-  //Mapping it to the kpiList
-  // mapKpiData(circle: string) {
-  //   const circleData = this.responseData[circle][0]; // one record per circle
-  //   this.kpiList = this.kpiList.map(kpi => ({
-  //     ...kpi,
-  //     extreme: circleData[`extreme_${kpi.field}`],
-  //     high: circleData[`high_${kpi.field}`],
-  //     moderate: circleData[`moderate_${kpi.field}`],
-  //     extremeColor: circleData[`extreme_${kpi.field}_color`],
-  //     highColor: circleData[`high_${kpi.field}_color`],
-  //     moderateColor: circleData[`moderate_${kpi.field}_color`],
-  //     editMode: false
-  //   }));
-  // }
   mapKpiData(circle: string) {
     const circleData = this.responseData[circle][0];
 
@@ -323,34 +371,77 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   editRow(index: number) {
     this.kpiList.forEach((kpi: any) => (kpi.editMode = false));
     this.kpiList[index].editMode = true;
-    this.editableKPIData = JSON.parse(JSON.stringify(this.kpiList[index])); //deep copy
+
+    // backup this row separately (deep copy)
+    this.backups[index] = JSON.parse(JSON.stringify(this.kpiList[index]));
+
+    // keep the old behaviour if other code expects editableKPIData:
+    this.editableKPIData = JSON.parse(JSON.stringify(this.kpiList[index]));
   }
 
   // Save changes
   saveRow(index: number) {
+    // turn off edit mode first (UI)
     this.kpiList[index].editMode = false;
-    let editedKpiData = this.kpiList[index];
 
+    const editedKpiData = this.kpiList[index];
+
+    // --- validation  ---
+    if (
+      editedKpiData.field !== 'severity' &&
+      editedKpiData.field !== 'min_color'
+    ) {
+      const fieldsToValidate: Array<'extreme' | 'high' | 'moderate' | 'low'> = [
+        'extreme',
+        'high',
+        'moderate',
+        'low',
+      ];
+      for (const f of fieldsToValidate) {
+        const newVal = editedKpiData[f];
+        // use the backup for reference value if available, otherwise fallback
+        const referenceVal =
+          this.backups[index] && this.backups[index][f]
+            ? this.backups[index][f]
+            : this.editableKPIData[f];
+
+        const isValid = this.validateKpiValue(newVal, referenceVal);
+        if (!isValid) {
+          const validFormat = this.generateValidFormat(referenceVal);
+          this.snackBar.open(
+            `${editedKpiData.name} : "${newVal}" is invalid.\nUse valid format.\n${validFormat}`,
+            'OK',
+            {
+              duration: 5000,
+              panelClass: ['custom-error-snackbar'],
+              verticalPosition: 'bottom',
+              horizontalPosition: 'center',
+            }
+          );
+
+          // re-open edit mode so user can correct
+          this.kpiList[index].editMode = true;
+          return;
+        }
+      }
+    }
+
+    // Continue with your existing API update logic below:
+    let payload: any = { circle: this.selectedCircle };
     const keyMap: any = {
       extreme: (f: string) => `extreme_${f}`,
       high: (f: string) => `high_${f}`,
       moderate: (f: string) => `moderate_${f}`,
       low: (f: string) => `low_${f}`,
-
-      // for severity (color), ignore f because field = "severity"
       extremeColor: () => `severity_extreme_color`,
       highColor: () => `severity_high_color`,
       moderateColor: () => `severity_moderate_color`,
       lowColor: () => `severity_low_color`,
-
-      // for min_color (color), ignore f because field = "min_color"
       extremeColorMin: () => `extreme_min_color`,
       highColorMin: () => `high_min_color`,
       moderateColorMin: () => `moderate_min_color`,
       lowColorMin: () => `low_min_color`,
     };
-
-    const payload: any = { circle: this.selectedCircle };
 
     (Object.keys(editedKpiData) as (keyof typeof editedKpiData)[]).forEach(
       (key) => {
@@ -361,8 +452,11 @@ export class SeverityRanges implements OnInit, AfterViewInit {
           editedKpiData[key] !== this.editableKPIData[key]
         ) {
           let mappedKey;
+
           if (editedKpiData.field === 'severity') {
             mappedKey = keyMap[`${key}Color`]();
+          } else if (editedKpiData.field === 'min_color') {
+            mappedKey = keyMap[`${key}ColorMin`]();
           } else {
             mappedKey = keyMap[key](editedKpiData.field);
           }
@@ -371,32 +465,45 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       }
     );
 
-    this.dataService
-      .postData('/update-kpi-range', payload)
-      .pipe(
-        catchError((error: any) => {
-          const errorMessage = error?.error?.message || 'Internal Server Error';
-
-          return throwError(() => error);
-        })
-      )
-      .subscribe((response) => {
+    // Send API
+    this.dataService.postData('/update-kpi-range', payload).subscribe(
+      (response) => {
         if (response.status === 'success') {
           this.snackBar.open(response.message, 'X', {
-            duration: 2000, // auto close after 3s
+            duration: 2000,
             horizontalPosition: 'center',
             verticalPosition: 'bottom',
             panelClass: ['custom-success-snackbar'],
           });
+
+          // cleanup backup for this row
+          delete this.backups[index];
+          this.editableKPIData = {}; // optional cleanup
           this.fetchKPIRanges();
-          this.cdr.detectChanges();
         }
-      });
+      },
+      (err) => {
+        // optional: keep backup so user can retry
+        console.warn('update-kpi-range failed', err);
+      }
+    );
   }
 
   // Cancel edit
   cancelEdit(index: number) {
+    // restore from per-row backup (if available)
+    if (this.backups[index]) {
+      this.kpiList[index] = JSON.parse(JSON.stringify(this.backups[index]));
+      delete this.backups[index];
+    } else {
+      // fallback: do nothing (no backup available)
+      console.warn('No backup found for index', index);
+    }
+
+    // turn off edit mode
     this.kpiList[index].editMode = false;
+
+    // clear global editableKPIData if you used that elsewhere
     this.editableKPIData = {};
   }
 }

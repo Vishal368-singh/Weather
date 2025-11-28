@@ -52,13 +52,38 @@ export class LeftPanel implements OnInit {
     this.userId = this.user.userid;
     this.userName = username.split(' ')[0];
     this.userRole = this.user.userrole;
-    // this.indus_circle = this.user.indus_circle;
+    this.indus_circle = this.user.indus_circle;
+    if (
+      this.user.indus_circle === 'Upper North (HP)' ||
+      this.user.indus_circle === 'Upper North (JK)' ||
+      this.user.indus_circle === 'Upper North (HAR)' ||
+      this.user.indus_circle === 'Upper North (PUN)'
+    ) {
+      this.indus_circle = 'Upper North';
+    } else if (this.user.indus_circle === 'All Circle') {
+      this.indus_circle = 'M&G';
+    } else {
+      this.indus_circle = this.user.indus_circle;
+    }
+
     this.WeatherService.weatherLogId$.subscribe((id) => {
       this.logId = id;
       this.safeDetectChanges();
     });
     this.WeatherService.circleChangedIs$.subscribe((CircleLebel) => {
       if (CircleLebel) {
+        this.indus_circle = CircleLebel;
+      }
+      if (
+        CircleLebel === 'Upper North (HP)' ||
+        CircleLebel === 'Upper North (JK)' ||
+        CircleLebel === 'Upper North (HAR)' ||
+        CircleLebel === 'Upper North (PUN)'
+      ) {
+        this.indus_circle = 'Upper North';
+      } else if (CircleLebel === 'All Circle') {
+        this.indus_circle = 'M&G';
+      } else {
         this.indus_circle = CircleLebel;
       }
     });

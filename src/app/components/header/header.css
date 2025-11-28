@@ -26,7 +26,7 @@
   height: 100%;
 }
 
-.headerDiv>span {
+.headerDiv > span {
   font-weight: bold;
   font-size: 30px;
 }
@@ -101,7 +101,6 @@
   border-radius: 5px;
 }
 
-
 .profile-div {
   width: 100%;
   display: flex;
@@ -109,7 +108,7 @@
   align-items: center;
 }
 
-.profile-div>button {
+.profile-div > button {
   border: none;
   font-size: 15px;
   background: none;
@@ -119,7 +118,7 @@
 
 .profile-div:hover {
   background-color: #c6ebcb;
-  transition: .1s ease-in;
+  transition: 0.1s ease-in;
   cursor: pointer;
 }
 
@@ -128,9 +127,8 @@
   display: none;
 }
 
-@media(min-width:320px) and (max-width: 768px) {
-
-  .headerDiv>span {
+@media (min-width: 320px) and (max-width: 768px) {
+  .headerDiv > span {
     font-size: 15px !important;
   }
 
@@ -164,7 +162,6 @@
     border-color: #69c779;
     transform: scale(1.06);
   }
-
 
   .profileDropdown {
     top: calc(100% + 8px);
@@ -202,14 +199,12 @@
 /* code write by dilip------------- */
 
 @media (min-width: 768px) and (max-width: 1050px) {
-
   .headerDiv {
     width: 80%;
     /* background-color: bisque; */
-
   }
 
-  .headerDiv>span {
+  .headerDiv > span {
     font-size: 18.5px;
   }
 
@@ -218,7 +213,7 @@
     gap: 10px;
   }
 
-  .profileWithDate>span {
+  .profileWithDate > span {
     font-size: 12px;
   }
 
@@ -233,17 +228,16 @@
   }
 }
 
-@media(min-width:320px) and (max-width: 768px) {
+@media (min-width: 320px) and (max-width: 768px) {
   .headerDiv {
     width: 78%;
 
     /* align-items: center; */
 
     /* background-color: rgb(250, 235, 214); */
-
   }
 
-  .headerDiv>span {
+  .headerDiv > span {
     font-size: 11px;
     padding: 3px;
   }
@@ -257,7 +251,7 @@
     gap: 3px;
   }
 
-  .profileWithDate>span {
+  .profileWithDate > span {
     font-size: 11px;
   }
 
@@ -274,9 +268,6 @@
 }
 
 /* ------------------end here----------- */
-
-
-
 
 /* .profileDorpdown>div:hover {
  background-color: #098d3b;

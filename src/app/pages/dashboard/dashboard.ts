@@ -54,6 +54,23 @@ interface DailyWeather {
   humidity: any;
   icon: string;
 }
+
+interface CurrentForecast {
+  location: string;
+  current_time: string;
+  temp: number | null;
+  wind_speed: number | null;
+  pressure: number | null;
+  uv_index: number | null;
+  humidity: number | null;
+  wind_dir: string;
+  visibility: number | null;
+  heat_index: number | null;
+  condition: string;
+  feels_like: number | null;
+  icon: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -61,11 +78,15 @@ interface DailyWeather {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
+
 export class Dashboard implements OnInit, AfterViewInit {
   @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
   @ViewChild('scrollContainer7DayForecast', { static: false })
   scrollContainer7DayForecast!: ElementRef;
   @ViewChild(MapWeather) mapWeather!: MapWeather;
+
+  currentHour24 = new Date().getHours().toString().padStart(2, '0') + ':00';
+
   selectedPage = 'dashboard';
   showForecast = false;
   atScrollStart: boolean = true;
@@ -119,7 +140,8 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   logId: string = '';
   isLoading: boolean = false;
-  current_forecast = {
+
+  current_forecast: CurrentForecast = {
     location: '',
     current_time: '',
     temp: null,
@@ -134,6 +156,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     feels_like: null,
     icon: '',
   };
+
   condition_text: any[] = [];
   dayForecastList: any[] = [];
   hourlyForecastList: any[] = [];
@@ -363,20 +386,22 @@ export class Dashboard implements OnInit, AfterViewInit {
         this.WeatherService.setCircleChange(this.user.indus_circle);
       }
     }
+    this.loadWeatherSubject
+      .pipe(debounceTime(400))
+      .subscribe(() => this.loadWeather());
 
     this.WeatherService.setCircleLocationChange('18.9582,72.8321');
-    this.loadWeather();
+    this.loadWeatherSubject.next();
 
     this.WeatherService.location$.subscribe((location: string) => {
-      debugger;
       if (this.selectedDay === 'TODAY') {
         this.selectedLocation = location;
-        this.loadWeather();
+        this.loadWeatherSubject.next();
       } else {
         this.isLoading = true;
         this.dataService.getWeatherForecast(location).subscribe({});
         this.selectedLocation = location;
-        this.loadWeather();
+        this.loadWeatherSubject.next();
       }
     });
 
@@ -414,7 +439,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.WeatherService.circleLocationChangedIs$.subscribe(
       (circleLocation: string) => {
         this.selectedLocation = circleLocation;
-        this.loadWeather();
+        this.loadWeatherSubject.next();
       }
     );
 
@@ -440,7 +465,7 @@ export class Dashboard implements OnInit, AfterViewInit {
           }
         }
         this.WeatherService.setCircleForUser(pos);
-        this.loadWeather();
+        this.loadWeatherSubject.next();
       })
       .catch((err) => {
         console.log(err.message);
@@ -472,7 +497,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       let location = `${lat},${lon},${d_name}`;
       this.selectedLocation = `${lat},${lon}`;
       this.WeatherService.setCircleLocationChange(this.selectedLocation);
-      this.loadWeather();
+      this.loadWeatherSubject.next();
+
       this.WeatherService.setSearchLocation(location);
       this.searchTerm = '';
     }
@@ -562,7 +588,7 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   onSourceChange(source: string) {
     this.selectedSource = source;
-    this.loadWeather();
+    this.loadWeatherSubject.next();
   }
 
   formatTo12Hour(time24: string): string {
@@ -586,7 +612,7 @@ export class Dashboard implements OnInit, AfterViewInit {
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          hour12: true,
+          hour12: false,
         }
       );
 
@@ -603,8 +629,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       ) {
         loc = `${name}, North East`;
       } else if (name && region) {
-        if (name === 'Delhi') {
-          loc = `${name}`;
+        if (name === 'Bombay') {
+          loc = `Mumbai , ${region}`;
         } else {
           loc = `${name}, ${region}`;
         }
@@ -614,7 +640,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       this.current_forecast = {
         location: loc,
         current_time: date_time,
-        temp: data.current.temp_c || null,
+        temp:
+          data.current.temp_c != null ? parseFloat(data.current.temp_c) : null,
         wind_speed: data.current.wind_kph || null,
         pressure: data.current.pressure_mb || null,
         uv_index: data.current.uv || null,
@@ -637,7 +664,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         }
       );
 
-      const name = data.location['name'];
+      let name = data.location['name'];
       let regionName = data.location['region'];
       const reginUPArray = ['Uttar Pradesh', 'UP'];
       const rgionMPArray = ['Madhya Pradesh', 'MP'];
@@ -647,19 +674,26 @@ export class Dashboard implements OnInit, AfterViewInit {
       } else if (rgionMPArray.includes(data.location['region'])) {
         regionName = 'Madhya Pradesh';
       }
+      if (name === 'Bombay') {
+        name = `Mumbai`;
+      }
 
-      let loc = data.location['name'] + ', ' + regionName;
+      let loc = name + ', ' + regionName;
+
       const currentHour =
         new Date().getHours().toString().padStart(2, '0') + ':00';
       const hourlyForecast = data.forecast.forecastday[index].hour;
       const currentHourData = hourlyForecast.find(
         (item: any) => item.time.split(' ')[1] === currentHour
       );
-      const time = this.formatTo12Hour(currentHour);
+      // const time = this.formatTo12Hour(currentHour);
+      const time = currentHour;
+
       this.current_forecast = {
         location: loc,
         current_time: `${date}, ${time}`,
-        temp: currentHourData.temp_c || null,
+        temp:
+          data.current.temp_c != null ? parseFloat(data.current.temp_c) : null,
         wind_speed: currentHourData.wind_kph || null,
         pressure: currentHourData.pressure_mb || null,
         uv_index: currentHourData.uv || null,
@@ -676,14 +710,15 @@ export class Dashboard implements OnInit, AfterViewInit {
   mapWeatherAPIDayForecast(forecastday: any[]) {
     return forecastday.map((day) => ({
       date: day.date,
-      temp_min: day.day.mintemp_c,
-      temp_max: day.day.maxtemp_c,
+      temp_min: parseFloat(day.day.mintemp_c),
+      temp_max: parseFloat(day.day.maxtemp_c),
       condition_text: day.day.condition?.text ?? '',
       chance_of_rain: day.day.daily_chance_of_rain,
       humidity: day.day.avghumidity,
       icon: day.day.condition.icon,
     }));
   }
+
   getWeatherAPIHourlyForecast(weatherData: any) {
     if (this.selectedDay === 'TODAY') {
       const today = new Date().toISOString().split('T')[0]; // e.g., '2025-08-05'
@@ -695,7 +730,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       if (!todayForecast) return [];
 
       return todayForecast.hour.map((hourData: any) => ({
-        time: hourData.time.split(' ')[1], // full time string
+        time: hourData.time.split(' ')[1].substring(0, 5), // full time string
         temp: hourData.temp_c, // temperature in °C
         chance_of_rain: hourData.chance_of_rain, // %
         rain_mm: hourData.precip_mm, // mm
@@ -730,7 +765,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true,
+      hour12: false,
     });
     let regionName = '';
     const reginUPArray = ['Uttar Pradesh', 'UP'];
@@ -744,7 +779,8 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.current_forecast = {
       location: exact_loc,
       current_time: date_time,
-      temp: data.currentConditions.temp || null,
+      temp:
+        data.current.temp_c != null ? parseFloat(data.current.temp_c) : null,
       wind_speed: data.currentConditions.windspeed || null,
       pressure: data.currentConditions.pressure || null,
       uv_index: data.currentConditions.uvindex || null,
@@ -763,8 +799,8 @@ export class Dashboard implements OnInit, AfterViewInit {
     return days.map((day: any) => {
       return {
         date: day.datetime,
-        temp_min: day.tempmin,
-        temp_max: day.tempmax,
+        temp_min: parseFloat(day.tempmin),
+        temp_max: parseFloat(day.tempmax),
         condition_text: day.conditions || '',
         chance_of_rain: day.precipprob || 0,
         humidity: day.humidity || 0,
@@ -785,7 +821,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     if (!todayForecast) return [];
 
     return todayForecast.hours.map((hourData: any) => ({
-      time: hourData.datetime.slice(0, 5), // Only "HH:mm"
+      time: hourData.time.split(' ')[1].substring(0, 5), // Only "HH:mm"
       temp: hourData.temp,
       chance_of_rain: hourData.precipprob || 0,
       precip_mm: hourData.precip || 0,
@@ -808,6 +844,10 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.mapWeatherAPIToCurrentForecast(data, index);
     this.dayForecastList = this.mapWeatherAPIDayForecast(nextSevenDays);
     this.hourlyForecastList = this.getWeatherAPIHourlyForecast(data);
+    setTimeout(() => {
+      this.scrollToCurrentHour();
+    }, 800);
+
     const currentHour =
       new Date().getHours().toString().padStart(2, '0') + ':00';
     const currentHourData = this.hourlyForecastList.find(
@@ -815,6 +855,43 @@ export class Dashboard implements OnInit, AfterViewInit {
     );
     this.currentHourRainPercent = currentHourData.chance_of_rain;
     this.currentHourRainMM = currentHourData.rain_mm;
+  }
+
+  checkScroll() {
+    if (!this.scrollContainer) return;
+
+    const el = this.scrollContainer.nativeElement;
+
+    this.atScrollStart = el.scrollLeft <= 5;
+    this.atScrollEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
+  }
+  onHourlyAccordionOpen() {
+    this.activeAccordion = 'hourly';
+
+    setTimeout(() => {
+      this.scrollToCurrentHour();
+      this.checkScroll();
+    }, 100);
+  }
+
+  // Inside dashboard.ts
+  scrollToCurrentHour() {
+    if (!this.hourlyForecastList?.length) return;
+
+    const index = this.hourlyForecastList.findIndex(
+      (h) => h.time === this.currentHour24
+    );
+    if (index === -1) return;
+
+    setTimeout(() => {
+      const card = document.getElementById('hour-card-' + index);
+      const container = this.scrollContainer?.nativeElement;
+
+      if (card && container) {
+        container.scrollTo({ left: card.offsetLeft, behavior: 'smooth' });
+        setTimeout(() => this.checkScroll(), 100);
+      }
+    }, 300);
   }
 
   loadNextDayWeatherData(index: number) {
@@ -831,6 +908,9 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.hourlyForecastList = this.getWeatherAPIHourlyForecast(
       nextSevenDays[0]
     );
+    setTimeout(() => {
+      this.scrollToCurrentHour();
+    }, 800);
 
     const currentHour =
       new Date().getHours().toString().padStart(2, '0') + ':00';
@@ -847,7 +927,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     // Save the resolved location
     location = this.selectedLocation;
 
-    this.isLoading = false; // Start loader
+    this.isLoading = true; // Start loader
 
     if (this.selectedSource === 'weather_api') {
       this.dataService.getWeatherForecast(location).subscribe({
@@ -878,6 +958,7 @@ export class Dashboard implements OnInit, AfterViewInit {
           this.mapCrossVisualToCurrentForecast(response);
           this.dayForecastList = this.mapCrossVisualDayForecast(response.days);
           this.hourlyForecastList = this.getCrossVisualHourlyForecast(response);
+          this.scrollToCurrentHour();
           this.isLoading = false; // Stop loader
           this.activeAccordion = 'hourly';
           this.safeDetectChanges();
@@ -895,15 +976,20 @@ export class Dashboard implements OnInit, AfterViewInit {
   selectLayer(layer: string) {
     this.WeatherService.setSelectedLayer(layer);
   }
+
   toggleAccordion(panel: string) {
     this.activeAccordion = this.activeAccordion === panel ? '' : panel;
+    setTimeout(() => {
+      this.scrollToCurrentHour();
+    }, 3000);
 
-    if (this.scrollContainer && panel !== 'hourly') {
-      setTimeout(() => {
-        this.scrollContainer.nativeElement.scrollLeft = 0;
-        this.updateScrollButtons();
-      }, 300);
-    }
+    // if (this.scrollContainer && panel !== 'hourly') {
+    //   this.scrollToCurrentHour();
+    //   setTimeout(() => {
+    //     this.scrollContainer.nativeElement.scrollLeft = 0;
+    //     this.updateScrollButtons();
+    //   }, 300);
+    // }
   }
   scrollLeft() {
     if (this.scrollContainer?.nativeElement) {
@@ -926,6 +1012,9 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.atScrollStart = el.scrollLeft === 0;
     this.atScrollEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
   }
+
+  //To prevent memory to call same function multiple times
+  private loadWeatherSubject = new Subject<void>();
 
   scrollLeft7DayForeCast() {
     if (this.scrollContainer7DayForecast?.nativeElement) {

@@ -41,6 +41,7 @@
       <div class="userName fw-bold text-success mb-2">Admin</div>
       <div class="profile-div">
         <button
+          *ngIf="userRole === 'H_MGMT' || userRole === 'MLAdmin'"
           class="btn-change-pass fw-bold text-success"
           routerLink="/hazards-feed"
         >

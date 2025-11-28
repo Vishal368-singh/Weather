@@ -757,6 +757,32 @@ input:checked + .slider:before {
 .severity-low {
   background-color: var(--low-color);
 }
+/* Hover effect for hourly weather cards */
+.hourly-card {
+  transition: 0.25s ease;
+  cursor: pointer;
+  /* border-color: green !important; */
+}
+
+.hourly-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.seven-day-container {
+  transition: 0.25s ease;
+  cursor: pointer;
+}
+.seven-day-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Highlight current hour card */
+.current-hour {
+  border: 2px solid #157347 !important;
+  background-color: #eaf7ec !important;
+}
 
 /* END */
 
@@ -1808,3 +1834,21 @@ input:checked + .slider:before {
     justify-content: space-between;
   }
 }
+
+
+@media (max-width: 320px) {
+  .hazard-tabs .tab-buttons > button {
+    flex: 1 1 50% !important;
+    font-size: 13px !important;
+  }
+
+  .tab-buttons > button {
+    width: 110px !important;
+  }
+}
+@media (min-width: 321px) and (max-width: 375px) {
+  .tab-buttons > button {
+    width: 130px !important;
+  }
+}
+
