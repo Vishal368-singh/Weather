@@ -485,13 +485,13 @@ export class MapWeather implements AfterViewInit {
       image: new Icon({
         src: 'assets/icons/Weather_Locations.png',
         scale: 0.02,
-        anchor: [0.5, 1],
+        anchor: [0.5, 1],                                                 
         anchorXUnits: 'fraction',
         anchorYUnits: 'fraction',
       }),
     });
   };
-
+                                
   styleFunctionBoundaryLayer = (feature: any) => {
     const zoom: any = this.map.getView().getZoom();
 
@@ -499,10 +499,10 @@ export class MapWeather implements AfterViewInit {
       stroke: new Stroke({ color: '#af10eeff', width: 3 }),
       fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
     });
-
+                                                      
     return style;
   };
-
+                                       
   circleOptions: { value: string; label: string }[] = [];
   allCircleFeatures: any[] = [];
   allDistrictFeatures: Feature<Geometry>[] = [];
@@ -513,42 +513,42 @@ export class MapWeather implements AfterViewInit {
     West: ['Mumbai', 'Ahmedabad', 'Pune', 'Jaipur'],
     North: ['Delhi', 'Chandigarh', 'Lucknow', 'Dehradun'],
     South: ['Chennai', 'Bangalore', 'Hyderabad', 'Thiruvananthapuram'],
-  };
-
+  };                                       
+                                                           
   isIDWLayer: boolean = false;
   circleArray: any[] = [];
   selectedCircleArray: any[] = [];
-
+                                                                                                 
   // Changes
   indiaExtent: any = [
     7582002.800582195, 901766.9151203264, 9739224.237484924, 4446120.279604534,
   ];
   initialCenter = fromLonLat([80.8320187, 22.4463565]);
   initialZoom = 4;
-
+                                                   
   minTemp: any;
   minRain: any;
   minWind: any;
   minHumidity: any;
   minFog: any;
 
-  maxTemp: any;
+  maxTemp: any;                                                                     
   maxRain: any;
   maxWind: any;
   maxHumidity: any;
   maxFog: any;
 
-  minRange: any;
+  minRange: any;                                                               
   maxRange: any;
 
   isHazardlayer: boolean = false;
   isPanIndiaClicked: boolean = false;
-
+                                                
   loading = false; // Loader flag
   private mapImage: string | null = null;
-
+                             
   towerIconUrl = 'assets/icons/tower.svg'; // or your own SVG
-
+                                                                                        
   uniqueConditionsWithIcons: any[] = [
     {
       name: 'Rain, Partially cloudy',

@@ -336,17 +336,8 @@
                       <!-- RAINFALL -->
                       <tr>
                         <td>
-                          <div class="d-flex align-items-center gap-3">
-                            <div class="weather-icon">
-                              <i
-                                class="fas fa-cloud-showers-heavy weather-icon"
-                              ></i>
-                            </div>
-                            <span>Rainfall</span>
-                          </div>
-                        </td>
-                        <td>
-                          {{responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',
+                          {{
+                          responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',
                           ') || "Nil" }}
                         </td>
                         <td>
@@ -443,22 +434,22 @@
                         <td>
                           {{
                           responseDataSeverityWise?.Visibility?.extreme_districts?.join(',
-                          ') || "Nil" }}
+                          ') || "Nil"}}
                         </td>
                         <td>
                           {{
                           responseDataSeverityWise?.Visibility?.high_districts?.join(',
-                          ') || "Nil" }}
+                          ') || "Nil"}}
                         </td>
                         <td>
                           {{
                           responseDataSeverityWise?.Visibility?.moderate_districts?.join(',
-                          ') || "Nil" }}
+                          ') || "Nil"}}
                         </td>
                         <td>
                           {{
                           responseDataSeverityWise?.Visibility?.low_districts?.join(',
-                          ') || "Nil" }}
+                          ') || "Nil"}}
                         </td>
                       </tr>
 

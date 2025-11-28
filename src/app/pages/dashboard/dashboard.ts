@@ -78,7 +78,6 @@ interface CurrentForecast {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-
 export class Dashboard implements OnInit, AfterViewInit {
   @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
   @ViewChild('scrollContainer7DayForecast', { static: false })
@@ -629,8 +628,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       ) {
         loc = `${name}, North East`;
       } else if (name && region) {
-        if (name === 'Bombay') {
-          loc = `Mumbai , ${region}`;
+        if (name === 'Delhi') {
+          loc = `${name}`;
         } else {
           loc = `${name}, ${region}`;
         }
@@ -664,7 +663,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         }
       );
 
-      let name = data.location['name'];
+      const name = data.location['name'];
       let regionName = data.location['region'];
       const reginUPArray = ['Uttar Pradesh', 'UP'];
       const rgionMPArray = ['Madhya Pradesh', 'MP'];
@@ -674,11 +673,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       } else if (rgionMPArray.includes(data.location['region'])) {
         regionName = 'Madhya Pradesh';
       }
-      if (name === 'Bombay') {
-        name = `Mumbai`;
-      }
 
-      let loc = name + ', ' + regionName;
+      let loc = data.location['name'] + ', ' + regionName;
 
       const currentHour =
         new Date().getHours().toString().padStart(2, '0') + ':00';
