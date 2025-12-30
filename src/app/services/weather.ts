@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+interface DistrictGroup {
+  [circle: string]: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class WeatherService {
   private locationSubject = new BehaviorSubject<string>('');
@@ -12,9 +16,19 @@ export class WeatherService {
   private circleForUserWithNoCircle = new BehaviorSubject<string>('');
   private panIndiaLocation = new BehaviorSubject<string>('');
   private isCircleLabelClicked = new BehaviorSubject<boolean>(false);
-  private circleChanged = new BehaviorSubject<string>('');
+  private circleChanged = new BehaviorSubject<any[]>([]);
   private circleLocationChanged = new BehaviorSubject<string>('');
   private enableSearchLoader = new BehaviorSubject<boolean>(false);
+
+  // ------------Sandip Integration Changes----------------
+
+  private dashboardCircleLocation = new BehaviorSubject<string>('');
+  private districtCircle = new BehaviorSubject<string>('');
+  private groupedDirstrictesArray = new BehaviorSubject<DistrictGroup>({});
+  private highlightDistrictSubject = new BehaviorSubject<string>('');
+  private districtFeaturesSubject = new BehaviorSubject<any[]>([]);
+
+  //.....................................................................
 
   location$ = this.locationSubject.asObservable(); // observable for other components to subscribe
   selectedLayer$ = this.selectedLayerSubject.asObservable();
@@ -27,6 +41,13 @@ export class WeatherService {
   circleLabelClicked$ = this.isCircleLabelClicked.asObservable();
   circleChangedIs$ = this.circleChanged.asObservable();
   circleLocationChangedIs$ = this.circleLocationChanged.asObservable();
+
+  // New observables for district and dashboard circle by Sandeep
+  districtFeatures$ = this.districtFeaturesSubject.asObservable();
+  getGroupedDistrictsArray$ = this.groupedDirstrictesArray.asObservable();
+  districtHighlight$ = this.highlightDistrictSubject.asObservable();
+  dashboardCircleLocation$ = this.dashboardCircleLocation.asObservable();
+  districtCircle$ = this.districtCircle.asObservable();
 
   setLocation(location: string): void {
     this.locationSubject.next(location);
@@ -68,8 +89,8 @@ export class WeatherService {
     this.isCircleLabelClicked.next(clicked);
   }
 
-  setCircleChange(circle: string): void {
-    this.circleChanged.next(circle);
+  setCircleChange(circleArray: any): void {
+    this.circleChanged.next(circleArray);
   }
 
   setCircleLocationChange(circleLocation: string): void {
@@ -79,4 +100,25 @@ export class WeatherService {
   setSearchLoader(enabled: boolean): void {
     this.enableSearchLoader.next(enabled);
   }
+
+  // --------------Sandip Integration Changes----------------
+  setGroupedDistrictsArray(districts: DistrictGroup): void {
+    this.groupedDirstrictesArray.next(districts);
+  }
+  setDistrictHighlight(data: string): void {
+    this.highlightDistrictSubject.next(data);
+  }
+  setDashboardCircleLocation(loc: string) {
+    this.dashboardCircleLocation.next(loc);
+  }
+  setDistrictCircle(loc: string) {
+    this.districtCircle.next(loc);
+  }
+
+  //this for card getting district fetaure//
+  setAllDistrictFeatures(list: any[]) {
+    this.districtFeaturesSubject.next(list);
+  }
+
+  //.....................................................................
 }

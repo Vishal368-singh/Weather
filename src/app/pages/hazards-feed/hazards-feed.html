@@ -5,6 +5,13 @@
   <div class="summary-table-container d-flex flex-wrap gap-3 mb-3 mt-3">
     <button
       class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Snowfall' }"
+      (click)="setActive('Snowfall')"
+    >
+      <i class="fa-solid fa-snowflake"></i> Snowfall
+    </button>
+    <button
+      class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Flood' }"
       (click)="setActive('Flood')"
     >
@@ -12,7 +19,7 @@
     </button>
 
     <button
-      class="btn btn-outline-success justify-content-center"
+      class="btn btn-outline-success justify-content-center disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Cyclone' }"
       (click)="setActive('Cyclone')"
       onmouseout="if(!this.classList.contains('active')) this.querySelector('img').style.filter='invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg) brightness(80%) contrast(100%)'"
@@ -31,23 +38,16 @@
       />
       Cyclone
     </button>
-    <button
-      class="btn btn-outline-success"
-      [ngClass]="{ 'active': activeHazardTab === 'Snowfall' }"
-      (click)="setActive('Snowfall')"
-    >
-      <i class="fa-solid fa-snowflake"></i> Snowfall
-    </button>
 
     <button
-      class="btn btn-outline-success"
+      class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Avalanche' }"
       (click)="setActive('Avalanche')"
     >
       <i class="fas fa-mountain"></i> Avalanche
     </button>
     <button
-      class="btn btn-outline-success"
+      class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Lightning' }"
       (click)="setActive('Lightning')"
     >
@@ -56,7 +56,7 @@
     </button>
 
     <button
-      class="btn btn-outline-success"
+      class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Landslide' }"
       (click)="setActive('Landslide')"
     >
@@ -66,7 +66,7 @@
     </button>
 
     <button
-      class="btn btn-outline-success"
+      class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Cloudburst' }"
       (click)="setActive('Cloudburst')"
     >
@@ -77,38 +77,85 @@
   <!-- ====== FORM APPEAR AFTER TAB CLICK ====== -->
   <div *ngIf="activeHazardTab" class="card p-3">
     <div class="row">
-      <!-- CIRCLE DROPDOWN -->
-      <div class="custom-col mb-3">
-        <label>Circle</label>
+      <!-- Division / Region DROPDOWN -->
+
+      <div class="custom-col mb-3 position-relative">
+        <label>
+          {{ activeHazardTab === 'Snowfall' ? 'Snowfall Division/Region' :
+          'Circle' }}
+        </label>
+
+        <!-- Snowfall -->
         <select
-          [disabled]="tableData?.length > 0"
+          *ngIf="activeHazardTab === 'Snowfall'"
           class="form-select"
-          [(ngModel)]="form.circle"
+          [(ngModel)]="selectedDivision"
           (change)="onCircleChange()"
+          [disabled]="!!selectedDivision"
         >
-          <option value="" disabled selected>Select Circle</option>
-          <option *ngFor="let c of circleList" [value]="c.label">
-            {{c.label}}
+          <option value="" disabled selected>
+            {{ isLoadingCircle ? 'Loading...' : 'Select Division/Region' }}
+          </option>
+          <option *ngFor="let c of snowfallCircleList" [value]="c.division">
+            {{ c.division }}
           </option>
         </select>
+
+        <!-- Non-Snowfall -->
+        <select
+          *ngIf="activeHazardTab !== 'Snowfall'"
+          class="form-select"
+          [(ngModel)]="selectedCircle"
+          (change)="onCircleChange()"
+          [disabled]="!!selectedCircle"
+        >
+          <option value="" disabled selected>
+            {{ isLoadingCircle ? 'Loading...' : 'Select Circle' }}
+          </option>
+          <option *ngFor="let c of circleList" [value]="c.label">
+            {{ c.label }}
+          </option>
+        </select>
+
+        <!-- Loader -->
+        <div *ngIf="isLoadingCircle" class="select-loader spinner"></div>
       </div>
 
       <!-- DAYS -->
       <div class="custom-col mb-3">
         <label>Days</label>
-        <select
-          class="form-select"
-          [(ngModel)]="form.day"
-          (change)="getDateFromSelectedDay(form.day)"
-          [disabled]="selectedCircle == ''"
-        >
-          <option value="" disabled>Select Day</option>
-          <option *ngFor="let d of days" [value]="d">{{d}}</option>
-        </select>
+
+        <div class="dropdown w-100" data-bs-auto-close="outside">
+          <button
+            class="form-select text-start"
+            type="button"
+            data-bs-toggle="dropdown"
+            [disabled]="selectedCircle === ''"
+          >
+            {{ this.selectedDays.length > 0 ? this.selectedDays.join(', ') :
+            'Select Days' }}
+          </button>
+
+          <ul
+            class="dropdown-menu w-100 p-2"
+            style="max-height: 200px; overflow-y: auto"
+            (click)="$event.stopPropagation()"
+          >
+            <li *ngFor="let day of availableDays" class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [checked]="selectedDays.includes(day)"
+                (change)="onDayToggle(day, $event)"
+              />
+              <label class="form-check-label"> {{ day }} </label>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <!-- DISTRICT CHECKBOX -->
-      <div class="custom-col mb-3">
+      <div class="custom-col mb-3" *ngIf="!(activeHazardTab === 'Snowfall')">
         <label>District</label>
 
         <div class="dropdown custom-dropdown">
@@ -163,7 +210,7 @@
         <select
           class="form-select"
           [(ngModel)]="form.severity"
-          [disabled]="selectedDay == ''"
+          [disabled]="selectedDays.length === 0"
         >
           <option value="" disabled>Select Severity</option>
           <option *ngFor="let s of severityList" [value]="s">{{s}}</option>
@@ -196,17 +243,21 @@
 
   <!-- BUTTONS -->
   <div class="d-flex gap-3 mt-3">
-    <!-- <button class="btn btn-success" (click)="edit()">Edit</button> -->
     <button
       *ngIf="selectedCircle !== ''"
       class="btn btn-success"
       (click)="addNewRecord()"
     >
-      Add New
+      {{ editingIndex !== null ? 'Update' : 'Add New' }}
     </button>
-    <div>
-      <button class="btn btn-success" (click)="showmap()">View Map</button>
-    </div>
+
+    <button
+      *ngIf="selectedCircle !== ''"
+      class="btn btn-success"
+      (click)="formReset()"
+    >
+      Reset
+    </button>
   </div>
 
   <div
@@ -225,7 +276,7 @@
           aria-controls="collapseImportantLinks"
           style="font-size: 20px"
         >
-          Sources of Information for {{ activeHazardTab | titlecase }}
+          Sources of Information & Data for {{ activeHazardTab | titlecase }}
         </button>
       </h2>
 
@@ -254,6 +305,52 @@
           <ng-template #noLinks>
             <h5>No Sources are available.</h5>
           </ng-template>
+
+          <div class="table-box">
+            <div class="table-container mt-4 mb-2">
+              <table class="table table-bordered mt-4">
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Tab</th>
+                    <th>Circle</th>
+                    <th>Day</th>
+                    <th>Districts</th>
+                    <th>Severity</th>
+
+                    <th>Date</th>
+                    <th>{{activeHazardTab}}</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr *ngFor="let row of currenttableData; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.tab }}</td>
+                    <td>{{ row.circle }}</td>
+                    <td>{{ row.day }}</td>
+                    <td>{{ row.districts }}</td>
+                    <td>{{ row.severity }}</td>
+
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.hazardValue }}</td>
+                    <td>{{ row.description }}</td>
+                  </tr>
+
+                  <tr *ngIf="currenttableData.length === 0">
+                    <td colspan="9" class="text-center text-danger fw-bold">
+                      No Data Available
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- <div style="text-align: center">
+              <button class="btn btn-success" (click)="onSubmitClick()">Submit</button>
+            </div> -->
+          </div>
         </div>
       </div>
     </div>
@@ -267,6 +364,7 @@
           <tr>
             <th>S.No</th>
             <th>Tab</th>
+            <th *ngIf="activeHazardTab === 'Snowfall'">Division</th>
             <th>Circle</th>
             <th>Districts</th>
             <th>Severity</th>
@@ -282,6 +380,7 @@
           <tr *ngFor="let row of tableData; let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ row.tab }}</td>
+            <td *ngIf="activeHazardTab === 'Snowfall'">{{ row.division }}</td>
             <td>{{ row.circle }}</td>
             <td>{{ row.districts.join(', ') }}</td>
             <td>{{ row.severity }}</td>
@@ -295,6 +394,7 @@
               <button
                 class="btn btn-success btn-sm"
                 (click)="editTableRecords(i)"
+                [disabled]="editingIndex !== null"
               >
                 Edit
               </button>
@@ -313,191 +413,4 @@
       <button class="btn btn-success" (click)="onSubmitClick()">Submit</button>
     </div>
   </div>
-
-  <!-- Full screen map viewer -->
-  <div [class.hidden]="!showMapFull" class="fullscreen-map">
-    <!-- <app-map-weather></app-map-weather> -->
-    <div id="map" class="mapDiv">
-      <!-- layer legend -->
-      <div id="hazard-layer-legend" class="hazard-layer-legend">
-        <h6 style="font-size: 14px">Map Layers</h6>
-        <ul id="hazard-legend-list" style="font-size: 12px"></ul>
-      </div>
-    </div>
-    <button class="close-btn" (click)="closeMap()">×</button>
-  </div>
-</div>
-
-<!-- File Uploading  -->
-<div [class.hidden]="!showMapFull" class="container mt-3 file-upload-div">
-  <div class="card shadow-lg">
-    <div class="card-header bg-success text-white">
-      <h5 class="mb-0">Upload Files</h5>
-    </div>
-
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-12">
-          <label class="form-label">Cyclone Point File</label>
-          <input
-            type="file"
-            class="form-control cyclone-file-input"
-            accept=".json,.geojson,.shp"
-            (change)="onFileSelected($event, 'point')"
-          />
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Cyclone Line File</label>
-          <input
-            type="file"
-            class="form-control cyclone-file-input"
-            accept=".json,.geojson,.shp"
-            (change)="onFileSelected($event, 'line')"
-          />
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Cyclone Cone File</label>
-          <input
-            type="file"
-            class="form-control cyclone-file-input"
-            accept=".json,.geojson,.shp"
-            (change)="onFileSelected($event, 'cone')"
-          />
-        </div>
-
-        <div class="col-12">
-          <label class="form-label">Cyclone Buffer File</label>
-          <input
-            type="file"
-            class="form-control cyclone-file-input"
-            accept=".json,.geojson,.shp"
-            (change)="onFileSelected($event, 'buffer')"
-          />
-        </div>
-        <div class="col-12 d-flex justify-content-center align-items-center">
-          <button
-            class="btn btn-secondary me-4 py-2 px-6"
-            (click)="ClearLayer()"
-          >
-            Clear
-          </button>
-          <button
-            class="btn btn-success ms-4 py-2 px-6"
-            (click)="AddLayerToMap()"
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Popup -->
-<div id="popup" [class.hidden]="!showMapFull" class="ol-popup"></div>
-
-<!-- Severity Districts List -->
-
-<div
-  class="severity-div"
-  [class.hidden]="!showMapFull"
-  [ngStyle]="{
-            bottom: showSeverityPanel
-              ? (severityDistrictsList > 0 ? '10px' : '150px')
-              : '230px'
-          }"
->
-  <button
-    class="btn btn-success severity-button"
-    (click)="toggleSeverityPanel()"
-    *ngIf="!showSeverityPanel"
-  >
-    Severity Districts
-  </button>
-
-  <div class="severity-panel" *ngIf="showSeverityPanel">
-    <div class="card shadow-lg h-100 severity-card">
-      <div
-        class="card-header bg-success text-white d-flex justify-content-between align-items-center"
-      >
-        <h5 class="mb-0">Districts</h5>
-
-        <div>
-          <button class="btn btn-danger btn-sm me-2" (click)="exportToExcel()">
-            Export
-          </button>
-          <button
-            class="btn btn-danger btn-sm ms-2"
-            (click)="toggleSeverityPanel()"
-          >
-            ✖
-          </button>
-        </div>
-      </div>
-
-      <div class="card-body severity-body">
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped text-center">
-            <thead class="table-dark fixed-header">
-              <tr>
-                <th>Phenomenal</th>
-                <th>Very High Seas</th>
-                <th>High To Very High Rough Seas</th>
-                <th>Very Rough Seas</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td>
-                  <ng-container *ngFor="let d of phenomenalDistricts"
-                    >{{ d }}<br
-                  /></ng-container>
-                </td>
-                <td>
-                  <ng-container *ngFor="let d of veryHighSeasDistricts"
-                    >{{ d }}<br
-                  /></ng-container>
-                </td>
-                <td>
-                  <ng-container
-                    *ngFor="let d of highToVeryHighRoughSeasDistricts"
-                    >{{ d }}<br
-                  /></ng-container>
-                </td>
-                <td>
-                  <ng-container *ngFor="let d of veryRoughSeasDistricts"
-                    >{{ d }}<br
-                  /></ng-container>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div *ngIf="isIDWLayer" class="hazard-legend-container">
-  <ng-container *ngIf="isRainIDWLayer; else otherLegend">
-    <div class="hazard-label-gradient">
-      <span>100%</span>
-      <span>75%</span>
-      <span>50%</span>
-      <span>25%</span>
-      <span>0%</span>
-    </div>
-  </ng-container>
-
-  <ng-template #otherLegend>
-    <div class="hazard-label-gradient">
-      <span>{{ maxRange }}</span>
-      <span>{{ minRange }}</span>
-    </div>
-  </ng-template>
-
-  <div class="hazard-color-gradient"></div>
 </div>

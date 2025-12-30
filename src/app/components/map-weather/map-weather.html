@@ -372,3 +372,12 @@
     </div>
   </div>
 </div>
+<div *ngIf="isSearchLoading" class="map-only-loader">
+  <div class="spinner"></div>
+  <p class="loading-text" style="font-size: 24px">
+    Searching
+    <span class="dot dot1">.</span>
+    <span class="dot dot2">.</span>
+    <span class="dot dot3">.</span>
+  </p>
+</div>

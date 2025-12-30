@@ -67,3 +67,7 @@
   color: white;
   font-weight: bold;
 }
+
+input[type="checkbox"] {
+  accent-color: #157347 !important; /* Green */
+}

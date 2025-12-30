@@ -67,6 +67,7 @@ export class MapWeather implements AfterViewInit {
   @ViewChild('towerListRef') towerListRef!: ElementRef;
   @Output() callParentFun = new EventEmitter<void>();
   @Output() callParentFun2 = new EventEmitter<void>();
+  @Input() disableZoomOnIDW: boolean = false;
 
   callParentFunction() {
     this.callParentFun.emit();
@@ -78,10 +79,6 @@ export class MapWeather implements AfterViewInit {
 
   public selectedCircle: string = '';
   logo_path: string = '../../../assets';
-  // indiaExtent3857 = [
-  //   ...fromLonLat([68.1766451354, 6.5546079]), // [minX, minY]
-  //   ...fromLonLat([97.4025614766, 37.097]), // [maxX, maxY]
-  // ];
   screenshotData: any[] = [];
   currentDate: string = '';
   currentTime: string = '';
@@ -96,6 +93,9 @@ export class MapWeather implements AfterViewInit {
   popupCloser!: HTMLElement;
   popupOverlay!: any;
   map!: Map;
+  isSearchLoading: boolean = false;
+
+  // highlightedDistrictName: string = '';
 
   public riskData: any = {
     Rain: {
@@ -118,7 +118,6 @@ export class MapWeather implements AfterViewInit {
   };
 
   isIDWSelected: boolean = false;
-  // hours: string[] = Array.from({ length: 24 }, (_, i) =>(i === 0 || i === 23) ? `${i}hr` : `${i}`);
   hours: number[] = Array.from({ length: 24 }, (_, i) => i);
   selectedHour: number = new Date().getHours();
   selectedWetherAPISource: string = '';
@@ -157,9 +156,12 @@ export class MapWeather implements AfterViewInit {
     // Listen for source load completion
   }
 
-  logId: String = '';
+  get logId(): string | null {
+    return localStorage.getItem('logId');
+  }
   weatherApiData: any = {};
   newtowerSource = new VectorSource();
+  highlightedFeature: any = null;
 
   hazardsSource = new VectorSource();
 
@@ -193,22 +195,13 @@ export class MapWeather implements AfterViewInit {
   selectedZoneArray: any[] = [];
 
   // Source of Indus Boundary
-  indusBNDVectorSource: any = new VectorSource({
-    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3AIndus_Boundary&outputFormat=application%2Fjson&maxFeatures=1000',
-    format: new GeoJSON(),
-  });
+  indusBNDVectorSource: any = new VectorSource();
 
   // Source of District
-  districtVectorSource: any = new VectorSource({
-    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3AIndusDistrict&outputFormat=application%2Fjson&maxFeatures=1000',
-    format: new GeoJSON(),
-  });
+  districtVectorSource: any = new VectorSource();
 
   // Source of Circle
-  circleVectorSource: any = new VectorSource({
-    url: 'https://mlinfomap.org/geoserver/Indus_Tower/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Indus_Tower%3ATelecom_Circle&outputFormat=application%2Fjson&maxFeatures=100',
-    format: new GeoJSON(),
-  });
+  circleVectorSource: any = new VectorSource();
 
   // Source of Weather_location
   Weather_LocationsVectorSource: any = new VectorSource({
@@ -257,227 +250,135 @@ export class MapWeather implements AfterViewInit {
     },
   });
 
-  // Features added of circles, district, Weather_Locations
-  loadLayersFeatures = (onComplete?: () => void) => {
-    let loadedCount = 0;
-    const totalLayers = 3;
-
-    const checkComplete = () => {
-      loadedCount++;
-      if (loadedCount === totalLayers && onComplete) onComplete();
-    };
-
-    // Circle Layer
-    this.circleVectorSource.once('featuresloadend', () => {
-      this.allCircleFeatures = this.circleVectorSource.getFeatures();
-      checkComplete();
-    });
-
-    // District Layer
-    this.districtVectorSource.once('featuresloadend', () => {
-      this.allDistrictFeatures = this.districtVectorSource.getFeatures();
-      checkComplete();
-    });
-
-    // Weather Locations Layer
-    this.Weather_LocationsVectorSource.once('featuresloadend', () => {
-      this.allWeather_LocationsFeatures =
-        this.Weather_LocationsVectorSource.getFeatures();
-      checkComplete();
-    });
-  };
-
-  // For Filter the map through their circle name
-  filterVectorLayerCircleName = () => {
-    this.clearSearchMarker();
-    if (this.selectedCircle !== 'All Circle') {
-      // Filter Indus Circle Layer
-      this.circleVectorLayer.getSource().clear();
-      let vectorSource = this.circleVectorLayer.getSource();
-      vectorSource.addFeatures(this.allCircleFeatures);
-      let filteredFeatures: any = [];
-      let features = vectorSource.getFeatures();
-      features.forEach((feature: any) => {
-        if (feature.get('indus_circ') === this.selectedCircle) {
-          filteredFeatures.push(feature);
-          // this.styleFunctionCircleLayer(feature);
-          let extent = feature.values_.geometry.extent_;
-          // this.map.getView().fit(extent, this.map.getSize());
-          this.map.getView().fit(extent, { duration: 500 });
-        }
-      });
-
-      vectorSource.clear();
-      vectorSource.addFeatures(filteredFeatures);
-      // this.vectorStateLayer.setVisible(true)
-
-      // Filter District  Layer
-      this.districtVectorLayer.getSource().clear();
-      let vectorSourceDis = this.districtVectorLayer.getSource();
-      vectorSourceDis.addFeatures(this.allDistrictFeatures);
-      let filteredFeat: any = [];
-      let feat = vectorSourceDis.getFeatures();
-
-      feat.forEach((feature: any) => {
-        if (feature.get('indus_circ') === this.selectedCircle) {
-          filteredFeat.push(feature);
-        }
-      });
-      vectorSourceDis.clear();
-      vectorSourceDis.addFeatures(filteredFeat);
-
-      // Filter Weather Locations
-      this.Weather_LocationsVectorLayer.getSource().clear();
-      let vectorSourceWea = this.Weather_LocationsVectorLayer.getSource();
-      vectorSourceWea.addFeatures(this.allWeather_LocationsFeatures);
-      let filteredFeatWea: any = [];
-      let featWea = vectorSourceWea.getFeatures();
-
-      featWea.forEach((feature: any) => {
-        if (feature.get('indus_circ') === this.selectedCircle) {
-          filteredFeatWea.push(feature);
-        }
-      });
-      vectorSourceWea.clear();
-      vectorSourceWea.addFeatures(filteredFeatWea);
-      this.Weather_LocationsVectorLayer.setVisible(true);
-    } else {
-      this.circleVectorLayer.getSource().clear();
-      let vectorSource = this.circleVectorLayer.getSource();
-      vectorSource.addFeatures(this.allCircleFeatures);
-      this.circleVectorLayer.setStyle(this.styleFunctionCircleLayer);
-
-      this.districtVectorLayer.getSource().clear();
-      let vectorSourceDis = this.districtVectorLayer.getSource();
-      vectorSourceDis.addFeatures(this.allDistrictFeatures);
-      this.districtVectorLayer.setStyle(this.styleFunctionDistrictLayer);
-      this.districtVectorLayer.setVisible(false);
-
-      this.Weather_LocationsVectorLayer.getSource().clear();
-      this.Weather_LocationsVectorLayer.setVisible(true);
-      let vectorSourceWea = this.Weather_LocationsVectorLayer.getSource();
-      vectorSourceWea.addFeatures(this.allWeather_LocationsFeatures);
-      this.Weather_LocationsVectorLayer.setStyle(
-        this.styleFunctionWeather_LocationsLayer
-      );
-      this.Weather_LocationsVectorLayer.setVisible(false);
-
-      this.zoomToIndiaExtent();
-    }
-    this.districtVectorLayer.setVisible(true);
-
-    // --- Sync Weather Locations legend checkbox with "All Circle" ---
-    const labels = document.querySelectorAll('label.layer-label');
-    labels.forEach((label: any) => {
-      if (label.innerText.trim() === 'Weather Locations') {
-        const checkbox = label.previousSibling as HTMLInputElement;
-
-        if (checkbox) {
-          if (this.selectedCircle === 'All Circle') {
-            checkbox.checked = false; // Uncheck
-            this.Weather_LocationsVectorLayer.setVisible(false);
-          } else {
-            checkbox.checked = true; // Check
-            this.Weather_LocationsVectorLayer.setVisible(true);
-          }
-        }
-      }
-    });
-  };
-
   styleFunctionCircleLayer = (feature: any) => {
-    const circleName = feature.get('indus_circ') || 'Unnamed Circle';
+    const circleName = feature.get('indus_circle') || '';
     const zoom: any = this.map.getView().getZoom();
 
-    const style: any = new Style({
-      stroke: new Stroke({ color: '#1518d6ff', width: 1.25 }),
-      fill: new Fill({ color: 'rgba(2, 32, 18, 0.05)' }),
+    const baseStyle = new Style({
+      stroke: new Stroke({ color: '#0507abff', width: 1.25 }),
     });
 
-    if (zoom < 8) {
-      const fontSize = Math.max(4, zoom * 3);
-
-      style.setText(
-        new Text({
-          text: circleName.toUpperCase(),
-          font: `900 ${fontSize}px Calibri, sans-serif`,
-          textAlign: 'center',
-          placement: 'point',
-          overflow: true,
-          fill: new Fill({ color: '#000000' }),
-          stroke: new Stroke({
-            color: '#ffffff',
-            width: Math.max(1, fontSize / 5),
-          }),
-        })
-      );
-
-      const allFeatures = this.circleVectorSource.getFeatures();
-      const firstFeature = allFeatures.find(
-        (f: any) => f.get('indus_circ') === circleName
-      );
-
-      if (firstFeature) {
-        if (feature.getId() !== firstFeature.getId()) {
-          style.setText(null);
-        }
-      }
-    } else {
-      style.setText(null);
+    if (zoom >= 8) {
+      return baseStyle;
     }
 
-    return style;
+    // Show label only once
+    const all = this.circleVectorSource.getFeatures();
+
+    const firstFeature = all.find(
+      (f: any) => f.get('indus_circle') === circleName
+    );
+
+    if (!firstFeature || feature.getId() !== firstFeature.getId()) {
+      return baseStyle;
+    }
+
+    const geom = feature.getGeometry();
+    let center;
+
+    if (geom.getType() === 'Polygon') {
+      center = geom.getInteriorPoint().getCoordinates();
+    } else if (geom.getType() === 'MultiPolygon') {
+      const polys = geom.getPolygons();
+      let largest = polys[0];
+      let maxArea = polys[0].getArea();
+
+      polys.forEach((p: any) => {
+        const area = p.getArea();
+        if (area > maxArea) {
+          largest = p;
+          maxArea = area;
+        }
+      });
+
+      center = largest.getInteriorPoint().getCoordinates();
+    } else {
+      center = geom.getExtent();
+    }
+
+    const fontSize = Math.max(8, zoom * 3);
+
+    const textStyle = new Style({
+      geometry: new Point(center),
+      text: new Text({
+        text: circleName.toUpperCase(),
+        font: `900 ${fontSize}px Calibri, sans-serif`,
+        fill: new Fill({ color: '#000' }),
+        stroke: new Stroke({ color: '#fff', width: Math.max(1, fontSize / 5) }),
+        overflow: true,
+      }),
+    });
+
+    return [baseStyle, textStyle];
   };
 
   styleFunctionDistrictLayer = (feature: any) => {
-    // Get the district name (adjust property name if different)
     const districtName =
       feature.get('district') || feature.get('SITE_NAME') || 'Unknown';
     const zoom: any = this.map.getView().getZoom();
 
-    const style: any = new Style({
-      stroke: new Stroke({ color: '#04a158ff', width: 0.5 }),
-      fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
+    const baseStyle = new Style({
+      stroke: new Stroke({ color: '#10623bff', width: 0.6 }),
+      fill: new Fill({ color: 'rgba(255, 255, 255, 0.01)' }),
     });
-    if (zoom > 10) {
-      style.setText(
-        new Text({
-          text: districtName,
-          font: ' 600 14px "Segoe UI", Arial, sans-serif',
-          textAlign: 'center',
-          placement: 'point',
-          overflow: true,
-          // Slightly darker text color for better visibility
-          fill: new Fill({ color: '#222222' }), // Dark gray/blackish text
-          stroke: new Stroke({
-            color: 'rgba(255,255,255,0.7)', // light white outline for contrast
-            width: 4,
-          }),
-          offsetY: -1,
-        })
-      );
 
-      const source = this.districtVectorSource;
-      const allFeatures = source.getFeatures() as OlFeature<Geometry>[];
-
-      const firstFeatureForDistrict = allFeatures.find(
-        (f: OlFeature<Geometry>) =>
-          (f.get('district') || f.get('SITE_NAME')) === districtName
-      );
-
-      if (
-        firstFeatureForDistrict &&
-        districtName !==
-          (firstFeatureForDistrict.get('district') ||
-            firstFeatureForDistrict.get('SITE_NAME'))
-      ) {
-        style.setText(null);
-      }
-    } else {
-      style.setText(null);
+    if (zoom <= 8) {
+      return baseStyle;
     }
 
-    return style;
+    const allFeatures = this.districtVectorSource.getFeatures();
+    const firstFeature = allFeatures.find(
+      (f: any) => (f.get('district') || f.get('SITE_NAME')) === districtName
+    );
+
+    if (!firstFeature || firstFeature.getId() !== feature.getId()) {
+      return baseStyle;
+    }
+
+    const geom = feature.getGeometry();
+    let center: number[];
+
+    if (!geom) return baseStyle;
+
+    const type = geom.getType();
+
+    if (type === 'Polygon') {
+      center = geom.getInteriorPoint().getCoordinates();
+    } else if (type === 'MultiPolygon') {
+      const polys = geom.getPolygons();
+      let largest = polys[0];
+      let maxArea = polys[0].getArea();
+
+      polys.forEach((p: any) => {
+        const area = p.getArea();
+        if (area > maxArea) {
+          largest = p;
+          maxArea = area;
+        }
+      });
+
+      center = largest.getInteriorPoint().getCoordinates();
+    } else {
+      return baseStyle;
+    }
+
+    const textStyle = new Style({
+      geometry: new Point(center),
+      text: new Text({
+        text: districtName,
+        font: `600 14px "Segoe UI", Arial, sans-serif`,
+        textAlign: 'center',
+        overflow: true,
+        fill: new Fill({ color: '#000000' }),
+        stroke: new Stroke({
+          color: '#ffffff',
+          width: 6,
+        }),
+        offsetY: -1,
+      }),
+    });
+
+    return [baseStyle, textStyle];
   };
 
   styleFunctionWeather_LocationsLayer = (feature: any) => {
@@ -485,24 +386,38 @@ export class MapWeather implements AfterViewInit {
       image: new Icon({
         src: 'assets/icons/Weather_Locations.png',
         scale: 0.02,
-        anchor: [0.5, 1],                                                 
+        anchor: [0.5, 1],
         anchorXUnits: 'fraction',
         anchorYUnits: 'fraction',
       }),
     });
   };
-                                
+
   styleFunctionBoundaryLayer = (feature: any) => {
     const zoom: any = this.map.getView().getZoom();
-
     const style: any = new Style({
-      stroke: new Stroke({ color: '#af10eeff', width: 3 }),
-      fill: new Fill({ color: 'rgba(255, 255, 255, 0.1)' }),
+      stroke: new Stroke({ color: '#af10eeff', width: 1.5 }),
     });
-                                                      
+
     return style;
   };
-                                       
+
+  clearDistrictHighlight() {
+    if (this.highlightedFeature) {
+      try {
+        this.highlightedFeature.setStyle(null); // remove highlight style
+      } catch (e) {}
+
+      this.highlightedFeature = null;
+    }
+
+    // Force redraw
+    try {
+      this.districtVectorLayer.changed();
+      this.map.render();
+    } catch {}
+  }
+
   circleOptions: { value: string; label: string }[] = [];
   allCircleFeatures: any[] = [];
   allDistrictFeatures: Feature<Geometry>[] = [];
@@ -513,42 +428,42 @@ export class MapWeather implements AfterViewInit {
     West: ['Mumbai', 'Ahmedabad', 'Pune', 'Jaipur'],
     North: ['Delhi', 'Chandigarh', 'Lucknow', 'Dehradun'],
     South: ['Chennai', 'Bangalore', 'Hyderabad', 'Thiruvananthapuram'],
-  };                                       
-                                                           
+  };
+
   isIDWLayer: boolean = false;
   circleArray: any[] = [];
   selectedCircleArray: any[] = [];
-                                                                                                 
+
   // Changes
   indiaExtent: any = [
     7582002.800582195, 901766.9151203264, 9739224.237484924, 4446120.279604534,
   ];
   initialCenter = fromLonLat([80.8320187, 22.4463565]);
   initialZoom = 4;
-                                                   
+
   minTemp: any;
   minRain: any;
   minWind: any;
   minHumidity: any;
   minFog: any;
 
-  maxTemp: any;                                                                     
+  maxTemp: any;
   maxRain: any;
   maxWind: any;
   maxHumidity: any;
   maxFog: any;
 
-  minRange: any;                                                               
+  minRange: any;
   maxRange: any;
 
   isHazardlayer: boolean = false;
   isPanIndiaClicked: boolean = false;
-                                                
+
   loading = false; // Loader flag
   private mapImage: string | null = null;
-                             
+
   towerIconUrl = 'assets/icons/tower.svg'; // or your own SVG
-                                                                                        
+
   uniqueConditionsWithIcons: any[] = [
     {
       name: 'Rain, Partially cloudy',
@@ -588,6 +503,7 @@ export class MapWeather implements AfterViewInit {
   user: any = {};
 
   private dataPoints: any[] = [];
+
   imgIDWTempLayer = new ol.layer.Image({
     title: 'Temperature',
     id: 'TempIDW',
@@ -620,7 +536,7 @@ export class MapWeather implements AfterViewInit {
   });
 
   imgIDWFogLayer = new ol.layer.Image({
-    title: 'Fog',
+    title: 'Visibility',
     id: 'FogIDW',
     //source: this.idw,
     opacity: 0.6,
@@ -685,27 +601,11 @@ export class MapWeather implements AfterViewInit {
     if (storedUser) {
       this.user = JSON.parse(storedUser);
 
-      const upperNorthGroup = [
-        'Upper North (HP)',
-        'Upper North (JK)',
-        'Upper North (HAR)',
-        'Upper North (PUN)',
-      ];
+      this.selectedCircle = this.user.indus_circle;
 
-      if (upperNorthGroup.includes(this.user.indus_circle)) {
-        this.selectedCircle = 'Upper North';
-      } else {
-        this.selectedCircle = this.user.indus_circle;
-      }
-
-      this.loadLayersFeatures();
       await this.initializeMap();
+      await this.callGeoJSONAPI();
       await this.loadCircleListForDropdown();
-      setTimeout(() => {
-        this.filterVectorLayerCircleName(); // run once AFTER ready
-      }, 2000);
-
-      // this.filterVectorLayerCircleName();
     }
 
     const circleClicked = localStorage.getItem('circleClicked');
@@ -717,6 +617,7 @@ export class MapWeather implements AfterViewInit {
     this.WeatherService.circleLabelClicked$.subscribe((clicked: boolean) => {
       this.isCircleLabelClicked = clicked;
       this.clearSearchMarker();
+
       this.safeDetectChanges();
     });
 
@@ -752,13 +653,190 @@ export class MapWeather implements AfterViewInit {
       }
     });
 
-    this.WeatherService.weatherLogId$.subscribe((id) => {
-      this.logId = id;
-      this.safeDetectChanges();
+    // this.WeatherService.weatherLogId$.subscribe((id) => {
+    //   this.logId = id;
+    //   this.safeDetectChanges();
+    // });
+
+    this.WeatherService.districtHighlight$.subscribe((district) => {
+      if (district) {
+        this.highlightDistrict(district);
+      }
     });
+
     this.circleVectorLayer.setStyle(this.styleFunctionCircleLayer);
   }
   // Add this new function inside your MapWeather class
+
+  highlightDistrict(districtName: string) {
+    if (!districtName) {
+      return;
+    }
+
+    const normalize = (s: any) =>
+      (s || '')
+        .toString()
+        .normalize('NFKD') // remove accents if any
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const tryHighlight = () => {
+      const source = this.districtVectorLayer.getSource();
+      if (!source) {
+        console.warn('districtVectorLayer source not ready');
+        return;
+      }
+
+      const features = source.getFeatures();
+      if (!features || features.length === 0) {
+        console.warn('No district features available yet');
+        return;
+      }
+
+      // Clear old highlight
+      if (this.highlightedFeature) {
+        try {
+          this.highlightedFeature.setStyle(null);
+        } catch (e) {
+          // ignore
+        }
+        this.highlightedFeature = null;
+      }
+
+      const needle = normalize(districtName);
+      let matched: any = null;
+      // Collect some debug info to help if no match found
+      const debugList: string[] = [];
+
+      for (const f of features) {
+        const candidates = [
+          f.get('DIST_NAME'),
+          f.get('district'),
+          f.get('SITE_NAME'),
+          f.get('name'),
+          f.get('district_name'),
+          f.get('DISTRICT'),
+        ];
+        const combined = candidates.filter(Boolean).join(' | ');
+        debugList.push(combined);
+
+        // Check each candidate field for normalized substring match
+        for (const c of candidates) {
+          if (!c) continue;
+          if (
+            normalize(c) === needle ||
+            normalize(c).includes(needle) ||
+            needle.includes(normalize(c))
+          ) {
+            matched = f;
+            break;
+          }
+        }
+        if (matched) break;
+      }
+
+      if (!matched) {
+        console.warn(
+          `highlightDistrict: no matching district found for "${districtName}".\n` +
+            `Tryable names (sample first 10):\n` +
+            debugList
+              .slice(0, 10)
+              .map((d, i) => `${i + 1}. ${d}`)
+              .join('\n')
+        );
+        return;
+      }
+
+      const lat = matched.get('yy');
+      const lon = matched.get('xx');
+      if (lat && lon) {
+        this.WeatherService.setLocation(`${lat},${lon}`);
+      }
+
+      // Apply highlight style to matched feature
+      matched.setStyle(
+        new Style({
+          stroke: new Stroke({
+            color: '#ff1493',
+            width: 3,
+          }),
+          fill: new Fill({
+            // subtle fill so overlay text / other styles remain readable
+            color: 'rgba(255,20,147,0.15)',
+          }),
+        })
+      );
+
+      this.highlightedFeature = matched;
+
+      // zoom to feature with padding and maxZoom guard
+      try {
+        const geom = matched.getGeometry();
+        if (geom) {
+          const extent = geom.getExtent();
+          this.map.getView().fit(extent, {
+            duration: 600,
+            padding: [70, 70, 70, 70],
+            maxZoom: 12,
+          });
+        }
+      } catch (e) {
+        console.error('highlightDistrict: error while fitting view', e);
+      }
+
+      // Force render/update
+      try {
+        this.districtVectorLayer.changed();
+        this.map.render();
+      } catch (e) {
+        // ignore if map not ready
+      }
+    }; // end tryHighlight
+
+    // If features not yet loaded, wait for a one-time featuresloadend and retry
+    const src =
+      this.districtVectorLayer?.getSource() || this.districtVectorSource;
+    if (!src) {
+      console.warn('highlightDistrict: no district source available');
+      return;
+    }
+
+    const featuresNow = src.getFeatures ? src.getFeatures() : [];
+    if (!featuresNow || featuresNow.length === 0) {
+      // One-time listener for async load
+      const onLoad = () => {
+        try {
+          // remove listener (if removeEventListener available)
+          if (src.un) {
+            // ol v6 style
+            src.un('featuresloadend', onLoad);
+          } else if ((src as any).removeEventListener) {
+            (src as any).removeEventListener('featuresloadend', onLoad);
+          }
+        } catch (e) {
+          // ignore
+        }
+        setTimeout(tryHighlight, 50); // small delay to ensure features are available
+      };
+
+      // Attach one-time listener depending on OL version
+      if (src.on) {
+        src.once
+          ? (src.once('featuresloadend', onLoad) as void)
+          : src.on('featuresloadend', onLoad);
+      } else if ((src as any).addEventListener) {
+        (src as any).addEventListener('featuresloadend', onLoad);
+      } else {
+        // fallback: try again after short timeout
+        setTimeout(tryHighlight, 200);
+      }
+      return;
+    }
+
+    // features already present
+    tryHighlight();
+  }
 
   async loadCircleListForDropdown() {
     try {
@@ -770,31 +848,17 @@ export class MapWeather implements AfterViewInit {
       }
 
       const res: any = await this.dataService
-        .postData('get_circle_list', apiPayload)
+        .postRequest('get_circle_list', apiPayload)
         .toPromise();
 
       if (res && res.status && Array.isArray(res.data)) {
-        let circles = res.data;
+        this.circleOptions = res.data;
 
-        // If user.role === 'User' → show ONLY their own circle
-        // If user.role === 'User' → show ONLY their own circle
-        if (this.user.userrole === 'User') {
-          circles = circles.filter(
-            (item: { circle: string }) => item.circle === this.user.indus_circle // match user circle only
+        if (this.user?.userrole === 'User') {
+          this.circleOptions = this.circleOptions.filter(
+            (item: any) => item.label !== 'All Circle'
           );
         }
-
-        this.circleOptions = circles
-          .map((circleName: { circle: string; location: string }) => ({
-            value: circleName.location,
-            label: circleName.circle,
-          }))
-          .sort(
-            (
-              a: { label: string; value: string },
-              b: { label: string; value: string }
-            ) => a.label.localeCompare(b.label)
-          );
       } else {
         console.error(
           'Failed to load circle list: Invalid API response format'
@@ -904,19 +968,18 @@ export class MapWeather implements AfterViewInit {
       (option) => option.label == selectedValues[0]
     );
 
-    this.selectedCircle = selectedValues[0] || '';
+    this.selectedCircle = filterCircle[0]?.label;
     let selectedCircleLocation = filterCircle[0]?.value;
 
-    let circleLabel = selectedValues[0] || '';
+    this.clearDistrictHighlight();
 
-    if (circleLabel === 'All Circle') {
-      this.WeatherService.setCircleChange('M&G');
-    } else {
-      this.WeatherService.setCircleChange(circleLabel);
-    }
+    this.WeatherService.setCircleChange(filterCircle);
 
     this.WeatherService.setCircleLocationChange(selectedCircleLocation);
-    this.filterVectorLayerCircleName();
+    this.loadIndusCircleGeoJSON();
+    this.loadIndusDistrictGeoJSON();
+    this.WeatherService.setDistrictCircle(selectedCircleLocation);
+    this.WeatherService.setDashboardCircleLocation(selectedCircleLocation);
   }
 
   //#endregion
@@ -976,9 +1039,9 @@ export class MapWeather implements AfterViewInit {
     this.selectedDay = value;
     this.selectedHour = new Date().getHours();
     this.generateRegionWiseWeatherIDW();
-    if (this.isIDWSelected) {
-      this.zoomToIndiaExtent();
-    }
+    // if (this.isIDWSelected) {
+    //   this.zoomToIndiaExtent();
+    // }
     this.closePopup();
     this.WeatherService.setSelectedDays(value);
     let payload = {};
@@ -999,20 +1062,7 @@ export class MapWeather implements AfterViewInit {
         },
       };
     }
-    this.dataService
-      .sendWeatherUserLog(`weather_user_activity`, payload)
-      .pipe(
-        catchError((error) => {
-          const errorMessage =
-            error?.error?.message || 'User log insertion failed';
-          return throwError(() => `${error} \n ${errorMessage}`);
-        })
-      )
-      .subscribe((res: any) => {
-        if (res?.status === 'success') {
-          return;
-        }
-      });
+    this.updateWeatherLogTable(payload);
   }
 
   onChangeCheckboxZone(event: any): void {
@@ -1213,18 +1263,15 @@ export class MapWeather implements AfterViewInit {
       target: 'map',
       layers: [
         baseMap,
-
-        // this.districtLayer,
-        this.districtVectorLayer,
-        this.circleVectorLayer,
         // this.Weather_LocationsVectorLayer,
-        this.indusBNDVectorLayer,
-
         this.imgIDWTempLayer,
         this.imgIDWRainFallLayer,
         this.imgIDWWindLayer,
         this.imgIDWHumidityLayer,
         this.imgIDWFogLayer,
+        this.districtVectorLayer,
+        this.circleVectorLayer,
+        this.indusBNDVectorLayer,
       ],
 
       // ...
@@ -1244,17 +1291,6 @@ export class MapWeather implements AfterViewInit {
         new Zoom(),
       ]),
     });
-
-    // --- Set initial Z-Index for all layers map is created ---
-    this.circleVectorLayer.setZIndex(1);
-    this.districtVectorLayer.setZIndex(2);
-    this.Weather_LocationsVectorLayer.setZIndex(3);
-
-    this.imgIDWTempLayer.setZIndex(4);
-    this.imgIDWRainFallLayer.setZIndex(4);
-    this.imgIDWWindLayer.setZIndex(4);
-    this.imgIDWHumidityLayer.setZIndex(4);
-    this.imgIDWFogLayer.setZIndex(4);
 
     // --- Popup element
     // const container = document.getElementById('popup') as HTMLElement;
@@ -1287,9 +1323,9 @@ export class MapWeather implements AfterViewInit {
     //#region Map OnClick
     this.map.on('click', async (evt) => {
       this.closePopup();
-
       var pixel = this.map.getEventPixel(evt.originalEvent);
       const coord = evt.coordinate;
+      const coord4326 = transform(coord, 'EPSG:3857', 'EPSG:4326');
       this.map.forEachFeatureAtPixel(pixel, async (feature: any, layer) => {
         if (layer && layer.get('title') === 'Hazard Layer') {
           let html = this.hazardDataBindPopup(feature.values_);
@@ -1304,27 +1340,14 @@ export class MapWeather implements AfterViewInit {
                 tower_clicked: 'true',
               },
             };
-            this.dataService
-              .sendWeatherUserLog(`weather_user_activity`, payload)
-              .pipe(
-                catchError((error) => {
-                  const errorMessage =
-                    error?.error?.message || 'User log insertion failed';
-                  return throwError(() => `${error} \n ${errorMessage}`);
-                })
-              )
-              .subscribe((res: any) => {
-                if (res?.status === 'success') {
-                  return;
-                }
-              });
+            this.updateWeatherLogTable(payload);
             if (feature.values_) {
               if (!this.popupOverlay) {
                 return;
               }
 
-              let Lat = feature.values_.yy;
-              let Lon = feature.values_.xx;
+              let Lat = coord4326[1];
+              let Lon = coord4326[0];
               let siteName = '';
               let district = feature.values_.district;
               let circle = feature.values_.state_ut;
@@ -1453,6 +1476,14 @@ export class MapWeather implements AfterViewInit {
     this.safeDetectChanges();
   }
 
+  updateWeatherLogTable(payload: Object) {
+    this.dataService.sendWeatherUserLog(payload).subscribe((res) => {
+      if (res?.status === 'success') {
+        console.log('Weather user activity logged.');
+      }
+    });
+  }
+
   getIDWValueAtCoord(coord3857: any, vectorSource: any, power = 2) {
     const features = vectorSource.getFeatures();
     let numerator = 0;
@@ -1545,14 +1576,26 @@ export class MapWeather implements AfterViewInit {
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = true; // only called when visible
-    checkbox.style.width = '12px';
-    checkbox.id = `layer-checkbox-${index}`;
+    checkbox.checked = true;
+
+    checkbox.style.appearance = 'auto'; // use browser default
+    checkbox.style.webkitAppearance = 'auto';
+
+    // Keep your custom size + border + cursor
+    checkbox.style.width = '14px';
+    checkbox.style.height = '14px';
+    checkbox.style.border = '2px solid #157347';
+    checkbox.style.borderRadius = '4px';
+    checkbox.style.cursor = 'pointer';
+
+    // Make the tick green
+    checkbox.style.accentColor = '#157347';
 
     checkbox.addEventListener('change', () => {
       this.closePopup();
       layer.setVisible(checkbox.checked);
-      if (layer.get('title') == 'Hazard Layer') {
+
+      if (layer.get('title') === 'Hazard Layer') {
         this.callParentFunction();
       }
     });
@@ -1567,6 +1610,7 @@ export class MapWeather implements AfterViewInit {
     listItem.appendChild(label);
     legendContainer.appendChild(listItem);
   }
+
   updateLegendItem(
     layer: any,
     index: number,
@@ -1581,7 +1625,13 @@ export class MapWeather implements AfterViewInit {
       layer.get('fixed') === true || layer.get('legendFixed') === true;
 
     // Only custom handling for IDW-type layers
-    const idwLayers = ['Humidity', 'Wind', 'Rainfall', 'Temperature', 'Fog'];
+    const idwLayers = [
+      'Humidity',
+      'Wind',
+      'Rainfall',
+      'Temperature',
+      'Visibility',
+    ];
 
     if (visible && !existingItem) {
       this.renderLegendItem(layer, index, legendContainer);
@@ -1618,6 +1668,7 @@ export class MapWeather implements AfterViewInit {
       }
     }
   }
+  //#endregion layer-legend
 
   // private setupPointerCursor(map: Map, boundary: Polygon): void {
   //   map.on('pointermove', (event) => {
@@ -1650,6 +1701,7 @@ export class MapWeather implements AfterViewInit {
   };
 
   toggleTempIDW = async () => {
+    this.isSearchLoading = true;
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
     await this.generateRegionWiseWeatherIDW();
@@ -1663,10 +1715,16 @@ export class MapWeather implements AfterViewInit {
     this.imgIDWRainFallLayer.setVisible(false);
     this.imgIDWFogLayer.setVisible(false);
     this.closePopup();
-    this.zoomToIndiaExtent();
+    this.isSearchLoading = false;
+    // this.zoomToIndiaExtent();
+
+    // if (!this.disableZoomOnIDW) {
+    //   this.zoomToIndiaExtent();
+    // }
   };
 
   toggleRainIDW = async () => {
+    this.isSearchLoading = true;
     this.isRainIDWLayer = true;
     this.selectedHour = new Date().getHours();
     await this.generateRegionWiseWeatherIDW();
@@ -1680,9 +1738,15 @@ export class MapWeather implements AfterViewInit {
     this.imgIDWHumidityLayer.setVisible(false);
     this.imgIDWFogLayer.setVisible(false);
     this.closePopup();
-    this.zoomToIndiaExtent();
+    this.isSearchLoading = false;
+    // this.zoomToIndiaExtent();
+    // if (!this.disableZoomOnIDW) {
+    //   this.zoomToIndiaExtent();
+    // }
   };
+
   toggleWindIDW = async () => {
+    this.isSearchLoading = true;
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
     await this.generateRegionWiseWeatherIDW();
@@ -1696,9 +1760,15 @@ export class MapWeather implements AfterViewInit {
     this.imgIDWHumidityLayer.setVisible(false);
     this.imgIDWFogLayer.setVisible(false);
     this.closePopup();
-    this.zoomToIndiaExtent();
+    this.isSearchLoading = false;
+    // this.zoomToIndiaExtent();
+    // if (!this.disableZoomOnIDW) {
+    //   this.zoomToIndiaExtent();
+    // }
   };
+
   toggleHumidiyIDW = async () => {
+    this.isSearchLoading = true;
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
     await this.generateRegionWiseWeatherIDW();
@@ -1712,14 +1782,19 @@ export class MapWeather implements AfterViewInit {
     this.imgIDWWindLayer.setVisible(false);
     this.imgIDWFogLayer.setVisible(false);
     this.closePopup();
-    this.zoomToIndiaExtent();
+    this.isSearchLoading = false;
+    // this.zoomToIndiaExtent();
+    // if (!this.disableZoomOnIDW) {
+    //   this.zoomToIndiaExtent();
+    // }
   };
 
   toggleFogIDW = async () => {
+    this.isSearchLoading = true;
     this.isRainIDWLayer = false;
     this.selectedHour = new Date().getHours();
     this.generateRegionWiseWeatherIDW();
-    this.zoomToIndiaExtent();
+    // this.zoomToIndiaExtent();
     this.closePopup();
     this.minRange = `${this.maxFog} (Km)`; // Reverve value
     this.maxRange = `${this.minFog} (Km)`; // Reverve value
@@ -1730,129 +1805,7 @@ export class MapWeather implements AfterViewInit {
     this.imgIDWWindLayer.setVisible(false);
     this.isIDWLayer = true;
     this.isIDWSelected = true;
-  };
-  hazardDataBindPopup(data: any) {
-    let state = data.state !== null ? data.state : '';
-    return `
-     <h6>Hazards / Bad Weather</h6>
-    <table style="border-collapse: collapse; width: 100%; font-family: Arial; font-size: 11px;">
-      <tr>
-          <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Type</th>
-          <td style="padding: 4px;border: 1px solid #ccc;">${data.event}</td>
-      </tr>
-      <tr>
-          <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Severity</th>
-          <td style="padding: 4px;border: 1px solid #ccc;">${data.severity}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">State</th>
-        <td style="padding: 4px;border: 1px solid #ccc;">${state}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Affective</th>
-        <td style="padding: 4px;border: 1px solid #ccc;">${data.effective}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Onset</th>
-        <td style="padding: 4px;border: 1px solid #ccc;">${data.onset}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Expires</th>
-        <td style="padding: 4px;border: 1px solid #ccc;">${data.expires}</td>
-      </tr>
-      <tr>
-        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Affected Area</th>
-        <td style="padding: 4px;border: 1px solid #ccc;">${data.areaDesc}</td>
-      </tr>
-    </table>
-  `;
-  }
-
-  addHazardsGeoJSONLayerOnMap = async (geojson: any) => {
-    this.closePopup();
-    this.isHazardlayer = !this.isHazardlayer;
-    const features = new GeoJSON().readFeatures(geojson, {
-      featureProjection: 'EPSG:3857',
-    });
-    this.hazardsSource.clear();
-    this.hazardsSource.addFeatures(features);
-
-    // Style of Vector layer
-    const styleFunction = (feature: any) => {
-      const severity = feature.get('severity'); // change to your field name
-
-      let fillColor;
-      switch (severity) {
-        case 'Extreme':
-          fillColor = '#e53935';
-          break;
-        case 'Severe':
-          fillColor = '#ffaa00';
-          break;
-        case 'Moderate':
-          fillColor = '#ffff00';
-          break;
-        default:
-          fillColor = 'gray';
-      }
-
-      return new Style({
-        fill: new Fill({
-          color: fillColor,
-        }),
-        stroke: new Stroke({
-          color: 'black',
-          width: 1,
-        }),
-      });
-    };
-
-    this.map.getLayers().forEach((layer) => {
-      if (layer.get('title') === 'Hazard Layer') {
-        this.map.removeLayer(layer);
-      }
-    });
-
-    // Create a vector layer
-    const vectorLayer: any = new VectorLayer({
-      source: this.hazardsSource,
-      properties: {
-        title: 'Hazard Layer',
-      },
-      style: styleFunction,
-    });
-
-    // this.zoomToIndiaExtent();
-    const extent = vectorLayer.getSource().getExtent();
-    this.map.getView().fit(extent, { duration: 1000 });
-    this.map.addLayer(vectorLayer);
-  };
-
-  pointToCircularBuffer = (coods: any) => {
-    transform([coods.longitude, coods.latitude], 'EPSG:4326', 'EPSG:3857');
-    let point = turf.point([-90.54863, 14.616599]);
-    let buffered = turf.buffer(point, 500, { units: 'miles' });
-    return buffered;
-  };
-
-  getDatesWithHour = (hour: any) => {
-    const today = new Date();
-    const formatDate = (date: any, hour: any) => {
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd} ${String(hour).padStart(2, '0')}:00`;
-    };
-
-    // Today
-    const todayStr = formatDate(today, hour);
-
-    // Tomorrow
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const tomorrowStr = formatDate(tomorrow, hour);
-
-    return { today: todayStr, tomorrow: tomorrowStr };
+    this.isSearchLoading = false;
   };
 
   async generateRegionWiseWeatherIDW() {
@@ -1995,6 +1948,132 @@ export class MapWeather implements AfterViewInit {
     }
   }
 
+  /*#endregion idw */
+
+  hazardDataBindPopup(data: any) {
+    let state = data.state !== null ? data.state : '';
+    return `
+     <h6>Hazards / Bad Weather</h6>
+    <table style="border-collapse: collapse; width: 100%; font-family: Arial; font-size: 11px;">
+      <tr>
+          <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Type</th>
+          <td style="padding: 4px;border: 1px solid #ccc;">${data.event}</td>
+      </tr>
+      <tr>
+          <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Severity</th>
+          <td style="padding: 4px;border: 1px solid #ccc;">${data.severity}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">State</th>
+        <td style="padding: 4px;border: 1px solid #ccc;">${state}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Affective</th>
+        <td style="padding: 4px;border: 1px solid #ccc;">${data.effective}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Onset</th>
+        <td style="padding: 4px;border: 1px solid #ccc;">${data.onset}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Expires</th>
+        <td style="padding: 4px;border: 1px solid #ccc;">${data.expires}</td>
+      </tr>
+      <tr>
+        <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Affected Area</th>
+        <td style="padding: 4px;border: 1px solid #ccc;">${data.areaDesc}</td>
+      </tr>
+    </table>
+  `;
+  }
+
+  addHazardsGeoJSONLayerOnMap = async (geojson: any) => {
+    this.closePopup();
+    this.isHazardlayer = !this.isHazardlayer;
+    const features = new GeoJSON().readFeatures(geojson, {
+      featureProjection: 'EPSG:3857',
+    });
+    this.hazardsSource.clear();
+    this.hazardsSource.addFeatures(features);
+
+    // Style of Vector layer
+    const styleFunction = (feature: any) => {
+      const severity = feature.get('severity'); // change to your field name
+
+      let fillColor;
+      switch (severity) {
+        case 'Extreme':
+          fillColor = '#e53935';
+          break;
+        case 'Severe':
+          fillColor = '#ffaa00';
+          break;
+        case 'Moderate':
+          fillColor = '#ffff00';
+          break;
+        default:
+          fillColor = 'gray';
+      }
+
+      return new Style({
+        fill: new Fill({
+          color: fillColor,
+        }),
+        stroke: new Stroke({
+          color: 'black',
+          width: 1,
+        }),
+      });
+    };
+
+    this.map.getLayers().forEach((layer) => {
+      if (layer.get('title') === 'Hazard Layer') {
+        this.map.removeLayer(layer);
+      }
+    });
+
+    // Create a vector layer
+    const vectorLayer: any = new VectorLayer({
+      source: this.hazardsSource,
+      properties: {
+        title: 'Hazard Layer',
+      },
+      style: styleFunction,
+    });
+
+    // this.zoomToIndiaExtent();
+    const extent = vectorLayer.getSource().getExtent();
+    this.map.getView().fit(extent, { duration: 1000 });
+    this.map.addLayer(vectorLayer);
+  };
+
+  pointToCircularBuffer = (coods: any) => {
+    transform([coods.longitude, coods.latitude], 'EPSG:4326', 'EPSG:3857');
+    let point = turf.point([-90.54863, 14.616599]);
+    let buffered = turf.buffer(point, 500, { units: 'miles' });
+    return buffered;
+  };
+
+  getDatesWithHour = (hour: any) => {
+    const today = new Date();
+    const formatDate = (date: any, hour: any) => {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${String(hour).padStart(2, '0')}:00`;
+    };
+
+    // Today
+    const todayStr = formatDate(today, hour);
+
+    // Tomorrow
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = formatDate(tomorrow, hour);
+
+    return { today: todayStr, tomorrow: tomorrowStr };
+  };
+
   cropHeatMapByBoundary = async () => {
     try {
       const response = await fetch('assets/geojson/indus_boundary.geojson');
@@ -2097,5 +2176,70 @@ export class MapWeather implements AfterViewInit {
       });
     }
   }
+  //#endregion
+
+  //#region API - Load GeoJSON of District, Indus Circle & Indus Boundary
+  loadIndusBoundaryGeoJSON = async () => {
+    const payload = { circle: this.selectedCircle };
+    this.dataService
+      .postRequest('get_indus_boundary', payload)
+      .subscribe((res) => {
+        const data = res.data;
+        const features = new GeoJSON().readFeatures(data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
+
+        this.indusBNDVectorSource.clear();
+        this.indusBNDVectorSource.addFeatures(features);
+      });
+  };
+
+  loadIndusCircleGeoJSON = async () => {
+    const payload = { circle: this.selectedCircle };
+    this.dataService
+      .postRequest('get_indus_circle_boundary', payload)
+      .subscribe((res) => {
+        const data = res.data;
+        const features = new GeoJSON().readFeatures(data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
+
+        this.circleVectorSource.clear();
+        this.circleVectorSource.addFeatures(features);
+
+        const extent = this.circleVectorSource.getExtent();
+        this.map
+          .getView()
+          .fit(extent, { duration: 500, padding: [15, 85, 30, 20] });
+      });
+  };
+
+  loadIndusDistrictGeoJSON = async () => {
+    const payload = { circle: this.selectedCircle };
+    this.dataService
+      .postRequest('get_district_boundary', payload)
+      .subscribe((res) => {
+        const data = res.data;
+        const features = new GeoJSON().readFeatures(data, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
+
+        this.districtVectorSource.clear();
+        this.districtVectorSource.addFeatures(features);
+
+        // const extent = this.districtVectorSource.getExtent();
+        // this.map.getView().fit(extent, { duration: 500 ,padding: [15, 20, 25, 20]});
+      });
+  };
+
+  callGeoJSONAPI = async () => {
+    await this.loadIndusBoundaryGeoJSON();
+    await this.loadIndusCircleGeoJSON();
+    await this.loadIndusDistrictGeoJSON();
+  };
+
   //#endregion
 }

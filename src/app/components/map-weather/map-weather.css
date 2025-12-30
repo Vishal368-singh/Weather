@@ -9,6 +9,86 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+
+/* Loader strictly over map */
+.map-only-loader {
+  position: absolute;
+  inset: 0; /* top, right, bottom, left = 0 */
+  background: rgba(255, 255, 255, 0.75);
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #3498db;
+}
+
+.dot {
+  opacity: 0;
+  animation: blink 1.5s infinite;
+  font-size: 24px;
+}
+
+.dot1 {
+  font-size: 30px;
+  color: red;
+  animation-delay: 0s;
+}
+
+.dot2 {
+  font-size: 30px;
+  color: blue;
+  animation-delay: 0.3s;
+}
+
+.dot3 {
+  font-size: 30px;
+  color: green;
+  animation-delay: 0.6s;
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  /* Light gray */
+  border-top: 8px solid #3498db;
+  /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
 .ol-popup {
   position: absolute;
   background: white;
@@ -288,6 +368,58 @@
   box-shadow: 1px 1px 4px silver;
   border-radius: 6px;
   gap: 10px;
+}
+
+/* Make radio outline green */
+.today_tomorrow .form-check-input[type="radio"] {
+  border-color: #198754 !important; /* Green border */
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* When selected → green filled circle */
+.today_tomorrow .form-check-input[type="radio"]:checked {
+  background-color: #198754 !important; /* Green fill */
+  border-color: #198754 !important;
+}
+
+/* Hide default checkbox */
+.custom-checkbox {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #198754; /* green border */
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+/* When checked → green background */
+.custom-checkbox:checked {
+  background-color: #198754 !important;
+  border-color: #198754 !important;
+}
+
+/* White tick icon */
+.custom-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Hover effect */
+.custom-checkbox:hover {
+  border-color: #28a745;
 }
 
 /* Green progress line */

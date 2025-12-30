@@ -95,7 +95,7 @@
                     <i class="fa-solid fa-wind"></i>
                   </div>
                   <span>Wind:</span>
-                  <strong>{{ current_forecast.wind_speed }} km/h</strong>
+                  <strong>{{ current_forecast.wind_speed }} kmph</strong>
                 </div>
                 <div class="weather-detail">
                   <div class="weather-icon">
@@ -116,7 +116,7 @@
                   <div class="weather-icon">
                     <i class="fa-solid fa-eye"></i>
                   </div>
-                  <span>Visibility:</span>
+                  <span>Visibility :</span>
                   <strong>{{ current_forecast.visibility }} km</strong>
                 </div>
                 <div class="weather-detail">
@@ -154,16 +154,6 @@
       <!-- Right Panel -->
       <div class="map-panel col-lg-7 col-md-7 col-sm-12 d-flex flex-column">
         <div class="equal-height-panel" id="map-component-container">
-          <div *ngIf="isSearchLoading" class="map-loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-text" style="font-size: 24px">
-              Searching
-              <span class="dot dot1">.</span>
-              <span class="dot dot2">.</span>
-              <span class="dot dot3">.</span>
-            </p>
-          </div>
-
           <!-- Filter Buttons -->
           <div class="row justify-content-center">
             <div class="col-md-12">
@@ -203,8 +193,8 @@
               <i class="fas fa-tint"></i> Humidity
             </button>
             <button
-              (click)="selectLayer('fog'); callToggleFogIDW()"
-              [class.active]="selectedLayer  === 'fog'"
+              (click)="selectLayer('Visibility'); callToggleFogIDW()"
+              [class.active]="selectedLayer  === 'Visibility'"
               class="btn btn-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2 flex-grow-1"
             >
               <i class="fa-solid fa-eye"></i> Visibility
@@ -220,6 +210,16 @@
 
           <!-- Map Component -->
           <div class="flex-grow-1" id="map-container">
+            <!-- MAP-ONLY LOADER -->
+            <div *ngIf="isSearchLoading" class="map-only-loader">
+              <div class="spinner"></div>
+              <p class="loading-text" style="font-size: 24px">
+                Searching
+                <span class="dot dot1">.</span>
+                <span class="dot dot2">.</span>
+                <span class="dot dot3">.</span>
+              </p>
+            </div>
             <app-map-weather
               (callParentFun)="hazardToggleOff()"
             ></app-map-weather>
@@ -435,8 +435,8 @@
             <!-- Dropdown Filters -->
             <div class="container-fluid">
               <div class="row mb-3">
-                <!-- Column 1: Hazard Type -->
-                <div class="hazard-tabs">
+                <!-- Column 1: Hazard Type  -->
+                <div class="hazard-tabs" *ngIf="hasCategories">
                   <label class="form-label">Hazard Type</label>
 
                   <div class="tab-buttons">
@@ -450,12 +450,13 @@
                         [class.icon-active]="activeTab === category"
                         class="hazard-fa-icon"
                       ></i>
-                      {{ category }}
+                      {{ category ==='Fog' ? 'Fog' : category}}
                     </button>
                   </div>
                 </div>
-                <!-- Column 2: Severity -->
-                <div class="col-3 col-md-4">
+
+                <!-- Column 2: Severity  -->
+                <div class="col-3 col-md-4" *ngIf="hasSeverities">
                   <label for="districtSelect" class="form-label"
                     >Severity</label
                   >
@@ -466,7 +467,7 @@
                     [(ngModel)]="selectedSeverity"
                     (change)="onchangeSeverityType()"
                   >
-                    <option value="" disabled selected hidden>
+                    <option value="" disabled hidden>
                       -- Select Severity --
                     </option>
                     <option
@@ -479,7 +480,7 @@
                 </div>
 
                 <!-- Column 3: Toggle Button -->
-                <div class="col-2 col-md-3">
+                <div class="col-2 col-md-3" *ngIf="hasHazards">
                   <div
                     id="myDiv"
                     style="padding: 10px; display: flex; flex-direction: column"
@@ -489,6 +490,7 @@
                       <input
                         type="checkbox"
                         id="toggleBtn"
+                        +
                         [(ngModel)]="isToggledHazardsOnMap"
                         (change)="callHazardsAddOnMap()"
                       />
@@ -499,8 +501,8 @@
               </div>
             </div>
 
-            <!-- Table Section -->
-            <div *ngIf="hazardsArray.length > 0" class="table-container panel">
+            <!-- Table Section-->
+            <div *ngIf="hasHazards" class="table-container panel">
               <div class="table-wrapper">
                 <table class="hazard-table">
                   <thead>
@@ -517,15 +519,14 @@
                       <th>Action</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     <tr
                       *ngFor="let hazard of hazardsArray; let i = index"
                       [ngClass]="{
-                        'severity-severe': hazard.severity === 'Extreme',
-                        'severity-moderate': hazard.severity === 'Severe',
-                        'severity-low': hazard.severity === 'Moderate'
-                      }"
+                  'severity-severe': hazard.severity === 'Extreme',
+                  'severity-moderate': hazard.severity === 'Severe',
+                  'severity-low': hazard.severity === 'Moderate'
+                }"
                     >
                       <td>{{ i + 1 }}</td>
                       <td>{{ hazard.state }}</td>
@@ -538,6 +539,7 @@
                       <td>{{ hazard.areaDesc }}</td>
                       <td>
                         <button
+                          *ngIf="hazard.geom"
                           class="map-btn"
                           (click)="viewSelectedHazardOnMap(hazard.id)"
                         >
@@ -553,34 +555,30 @@
                   </tbody>
                 </table>
               </div>
+              <div class="d-flex align-items-center my-3 text-muted">
+                <hr class="flex-grow-1" />
+                <span class="px-2">As per Govt. Advisory</span>
+                <hr class="flex-grow-1" />
+              </div>
             </div>
 
             <!-- No Data Message -->
             <p
-              *ngIf="(hazardsArray.length === 0 && (!categoriesKeys || categoriesKeys.length === 0))"
+              *ngIf="!hasHazards && !hasCategories"
               class="text-center text-muted mt-4"
             >
-              No data found for selected filters.
+              No data found
             </p>
           </div>
         </div>
       </div>
     </div>
   </div>
+  
 </div>
 
-<!-- Loading Overlay -->
-<div *ngIf="isLoading" class="loading-overlay">
-  <div class="spinner"></div>
-  <p class="loading-text">
-    Loading
-    <span class="dot dot1">.</span>
-    <span class="dot dot2">.</span>
-    <span class="dot dot3">.</span>
-  </p>
-</div>
+<!--Bad Hazard hazard-map.component.html popup model-->
 
-<!-- hazard-map.component.html -->
 <div class="modal" *ngIf="showHazardModal" style="z-index: 9999999">
   <div class="modal-content">
     <div
@@ -597,61 +595,83 @@
     <div id="hazardMap" class="map-container"></div>
     <div class="modal-hazard-details">
       <h6 style="font-size: 18px" class="m-2">Hazard Details :</h6>
-      <table
-        style="
-          border-collapse: collapse;
-          width: 100%;
-          font-family: Arial;
-          font-size: 14px;
-        "
-      >
-        <tr>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Type
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Severity
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            State
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Affective
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Onset
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Expires
-          </th>
-          <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
-            Affected Area
-          </th>
-        </tr>
-        <tr>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.severity}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.event}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetailstate}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.effective}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.onset}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.expires}}
-          </td>
-          <td style="padding: 4px; border: 1px solid #ccc">
-            {{selectedHazardDetail.areaDesc}}
-          </td>
-        </tr>
-      </table>
+
+      <!--  Scroll wrapper -->
+      <div class="table-scroll-wrapper">
+        <table
+          style="
+            border-collapse: collapse;
+            width: 100%;
+            font-family: Arial;
+            font-size: 14px;
+          "
+        >
+          <tr>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Type
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Severity
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              State
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Affective
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Onset
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Expires
+            </th>
+            <th style="text-align: left; padding: 4px; border: 1px solid #ccc">
+              Affected Area
+            </th>
+          </tr>
+
+          <tr>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.severity }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.event }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetailstate }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.effective }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.onset }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.expires }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #ccc">
+              {{ selectedHazardDetail.areaDesc }}
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="d-flex align-items-center text-muted">
+        <hr class="flex-grow-1" />
+        <span class="px-2">As per Govt. Advisory</span>
+        <hr class="flex-grow-1" />
+      </div>
     </div>
   </div>
+</div>
+
+<!-- Loading Overlay -->
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p class="loading-text">
+    Loading
+    <span class="dot dot1">.</span>
+    <span class="dot dot2">.</span>
+    <span class="dot dot3">.</span>
+  </p>
 </div>

@@ -1,30 +1,54 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map, forkJoin } from 'rxjs';
+import { Observable, map, forkJoin, of, catchError, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DataService {
-  // flaskAPIURL = 'http://192.168.1.26:6633'; // Local
-  flaskAPIURL = 'https://mlinfomap.org/weatherapi'; // Server
+  flaskAPIURL = environment.apiUrl;
 
-  // apiUrl1 = 'http://localhost:6900/api';
-  // loginApiUrl = 'https://mlinfomap.org/api-drawing-tool';
   telecomService =
     'https://mlinfomap.org/geoserver/Telecom/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Telecom%3AINDIAN_TELECOM_MAP&outputFormat=application%2Fjson&maxFeatures=1000';
 
   constructor(private http: HttpClient) {}
 
   getProtectLoginTokenAuth(token: any): Observable<any> {
+    if (!token) {
+      // No token → do nothing but keep observable consistent
+      return of(null);
+    }
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
     return this.http.get(`${this.flaskAPIURL}/protected`, { headers });
   }
 
+  login(payload: Object): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    return this.http.post(`${this.flaskAPIURL}/userLogin`, payload, {
+      headers,
+    });
+  }
+
+  forceLogout(method: string, payload: object = {}): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    return this.http.post(`${this.flaskAPIURL}/${method}`, payload, {
+      headers,
+    });
+  }
+
   getRequest(): Observable<any> {
     const token = localStorage.getItem('token'); // or localStorage
+    if (!token) {
+      return of(null);
+    }
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -32,40 +56,46 @@ export class DataService {
     return this.http.get(this.flaskAPIURL, { headers });
   }
 
-  postRequest(method: string, payload: Object): Observable<any> {
-    const token = localStorage.getItem('token'); // or localStorage
+  postRequest(method: string, payload: Object = {}): Observable<any> {
+    const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token && { Authorization: `Bearer ${token}` }),
     });
+
     return this.http.post(`${this.flaskAPIURL}/${method}`, payload, {
       headers,
     });
   }
 
-  // getTowerData(method: string): Observable<any> {
-  //   const token = localStorage.getItem('token'); // or localStorage
-  //   const headers = new HttpHeaders({
-  //     'Content-Type': 'application/json',
-  //     Authorization: `Bearer ${token}`,
-  //   });
-  //   return this.http.get(`${this.apiUrl1}/${method}`);
-  // }
+  postRequesteExportData(method: string, payload: any = {}): Observable<any> {
+    const token = localStorage.getItem('token');
+    const isJsonRequest = payload?.sendExport === 'send';
 
-  // postData(method: string, payload: Object): Observable<any> {
-  //   return this.http.post(`${this.flaskAPIURL}/${method}`, payload);
-  // }
-
-  postData(method: string, payload?: Object): Observable<any> {
-    const token = localStorage.getItem('token'); // or localStorage
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(isJsonRequest && { 'Content-Type': 'application/json' }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     });
 
-    const body = payload || {};
+    const options: any = {
+      headers,
+      responseType: isJsonRequest ? 'json' : 'blob',
+    };
 
-    return this.http.post(`${this.flaskAPIURL}/${method}`, body, { headers });
+    return this.http.post(`${this.flaskAPIURL}/${method}`, payload, options);
+  }
+
+  postFormData(method: string, formData: FormData): Observable<any> {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return of(null);
+    }
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    return this.http.post(`${this.flaskAPIURL}/${method}`, formData, {
+      headers,
+    });
   }
 
   getFilteredFeatures() {
@@ -110,35 +140,38 @@ export class DataService {
     );
   }
 
-  // fetch the user list
-  // getWeatherUserList(method: string): Observable<any> {
-  //   const token = localStorage.getItem('token'); // or localStorage
-  //   const headers = new HttpHeaders({
-  //     'Content-Type': 'application/json',
-  //     Authorization: `Bearer ${token}`,
-  //   });
-  //   return this.http.get(`${this.flaskAPIURL}/${method}`, { headers });
-  //   // return this.http.get(`http://127.0.0.1:6633/${method}`)
-  // }
   sendSelectedTowerReport(formData: FormData): Observable<any> {
     return this.http.post(this.flaskAPIURL, formData);
     // return this.http.post(`http://127.0.0.1:6633/api-send-report`, formData);
   }
 
-  sendWeatherUserLog(method: string, payload: object): Observable<any> {
+  sendWeatherUserLog(payload: object): Observable<any> {
     const token = localStorage.getItem('token'); // or localStorage
+    if (!token) {
+      // No token → do nothing but keep observable consistent
+      return of(null);
+    }
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     });
-    return this.http.post(`${this.flaskAPIURL}/${method}`, payload, {
-      headers,
-    });
-    // return this.http.post(`http://127.0.0.1:6633/${method}`, payload)
+
+    return this.http
+      .post(`${this.flaskAPIURL}/weather_user_activity`, payload, { headers })
+      .pipe(
+        catchError((error) => {
+          const msg = error?.error?.message || 'User log insertion failed';
+          return throwError(() => new Error(msg));
+        })
+      );
   }
 
   get_circle_list(method: string, payload: object): Observable<any> {
     const token = localStorage.getItem('token'); // or localStorage
+    if (!token) {
+      // No token → do nothing but keep observable consistent
+      return of(null);
+    }
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

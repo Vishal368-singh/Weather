@@ -165,8 +165,7 @@ ol.ext.Ajax = class olextAjax extends ol.Object {
           });
           return;
         }
-        // Success
-        //console.log('response',response)
+      
         self.dispatchEvent({
           type: 'success',
           response: response,

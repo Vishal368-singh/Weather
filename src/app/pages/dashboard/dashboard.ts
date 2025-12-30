@@ -137,7 +137,10 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  logId: string = '';
+  get logId(): string | null {
+    return localStorage.getItem('logId');
+  }
+
   isLoading: boolean = false;
 
   current_forecast: CurrentForecast = {
@@ -196,12 +199,20 @@ export class Dashboard implements OnInit, AfterViewInit {
   ];
 
   hazardIcon = [
-    // { label: 'Flood', icon: 'fa-solid fa-water' },
-    // { label: 'Thunderstorm', icon: 'fa-solid fa-cloud-bolt' },
+    { label: 'Flood', icon: 'fa-solid fa-water' },
+    { label: 'Thunderstorm', icon: 'fa-solid fa-cloud-bolt' },
     { label: 'Rainfall', icon: 'fa-solid fa-cloud-showers-heavy' },
     { label: 'Lightning', icon: 'fa-solid fa-bolt' },
     { label: 'Flood', icon: 'fa-solid fa-hill-rockslide' },
     { label: 'Thunderstorm', icon: 'fa-solid fa-hill-avalanche' },
+    { label: 'Landslide', icon: 'fa-solid fa-mountain' },
+    { label: 'Avalanche', icon: 'fa-solid fa-snowflake' },
+
+    { label: 'Fog', icon: 'fa-solid fa-smog' },
+    { label: 'Snowfall', icon: 'fa-solid fa-snowman' },
+    { label: 'Heat Wave', icon: 'fa-solid fa-temperature-high' },
+    { label: 'Cold Wave', icon: 'fa-solid fa-temperature-low' },
+    { label: 'Earthquake', icon: 'fa-solid fa-earthquake' },
   ];
 
   UP_West = [
@@ -291,6 +302,12 @@ export class Dashboard implements OnInit, AfterViewInit {
     { label: 'Flood', value: 'Flood' },
     { label: 'Landslide', value: 'Landslide' },
     { label: 'Avalanche', value: 'Avalanche' },
+
+    { label: 'Fog', value: 'Fog' },
+    { label: 'Snowfall', value: 'Snowfall' },
+    { label: 'Heat Wave', value: 'Heat Wave' },
+    { label: 'Cold Wave', value: 'Cold Wave' },
+    { label: 'Earthquake', value: 'Earthquake' },
   ];
 
   hazardMap!: Map;
@@ -349,7 +366,6 @@ export class Dashboard implements OnInit, AfterViewInit {
         })
       )
       .subscribe((results) => {
-        this.isSearchLoading = false;
         if (results.length > 0) {
           this.showMarkers(results); // Will show empty or filtered markers
         } else {
@@ -363,7 +379,20 @@ export class Dashboard implements OnInit, AfterViewInit {
             panelClass: ['custom-error-snackbar'],
           });
         }
+        this.isSearchLoading = false;
       });
+  }
+
+  get hasHazards(): boolean {
+    return Array.isArray(this.hazardsArray) && this.hazardsArray.length > 0;
+  }
+
+  get hasCategories(): boolean {
+    return Array.isArray(this.categoriesKeys) && this.categoriesKeys.length > 0;
+  }
+
+  get hasSeverities(): boolean {
+    return Array.isArray(this.severityTypes) && this.severityTypes.length > 1; // Beacause 'All' is always present
   }
 
   ngOnInit(): void {
@@ -378,18 +407,16 @@ export class Dashboard implements OnInit, AfterViewInit {
       if (this.user.location) {
         this.selectedLocation = this.user.location;
       }
-
-      if (this.user.indus_circle === 'All Circle') {
-        this.WeatherService.setCircleChange('M&G');
-      } else {
-        this.WeatherService.setCircleChange(this.user.indus_circle);
-      }
     }
     this.loadWeatherSubject
       .pipe(debounceTime(400))
       .subscribe(() => this.loadWeather());
 
-    this.WeatherService.setCircleLocationChange('18.9582,72.8321');
+    this.WeatherService.setDashboardCircleLocation(this.selectedLocation);
+
+    this.WeatherService.clearSelectedLayer();
+    this.WeatherService.setDistrictHighlight('');
+
     this.loadWeatherSubject.next();
 
     this.WeatherService.location$.subscribe((location: string) => {
@@ -397,20 +424,15 @@ export class Dashboard implements OnInit, AfterViewInit {
         this.selectedLocation = location;
         this.loadWeatherSubject.next();
       } else {
-        this.isLoading = true;
         this.dataService.getWeatherForecast(location).subscribe({});
         this.selectedLocation = location;
         this.loadWeatherSubject.next();
+        this.safeDetectChanges();
       }
     });
 
     this.WeatherService.selectedLayer$.subscribe((layer) => {
       this.selectedLayer = layer;
-      this.safeDetectChanges();
-    });
-
-    this.WeatherService.weatherLogId$.subscribe((id) => {
-      this.logId = id;
       this.safeDetectChanges();
     });
 
@@ -425,17 +447,14 @@ export class Dashboard implements OnInit, AfterViewInit {
       }
     });
 
-    this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
-      if (!circle) {
-        console.warn(
-          'circleChangedIs$ received empty value. Skipping loadWeather.'
-        );
+    this.WeatherService.circleChangedIs$.subscribe((circleArray: any) => {
+      if (circleArray.length === 0) {
         return;
       }
-      this.user.circle = circle;
+      this.user.circle = circleArray[0]?.label;
     });
 
-    this.WeatherService.circleLocationChangedIs$.subscribe(
+    this.WeatherService.dashboardCircleLocation$.subscribe(
       (circleLocation: string) => {
         this.selectedLocation = circleLocation;
         this.loadWeatherSubject.next();
@@ -475,7 +494,6 @@ export class Dashboard implements OnInit, AfterViewInit {
     if (this.searchTerm.trim()) {
       this.selectedLocation = this.searchTerm;
       this.WeatherService.setSearchLoader(true);
-      // this.isLoading = true;
       this.isSearchLoading = true;
       this.searchSubject.next(this.searchTerm.trim() + ', India');
     }
@@ -599,6 +617,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     const formattedHour = hours.toString().padStart(2, '0');
     return `${formattedHour}:${minuteStr} ${ampm}`;
   }
+
   //#region WeatherAPI
   mapWeatherAPIToCurrentForecast(data: any, index: number): void {
     if (this.selectedDay === 'TODAY') {
@@ -615,27 +634,15 @@ export class Dashboard implements OnInit, AfterViewInit {
         }
       );
 
-      const name = data.location['name'];
+      let name = data.location['name'];
       const region = data.location['region'];
       let loc = '';
-      if (this.UP_West.includes(name) || this.UP_West.includes(region)) {
-        loc = `${name}, UP West`;
-      } else if (this.UP_East.includes(name) || this.UP_East.includes(region)) {
-        loc = `${name}, UP East`;
-      } else if (
-        this.North_East.includes(name) ||
-        this.North_East.includes(region)
-      ) {
-        loc = `${name}, North East`;
-      } else if (name && region) {
-        if (name === 'Delhi') {
-          loc = `${name}`;
-        } else {
-          loc = `${name}, ${region}`;
-        }
-      } else {
-        loc = `${name || ''} ${region || ''}`.trim();
+
+      if (name === 'Bombay') {
+        name = 'Mumbai';
       }
+      loc = name + ', ' + region;
+
       this.current_forecast = {
         location: loc,
         current_time: date_time,
@@ -663,43 +670,55 @@ export class Dashboard implements OnInit, AfterViewInit {
         }
       );
 
-      const name = data.location['name'];
+      let name = data.location['name'];
       let regionName = data.location['region'];
-      const reginUPArray = ['Uttar Pradesh', 'UP'];
-      const rgionMPArray = ['Madhya Pradesh', 'MP'];
+      // const reginUPArray = ['Uttar Pradesh', 'UP'];
+      // const rgionMPArray = ['Madhya Pradesh', 'MP'];
 
-      if (reginUPArray.includes(data.location['region'])) {
-        regionName = 'UP East';
-      } else if (rgionMPArray.includes(data.location['region'])) {
-        regionName = 'Madhya Pradesh';
+      // if (reginUPArray.includes(data.location['region'])) {
+      //   regionName = 'UP East';
+      // } else if (rgionMPArray.includes(data.location['region'])) {
+      //   regionName = 'Madhya Pradesh';
+      // }
+
+      if (name === 'Bombay') {
+        name = 'Mumbai';
       }
+      let loc = name + ', ' + regionName;
 
-      let loc = data.location['name'] + ', ' + regionName;
+      // inside the non-TODAY branch of mapWeatherAPIToCurrentForecast(...)
 
       const currentHour =
         new Date().getHours().toString().padStart(2, '0') + ':00';
+
       const hourlyForecast = data.forecast.forecastday[index].hour;
+
       const currentHourData = hourlyForecast.find(
         (item: any) => item.time.split(' ')[1] === currentHour
       );
-      // const time = this.formatTo12Hour(currentHour);
-      const time = currentHour;
+
+      const chosenHourData = currentHourData || hourlyForecast[0] || {};
 
       this.current_forecast = {
         location: loc,
-        current_time: `${date}, ${time}`,
+        current_time: `${date}, ${currentHour}`,
+
         temp:
-          data.current.temp_c != null ? parseFloat(data.current.temp_c) : null,
-        wind_speed: currentHourData.wind_kph || null,
-        pressure: currentHourData.pressure_mb || null,
-        uv_index: currentHourData.uv || null,
-        humidity: currentHourData.humidity || null,
-        wind_dir: currentHourData.wind_dir || '',
-        visibility: currentHourData.vis_km || null,
-        heat_index: currentHourData.heatindex_c || null,
-        condition: currentHourData.condition.text || '',
-        feels_like: currentHourData.feelslike_c || null,
-        icon: currentHourData.condition.icon || '',
+          chosenHourData.temp_c != null
+            ? parseFloat(chosenHourData.temp_c)
+            : data.current && data.current.temp_c != null
+            ? parseFloat(data.current.temp_c)
+            : null,
+        wind_speed: chosenHourData.wind_kph || null,
+        pressure: chosenHourData.pressure_mb || null,
+        uv_index: chosenHourData.uv || null,
+        humidity: chosenHourData.humidity || null,
+        wind_dir: chosenHourData.wind_dir || '',
+        visibility: chosenHourData.vis_km || null,
+        heat_index: chosenHourData.heatindex_c || null,
+        condition: chosenHourData.condition?.text || '',
+        feels_like: chosenHourData.feelslike_c || null,
+        icon: chosenHourData.condition?.icon || '',
       };
     }
   }
@@ -735,6 +754,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       }));
     } else {
       const forecastDays = weatherData || [];
+
       return forecastDays.hour.map((hourData: any) => ({
         time: hourData.time.split(' ')[1], // full time string
         temp: hourData.temp_c, // temperature in °C
@@ -775,8 +795,7 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.current_forecast = {
       location: exact_loc,
       current_time: date_time,
-      temp:
-        data.current.temp_c != null ? parseFloat(data.current.temp_c) : null,
+      temp: data.current.temp != null ? parseFloat(data.current.temp) : null,
       wind_speed: data.currentConditions.windspeed || null,
       pressure: data.currentConditions.pressure || null,
       uv_index: data.currentConditions.uvindex || null,
@@ -923,7 +942,8 @@ export class Dashboard implements OnInit, AfterViewInit {
     // Save the resolved location
     location = this.selectedLocation;
 
-    this.isLoading = true; // Start loader
+    // this.isLoading = true; // Start loader
+    this.loading = true;
 
     if (this.selectedSource === 'weather_api') {
       this.dataService.getWeatherForecast(location).subscribe({
@@ -938,13 +958,15 @@ export class Dashboard implements OnInit, AfterViewInit {
             this.loadNextDayWeatherData(1);
           }
 
-          this.isLoading = false; // Stop loader
+          // this.isLoading = false; // Stop loader
+          this.loading = false;
           this.activeAccordion = 'hourly';
           this.safeDetectChanges();
         },
         error: (err: any) => {
           console.error('Error from weather_api', err);
-          this.isLoading = false;
+          // this.isLoading = false;
+          this.loading = false;
           this.safeDetectChanges();
         },
       });
@@ -955,7 +977,8 @@ export class Dashboard implements OnInit, AfterViewInit {
           this.dayForecastList = this.mapCrossVisualDayForecast(response.days);
           this.hourlyForecastList = this.getCrossVisualHourlyForecast(response);
           this.scrollToCurrentHour();
-          this.isLoading = false; // Stop loader
+          this.loading = false; // Stop loader
+
           this.activeAccordion = 'hourly';
           this.safeDetectChanges();
         },
@@ -966,6 +989,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         },
       });
     }
+    this.safeDetectChanges();
   }
 
   async ngAfterViewInit(): Promise<void> {}
@@ -978,14 +1002,6 @@ export class Dashboard implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.scrollToCurrentHour();
     }, 3000);
-
-    // if (this.scrollContainer && panel !== 'hourly') {
-    //   this.scrollToCurrentHour();
-    //   setTimeout(() => {
-    //     this.scrollContainer.nativeElement.scrollLeft = 0;
-    //     this.updateScrollButtons();
-    //   }, 300);
-    // }
   }
   scrollLeft() {
     if (this.scrollContainer?.nativeElement) {
@@ -1090,6 +1106,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       city: 'Gorakhpur',
     },
   ];
+
   districts = Array.from(new Set(this.hazardData.map((h) => h.district)));
 
   get filteredHazards(): HazardItem[] {
@@ -1257,22 +1274,13 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.updateWeatherLogTable(payload);
   }
 
-  updateWeatherLogTable = (payload: Object) => {
-    this.dataService
-      .sendWeatherUserLog(`weather_user_activity`, payload)
-      .pipe(
-        catchError((error) => {
-          const errorMessage =
-            error?.error?.message || 'User log insertion failed';
-          return throwError(() => `${error} \n ${errorMessage}`);
-        })
-      )
-      .subscribe((res: any) => {
-        if (res?.status === 'success') {
-          return;
-        }
-      });
-  };
+  updateWeatherLogTable(payload: Object) {
+    this.dataService.sendWeatherUserLog(payload).subscribe((res) => {
+      if (res?.status === 'success') {
+        // Log updated successfully
+      }
+    });
+  }
 
   hazardToggleOff = () => {
     const checkbox = document.getElementById('toggleBtn') as HTMLInputElement;
@@ -1280,24 +1288,23 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.isToggledHazardsOnMap = false;
   };
 
-  updateWeatherLog(payload: object): void {
-    this.dataService
-      .sendWeatherUserLog(`weather_user_activity`, payload)
-      .pipe(
-        catchError((error) => {
-          const errorMessage =
-            error?.error?.message || 'User log insertion failed';
-          return throwError(() => `${error} \n ${errorMessage}`);
-        })
-      )
-      .subscribe((res: any) => {
-        if (res?.status === 'success') {
-          return;
-        }
-      });
-  }
-
   callHazardsAddOnMap() {
+    let flag = false;
+    this.hazardsGeoJSON.features.forEach((f: any) => {
+      if (f.geometry != null) {
+        flag = true;
+      }
+    });
+    if (!flag && this.isToggledHazardsOnMap) {
+      this.snackBar.open('No geometry, so can not display on map.', 'X', {
+        duration: 2000, // auto close after 3s
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['custom-info-snackbar'],
+      });
+      this.hazardToggleOff();
+      return;
+    }
     if (this.isToggledHazardsOnMap) {
       const payload = {
         type: 'update',
@@ -1306,6 +1313,7 @@ export class Dashboard implements OnInit, AfterViewInit {
           view_on_map_clicked: 'true',
         },
       };
+
       this.updateWeatherLogTable(payload);
       this.mapWeather.addHazardsGeoJSONLayerOnMap(this.hazardsGeoJSON);
       document
@@ -1337,6 +1345,9 @@ export class Dashboard implements OnInit, AfterViewInit {
       case 'Rain':
         this.onchangeHazardsType();
         break;
+      case 'Fog':
+        this.onchangeHazardsType();
+        break;
       case 'Thunderstorm':
         this.onchangeHazardsType();
         break;
@@ -1350,6 +1361,18 @@ export class Dashboard implements OnInit, AfterViewInit {
         this.onchangeHazardsType();
         break;
       case 'Avalanche':
+        this.onchangeHazardsType();
+        break;
+      case 'Heat Wave':
+        this.onchangeHazardsType();
+        break;
+      case 'Cold Wave':
+        this.onchangeHazardsType();
+        break;
+      case 'Snowfall':
+        this.onchangeHazardsType();
+        break;
+      case 'Earthquake':
         this.onchangeHazardsType();
         break;
       default:
@@ -1451,6 +1474,7 @@ export class Dashboard implements OnInit, AfterViewInit {
             sent: hazard.sent,
             severity: hazard.severity,
             state: state,
+            geom: hazard.geometry,
           };
           this.hazardsArray.push(obj);
           featuresArray.push({
@@ -1476,8 +1500,17 @@ export class Dashboard implements OnInit, AfterViewInit {
   };
 
   viewSelectedHazardOnMap = async (id: any) => {
-    this.showHazardModal = true;
     const hazardsGeoJSON = await this.fetchSelectedHazardData(id);
+    if (hazardsGeoJSON.features[0].geometry === null) {
+      this.snackBar.open('No geometry, so can not display on map.', 'X', {
+        duration: 2000, // auto close after 3s
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['custom-info-snackbar'],
+      });
+      return;
+    }
+    this.showHazardModal = true;
     await this.initMap(hazardsGeoJSON);
   };
 
@@ -1552,7 +1585,7 @@ export class Dashboard implements OnInit, AfterViewInit {
   hazardDataBindPopup(data: any) {
     let state = data.state !== null ? data.state : '';
     return `
-     <h6>Hazards / Bad Weather</h6>
+    <h6>Hazards / Bad Weather</h6>
     <table style="border-collapse: collapse; width: 100%; font-family: Arial; font-size: 11px;">
       <tr>
           <th style="text-align: left; padding: 4px;border: 1px solid #ccc;">Type</th>
@@ -1583,6 +1616,7 @@ export class Dashboard implements OnInit, AfterViewInit {
         <td style="padding: 4px;border: 1px solid #ccc;">${data.areaDesc}</td>
       </tr>
     </table>
+    
   `;
   }
 

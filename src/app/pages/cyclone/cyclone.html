@@ -1,0 +1,383 @@
+<!-- Full screen map viewer -->
+<div class="cyclone-map-container">
+  <div class="fullscreen-map" id="mapWrapper">
+    <div id="map" class="mapDiv">
+      <!-- Layer legend -->
+      <div id="hazard-layer-legend" class="hazard-layer-legend">
+        <h6 style="font-size: 14px">Map Layers</h6>
+        <ul id="hazard-legend-list" style="font-size: 12px"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Uploading  -->
+  <div *ngIf="userRole === 'MLAdmin'" class="container mt-3 file-upload-div">
+    <div class="card shadow-lg" style="height: auto">
+      <!-- CARD HEADER (Click to toggle) -->
+      <div
+        class="card-header bg-success text-white d-flex justify-content-between align-items-center"
+        (click)="toggleCard()"
+        style="cursor: pointer"
+      >
+        <h5 class="mb-0">Upload Files</h5>
+
+        <!-- ▼ Arrow when CLOSED -->
+        <button
+          *ngIf="!isOpen"
+          class="btn btn-sm"
+          style="background-color: #32bb16; color: white"
+          (click)="toggleCard(); $event.stopPropagation()"
+        >
+          ▼
+        </button>
+
+        <!-- Close Button (only visible when open) -->
+        <button
+          *ngIf="isOpen"
+          class="btn btn-sm"
+          style="background-color: #32bb16; color: white; font-weight: bold"
+          (click)="closeCard($event)"
+        >
+          X
+        </button>
+      </div>
+
+      <!-- COLLAPSIBLE CONTENT -->
+      <div *ngIf="isOpen" class="card-body" style="max-height: 250px">
+        <div class="row">
+          <div class="col-12">
+            <label class="form-label">Cyclone Point File</label>
+            <input
+              type="file"
+              data-type="point"
+              class="form-control cyclone-file-input"
+              accept=".json,.geojson,.shp"
+              (change)="onFileSelected($event, 'point')"
+            />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Cyclone Cone File</label>
+            <input
+              type="file"
+              data-type="cone"
+              class="form-control cyclone-file-input"
+              accept=".json,.geojson,.shp"
+              (change)="onFileSelected($event, 'cone')"
+            />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Cyclone Buffer File</label>
+            <input
+              type="file"
+              data-type="buffer"
+              class="form-control cyclone-file-input"
+              accept=".json,.geojson,.shp"
+              (change)="onFileSelected($event, 'buffer')"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER (collapsible) -->
+      <div
+        class="card-footer d-flex justify-content-center align-items-center bg-white border-top"
+        *ngIf="isOpen"
+      >
+        <button class="btn btn-secondary me-4 py-1 px-6" (click)="ClearLayer()">
+          Clear
+        </button>
+        <button
+          class="btn btn-success ms-4 py-1 px-6"
+          (click)="submitUploadedFile()"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DropDown with the date time list -->
+  <div class="date-time-select-box" *ngIf="!allUploadedDateTime">
+    <span>All Uploaded Date</span>
+    <select
+      class="upload-select"
+      [(ngModel)]="selectedUploadTime"
+      (change)="onUploadTimeChange($event)"
+    >
+      <option value="" disabled selected>Select Upload Time</option>
+
+      <option *ngFor="let time of allUploadedDateTime" [value]="time">
+        {{ time }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Popup -->
+  <!-- <div id="popup" class="ol-popup"></div> -->
+
+  <!-- Severity Districts List -->
+  <div class="severity-div">
+    @if (isPdfTable) {
+    <button
+      class="btn btn-success severity-button"
+      (click)="toggleSeverityPanel()"
+      *ngIf="!showSeverityPanel"
+    >
+      Severity Districts
+    </button>
+    }
+
+    <div class="severity-panel" *ngIf="showSeverityPanel">
+      <div class="card shadow-lg h-100 severity-card">
+        <div
+          class="card-header bg-success text-white d-flex justify-content-between align-items-center"
+        >
+          <h5 class="mb-0">Districts</h5>
+
+          <div>
+            <button
+              class="btn btn-danger btn-sm me-2"
+              (click)="exportToExcel()"
+            >
+              Export
+            </button>
+            <button
+              class="btn btn-danger btn-sm ms-2"
+              (click)="toggleSeverityPanel()"
+            >
+              ✖
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body severity-body">
+          <div class="table-container">
+            <table id="weatherTable">
+              <thead>
+                <tr>
+                  <th>Indus Circle</th>
+                  <th>Date</th>
+                  <th>Severity</th>
+                  <th>Description</th>
+                  <th>Districts</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of tableData">
+                  <td width="15%" style="text-align: center">
+                    {{ item.circle }}
+                  </td>
+                  <td width="10%" style="text-align: center">
+                    {{ item.date }}
+                  </td>
+                  <td width="15%" style="text-align: center">
+                    {{ item.severity }}
+                  </td>
+                  <td width="20%" style="text-align: center">
+                    {{ item.description }}
+                  </td>
+                  <td width="40%" style="text-align: center">
+                    {{ item.districts }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isIDWLayer" class="hazard-legend-container">
+    <ng-container *ngIf="isRainIDWLayer; else otherLegend">
+      <div class="hazard-label-gradient">
+        <span>100%</span>
+        <span>75%</span>
+        <span>50%</span>
+        <span>25%</span>
+        <span>0%</span>
+      </div>
+    </ng-container>
+
+    <ng-template #otherLegend>
+      <div class="hazard-label-gradient">
+        <span>{{ maxRange }}</span>
+        <span>{{ minRange }}</span>
+      </div>
+    </ng-template>
+
+    <div class="hazard-color-gradient"></div>
+  </div>
+
+  <!-- Banner Data last updated -->
+  <div class="banner-div">
+    <div class="date-div">
+      <div class="date-div">
+        @if (cycloneLastUploadedDateTime) {
+        <span>
+          Cyclone Data Last uploaded : {{ cycloneLastUploadedDateTime }}
+        </span>
+        <span> Valid period : {{ cycloneDataValidPeriod }} </span>
+        } @else {
+        <span>No Cyclone Risk in the Next 7 Days</span>
+        }
+      </div>
+    </div>
+    <div class="pdf-button-div">
+      <button
+        *ngIf="userRole === 'MLAdmin'"
+        class="generate-pdf-button"
+        (click)="generateCycloneImpactPDF()"
+      >
+        Send PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Districts Legend -->
+  <div *ngIf="isIndiaDistrictsVisible" class="districts-legend-container">
+    <div class="districts-legend-item">
+      <span
+        class="districts-legend-color"
+        [style.background-color]="kpiColor.extreme"
+      ></span>
+      <span class="districts-legend-text">Warning (Take Action)</span>
+    </div>
+
+    <div class="districts-legend-item">
+      <span
+        class="districts-legend-color"
+        [style.background-color]="kpiColor.high"
+      ></span>
+      <span class="districts-legend-text">Alert (Be Prepared)</span>
+    </div>
+
+    <div class="districts-legend-item">
+      <span
+        class="districts-legend-color"
+        [style.background-color]="kpiColor.moderate"
+      ></span>
+      <span class="districts-legend-text">Watch (Be Updated)</span>
+    </div>
+
+    <div class="districts-legend-item">
+      <span
+        class="districts-legend-color"
+        [style.background-color]="kpiColor.low"
+      ></span>
+      <span class="districts-legend-text">No Warning (No Action)</span>
+    </div>
+  </div>
+
+  <!-- Select Impacted Circles -->
+  <div
+    class="modal fade"
+    id="impactedCircleModal"
+    tabindex="-1"
+    aria-labelledby="impactedCircleModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="impactedCircleModalLabel">
+            Select Impacted Circles
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <form #userForm="ngForm">
+            <div class="col-md-6">
+              <label class="form-label">Circle List</label>
+
+              <!-- Dropdown -->
+              <div class="dropdown w-100">
+                <button
+                  class="form-select text-start"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
+                >
+                  {{ getSelectedImpactedCircles() || '-- Select Circles --' }}
+                </button>
+
+                <ul
+                  class="dropdown-menu w-100 p-2"
+                  style="max-height: 200px; overflow-y: auto"
+                  (click)="$event.stopPropagation()"
+                >
+                  <!-- Select All -->
+                  <li class="form-check">
+                    <label class="form-check-label">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="selectExportAll"
+                        name="selectExportAll"
+                        (change)="toggleSelectCircle()"
+                      />
+                      Select All
+                    </label>
+                  </li>
+
+                  <li><hr class="dropdown-divider" /></li>
+
+                  <!-- Circles -->
+                  <li
+                    *ngFor="let circle of circleOptions"
+                    class="form-check ms-2"
+                  >
+                    <label class="form-check-label">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="circle.checked"
+                        name="circle_{{ circle.id }}"
+                        (change)="updateSelectedCircle()"
+                      />
+                      {{ circle.name }}
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer d-flex justify-content-between">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            (click)="cancelCircleUpload"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="saveImpactedCircleToDB()"
+          >
+            Save to DB
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

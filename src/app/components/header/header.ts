@@ -118,8 +118,31 @@ export class Header implements OnInit, AfterViewInit {
   };
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    this.router.navigate(['/']);
+    const payload = {
+      logId: JSON.parse(localStorage.getItem('logId') || '{}'),
+    };
+
+    this.dataService
+      .postRequest('/user_logout', payload)
+      .pipe(
+        catchError((error) => {
+          const errorMessage =
+            error?.error?.message || 'User log insertion failed';
+          return throwError(() => `${error} \n ${errorMessage}`);
+        })
+      )
+      .subscribe((res: any) => {
+        if (res?.status === 'success') {
+          // this.loader.hide();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('logId');
+          localStorage.removeItem('circleClicked');
+          this.router.navigate(['/']).then(() => {
+            window.location.reload();
+          });
+          // window.location.href = '/login';
+        }
+      });
   }
 }

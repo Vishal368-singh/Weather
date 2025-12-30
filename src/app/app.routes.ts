@@ -9,14 +9,24 @@ import { Profile } from './pages/profile/profile';
 import { SeverityRanges } from './pages/severity-ranges/severity-ranges';
 import { Usage } from './usage/usage';
 import { HazardsFeed } from './pages/hazards-feed/hazards-feed';
+import { Cyclone } from './pages/cyclone/cyclone';
+import { District } from './pages/district/district';
+
 export const routes: Routes = [
-  { path: '', component: Login },
+  // Explicit login route
+  { path: 'login', component: Login },
+
+  // Default redirect to login if empty path
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+
+  // Protected routes under MainLayoutComponent
   {
     path: '',
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+      { path: 'district', component: District, canActivate: [authGuard] },
       { path: 'profile', component: Profile, canActivate: [authGuard] },
       {
         path: 'severity-ranges',
@@ -26,6 +36,11 @@ export const routes: Routes = [
       {
         path: 'reports/pan-india',
         component: Reports,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'cyclone',
+        component: Cyclone,
         canActivate: [authGuard],
       },
       {
@@ -42,4 +57,7 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // Fallback for any unknown route
+  { path: '**', redirectTo: 'login' },
 ];

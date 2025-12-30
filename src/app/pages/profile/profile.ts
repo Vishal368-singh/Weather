@@ -88,12 +88,12 @@ export class Profile implements OnInit, AfterViewInit {
   fetchUserLicense = async () => {
     try {
       this.dataService
-        .postData('/get-user-license')
+        .postRequest('/get-user-license')
         .pipe(
           catchError((error: any) => {
             const errorMessage =
               error?.error?.message || 'Internal Server Error';
-            console.log(errorMessage);
+       
             return throwError(() => error);
           })
         )
@@ -111,7 +111,7 @@ export class Profile implements OnInit, AfterViewInit {
   /* Fetch Users List  */
   fetchUserList = async () => {
     try {
-      this.dataService.postData('get-user-list').subscribe(async (res: any) => {
+      this.dataService.postRequest('get-user-list').subscribe(async (res: any) => {
         let data = res.data;
         let usersArray: {
           userid: any;
@@ -266,7 +266,7 @@ export class Profile implements OnInit, AfterViewInit {
       },
     };
     this.dataService
-      .postData('/update_user', payload)
+      .postRequest('/update_user', payload)
       .pipe(
         catchError((error: any) => {
           const errorMessage = error?.error?.message || 'User updation failed!';
@@ -311,7 +311,7 @@ export class Profile implements OnInit, AfterViewInit {
       data: this.newUser,
     };
     this.dataService
-      .postData('/add_new_user', payload)
+      .postRequest('/add_new_user', payload)
       .pipe(
         catchError((error) => {
           const message = error?.error?.message || 'Internal Server Error';
@@ -455,7 +455,7 @@ export class Profile implements OnInit, AfterViewInit {
   fetchReportUserList = async () => {
     try {
       this.dataService
-        .postData('get_report_user_list')
+        .postRequest('get_report_user_list')
         .subscribe(async (res: any) => {
           let data = res.data;
           let usersArray: {
@@ -578,7 +578,7 @@ export class Profile implements OnInit, AfterViewInit {
       },
     };
     this.dataService
-      .postData('/update_report_user', payload)
+      .postRequest('/update_report_user', payload)
       .pipe(
         catchError((error: any) => {
           const errorMessage = error?.error?.message || 'User updation failed!';
@@ -627,7 +627,7 @@ export class Profile implements OnInit, AfterViewInit {
       data: this.newReportUser,
     };
     this.dataService
-      .postData('/add_new_report_user', payload)
+      .postRequest('/add_new_report_user', payload)
       .pipe(
         catchError((error) => {
           const message = error?.error?.message || 'Internal Server Error';

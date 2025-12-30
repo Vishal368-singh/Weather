@@ -7,26 +7,27 @@
     </h4>
 
     <div class="form-grid">
-      <!-- WhatsApp File Upload -->
-
-      <!-- <div class="form-field">
-        <label class="fw-semibold">Upload CSV</label>
-        <input
-          type="file"
-          id="fileInput"
-          accept=".csv"
-          (change)="onFileUpload($event)"
-        />
-      </div> -->
-
       <!-- Date Range -->
       <div class="form-field">
         <label class="fw-semibold">Start Date</label>
-        <input type="date" [(ngModel)]="startDate" #startInput />
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          [max]="endDateCard"
+          [min]="startDateCard"
+          #startInput
+        />
       </div>
+
       <div class="form-field">
         <label class="fw-semibold">End Date</label>
-        <input type="date" [(ngModel)]="endDate" #endInput />
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          [min]="startDateCard"
+          [max]="endDateCard"
+          #endInput
+        />
       </div>
 
       <!-- Submit / Clear -->
@@ -38,72 +39,9 @@
           <i class="fa-solid fa-filter me-1"></i> Apply Filter
         </button>
 
-        <!-- <button class="btn btn-outline-secondary" (click)="clearFilter()">
-          <i class="fa-solid fa-xmark me-1"></i> Clear
-        </button> -->
-
         <button class="btn btn-outline-success" (click)="handleUsagesReport()">
           Send/Export Usage Report
         </button>
-      </div>
-    </div>
-
-    <div *ngIf="fileName" class="upload-info mt-2">
-      Uploaded File: <span class="fw-bold">{{ fileName }}</span>
-    </div>
-  </div>
-
-  <!-- ===== WhatsApp Data Accordion ===== -->
-  <div
-    *ngIf="uploadedFileType === 'whatsapp' && filteredWhatsAppData.length > 0"
-    class="accordion mt-4 rounded prediction-table"
-    id="whatsappAccordion"
-  >
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="headingWA">
-        <button
-          class="accordion-button bg-success text-white fw-semibold"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#collapseWA"
-          aria-expanded="true"
-        >
-          WhatsApp Report ({{minDate | date:'dd MMM yyyy'}} - {{maxDate |
-          date:'dd MMM yyyy'}})
-        </button>
-      </h2>
-      <div id="collapseWA" class="accordion-collapse collapse show">
-        <div class="accordion-body">
-          <div class="table-responsive">
-            <table class="table table-bordered table-sm text-center">
-              <thead class="table-success">
-                <tr>
-                  <th>Mobile No</th>
-                  <th>Name</th>
-                  <th>Company</th>
-                  <th>Delivered</th>
-                  <th>Read</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let row of filteredWhatsAppData">
-                  <td>{{ row.mobileNo }}</td>
-                  <td>{{ row.name }}</td>
-                  <td>{{ row.company }}</td>
-                  <td>{{ row.delivered }}</td>
-                  <td>{{ row.read }}</td>
-                  <td>{{ row.total }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="text-center mt-2">
-            <button class="btn btn-sm btn-success" (click)="downloadCSV()">
-              Download CSV
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -119,8 +57,8 @@
           data-bs-target="#collapseLogged"
           aria-expanded="true"
         >
-          Dashboard Access Report ({{LminDate | date:'dd MMM yyyy'}} -
-          {{LmaxDate | date:'dd MMM yyyy'}})
+          Dashboard Access Report ({{formatToDDMMYYYY(minDate)}} -
+          {{formatToDDMMYYYY(maxDate)}})
         </button>
       </h2>
 
@@ -135,25 +73,26 @@
                   <th style="width: 15%">Date</th>
                   <th style="width: 25%">User Name</th>
                   <th style="width: 15%">Login Count</th>
-                  <th style="width: 20%">Total Duration</th>
+                  <th style="width: 20%">Total Duration (HH:MM:SS)</th>
                 </tr>
               </thead>
               <tbody>
                 <ng-container
-                  *ngIf="dashboardUsageData.length > 0; else noLoginData"
+                  *ngIf="userLoggedSummary.length > 0; else noLoginData"
                 >
                   <ng-container
-                    *ngFor="let row of dashboardUsageData; let i = index"
+                    *ngFor="let row of userLoggedSummary; let i = index"
                   >
                     <tr
                       data-bs-toggle="collapse"
                       [attr.data-bs-target]="'#row' + i"
                       class="cursor-pointer table-row-hover"
+                      (click)="onSummaryRowClick(row)"
                     >
-                      <td>{{ row.date }}</td>
-                      <td>{{ row.username }}</td>
+                      <td>{{ formatToDDMMYYYY(row.login_date) }}</td>
+                      <td>{{ row.name }}</td>
                       <td>{{ row.login_count }}</td>
-                      <td>{{ row.total_duration_minutes }}</td>
+                      <td>{{ row.duration }}</td>
                     </tr>
                     <tr
                       class="collapse detail-row"
@@ -168,18 +107,28 @@
                             <thead class="table-light">
                               <tr>
                                 <th style="width: 5%">Session</th>
-                                <th style="width: 25%">Login Time</th>
-                                <th style="width: 25%">Logout Time</th>
-                                <th style="width: 45%">Action</th>
+                                <th style="width: 20%">Login Time</th>
+                                <th style="width: 20%">Logout Time</th>
+                                <th style="width: 20%">Device</th>
+                                <th style="width: 35%">Action</th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr *ngFor="let s of row.sessions; let j = index">
+                              <tr
+                                *ngFor="let s of userLoggedRecords; let j = index"
+                              >
                                 <td>{{ j + 1 }}</td>
-                                <td>{{ s.login_time | date: 'short' }}</td>
-                                <td>{{ s.logout_time | date: 'short' }}</td>
+                                <td>
+                                  {{ s.login_time | date: 'dd-MM-yyyy
+                                  HH:mm':'IST' }}
+                                </td>
+                                <td>
+                                  {{ s.logout_time | date: 'dd-MM-yyyy
+                                  HH:mm':'IST' }}
+                                </td>
+                                <td>{{ s.loggedin_device }}</td>
                                 <td class="actions-cell wrap-text">
-                                  {{ s.fields.join(', ') }}
+                                  {{ s.action.join(', ') }}
                                 </td>
                               </tr>
                             </tbody>
@@ -401,6 +350,7 @@
         </form>
       </div>
 
+      <!-- ....... Action Button Action ................... -->
       <div
         class="modal-footer d-flex justify-content-between align-items-center"
       >
@@ -409,7 +359,7 @@
             *ngIf="sendingMail"
             class="text-success d-flex align-items-center fw-bold"
           >
-            Sending mail<span class="loading-dots"></span>
+            Sending mail ...<span class="loading-dots"></span>
           </span>
         </div>
 
@@ -446,3 +396,58 @@
     </div>
   </div>
 </div>
+
+<!-- ===== WhatsApp Data Accordion(Not in use) ===== -->
+<!-- <div
+    *ngIf="uploadedFileType === 'whatsapp' && filteredWhatsAppData.length > 0"
+    class="accordion mt-4 rounded prediction-table"
+    id="whatsappAccordion"
+  >
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingWA">
+        <button
+          class="accordion-button bg-success text-white fw-semibold"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseWA"
+          aria-expanded="true"
+        >
+          WhatsApp Report ({{minDate | date:'dd MMM yyyy'}} - {{maxDate |
+          date:'dd MMM yyyy'}})
+        </button>
+      </h2>
+      <div id="collapseWA" class="accordion-collapse collapse show">
+        <div class="accordion-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm text-center">
+              <thead class="table-success">
+                <tr>
+                  <th>Mobile No</th>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Delivered</th>
+                  <th>Read</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of filteredWhatsAppData">
+                  <td>{{ row.mobileNo }}</td>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.company }}</td>
+                  <td>{{ row.delivered }}</td>
+                  <td>{{ row.read }}</td>
+                  <td>{{ row.total }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="text-center mt-2">
+            <button class="btn btn-sm btn-success" (click)="downloadCSV()">
+              Download CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->

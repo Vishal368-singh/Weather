@@ -44,21 +44,63 @@
 /* =========================================================================================
    BUTTONS / DROPDOWNS
 ========================================================================================= */
+/* Button styling */
 .stylish-btn {
   background-color: #fff;
+  /* light green bg */
   color: #157347;
+  /* dark green text */
   border: 1px solid #b4eba9;
   font-weight: 500;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  margin-right: 5px;
 }
 
-.dropdown-menu.show-dropdown {
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #cde8d0;
+.stylish-btn:hover {
+  background-color: #f1f7f3;
+  /* slightly darker on hover */
+  color: #157347;
+  border-color: #98dfb5;
+}
+
+/* Select box */
+.stylish-select {
+  width: 100%;
+  border: 1px solid #a8e2ba;
+  border-radius: 8px;
+  background: linear-gradient(to right, #f9fdfb, #ffffff);
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  color: #333;
+  height: auto;
+  min-height: unset;
+  max-height: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+/* Scroll styling */
+.stylish-select::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stylish-select::-webkit-scrollbar-thumb {
+  background-color: #90d5a4;
+  border-radius: 4px;
+}
+
+/* Hover and selection */
+.stylish-select option:hover {
+  background-color: #daf5dd !important;
+}
+
+.stylish-select option:checked {
+  background-color: #a5e6b3 !important;
+  color: #000;
 }
 
 /* =========================================================================================
@@ -1647,7 +1689,7 @@ thead th {
 .legend_center {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   width: 100%;
   gap: 10px;
@@ -1659,7 +1701,7 @@ thead th {
   gap: 6px;
   font-size: 12px;
   white-space: nowrap;
-  flex: 1 1 160px;
+  flex: 0 0 80px;
 }
 
 .legend-swatch {
@@ -1733,4 +1775,28 @@ thead th {
   white-space: normal !important;
   max-width: 140px; /* adjust as needed */
   word-wrap: break-word;
+}
+
+/* Default - Desktop */
+.table-wrapper {
+  width: 100%;
+  overflow: hidden; /* stop scroll outside table */
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Mobile: make table scrollable horizontally */
+@media (max-width: 768px) {
+  .table-scroll {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .table-scroll table {
+    overflow-x: auto;
+    width: 150%; /* larger than screen to allow scrolling */
+  }
 }

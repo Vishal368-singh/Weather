@@ -10,6 +10,7 @@ import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ClickOutsideDirective } from '../../directives/click-outside.directive';
+import { LoaderService } from '../../pages/loader/loader.service';
 
 @Component({
   selector: 'app-left-panel',
@@ -20,14 +21,18 @@ import { ClickOutsideDirective } from '../../directives/click-outside.directive'
 })
 export class LeftPanel implements OnInit {
   @Input() isDashboard: boolean = false;
+  @Input() isDistrictActive: boolean = false;
   showDropdown: boolean = false;
   showReports: boolean = false;
   isTHVSDisabled = true;
   user: any;
-  logId: string = '';
+  get logId(): string | null {
+    return localStorage.getItem('logId');
+  }
   isPanIndiaEnabled: boolean = false;
   isCircleLevelActive: boolean = false;
   constructor(
+    private loader: LoaderService,
     private snackBar: MatSnackBar,
     private router: Router,
     private WeatherService: WeatherService,
@@ -53,38 +58,19 @@ export class LeftPanel implements OnInit {
     this.userName = username.split(' ')[0];
     this.userRole = this.user.userrole;
     this.indus_circle = this.user.indus_circle;
-    if (
-      this.user.indus_circle === 'Upper North (HP)' ||
-      this.user.indus_circle === 'Upper North (JK)' ||
-      this.user.indus_circle === 'Upper North (HAR)' ||
-      this.user.indus_circle === 'Upper North (PUN)'
-    ) {
-      this.indus_circle = 'Upper North';
-    } else if (this.user.indus_circle === 'All Circle') {
+
+    if (this.user.indus_circle === 'All Circle') {
       this.indus_circle = 'M&G';
     } else {
       this.indus_circle = this.user.indus_circle;
     }
 
-    this.WeatherService.weatherLogId$.subscribe((id) => {
-      this.logId = id;
-      this.safeDetectChanges();
-    });
-    this.WeatherService.circleChangedIs$.subscribe((CircleLebel) => {
-      if (CircleLebel) {
-        this.indus_circle = CircleLebel;
-      }
-      if (
-        CircleLebel === 'Upper North (HP)' ||
-        CircleLebel === 'Upper North (JK)' ||
-        CircleLebel === 'Upper North (HAR)' ||
-        CircleLebel === 'Upper North (PUN)'
-      ) {
-        this.indus_circle = 'Upper North';
-      } else if (CircleLebel === 'All Circle') {
-        this.indus_circle = 'M&G';
-      } else {
-        this.indus_circle = CircleLebel;
+    this.WeatherService.circleChangedIs$.subscribe((circleArray: any) => {
+      if (circleArray.length > 0) {
+        this.indus_circle =
+          circleArray[0]?.label === 'All Circle'
+            ? 'M&G'
+            : circleArray[0]?.label;
       }
     });
   }
@@ -96,6 +82,7 @@ export class LeftPanel implements OnInit {
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
   }
+
   onDashboardClick(): void {
     const payload = {
       type: 'update',
@@ -104,7 +91,7 @@ export class LeftPanel implements OnInit {
         dashboard_clicked: 'true',
       },
     };
-    this.weatherUpdateLog(payload);
+    this.updateWeatherLogTable(payload);
     this.isCircleLevelActive = false;
     this.WeatherService.setCircleLabelClicked(false);
     localStorage.removeItem('circleClicked');
@@ -113,6 +100,29 @@ export class LeftPanel implements OnInit {
       JSON.stringify(this.isCircleLevelActive)
     );
   }
+
+  onDistrictClick(): void {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: { District_clicked: 'true' },
+    };
+
+    this.updateWeatherLogTable(payload);
+
+    this.isDistrictActive = true;
+    localStorage.setItem(
+      'District_clicked',
+      JSON.stringify(this.isDistrictActive)
+    );
+
+    this.isCircleLevelActive = false;
+    this.WeatherService.setCircleLabelClicked(false);
+
+    //  ADD THIS LINE
+    this.router.navigate(['/district']);
+  }
+
   onCircleLevelClick(): void {
     const payload = {
       type: 'update',
@@ -121,7 +131,7 @@ export class LeftPanel implements OnInit {
         circleLevel_clicked: 'true',
       },
     };
-    this.weatherUpdateLog(payload);
+    this.updateWeatherLogTable(payload);
     this.isCircleLevelActive = true;
     localStorage.setItem(
       'circleClicked',
@@ -144,7 +154,7 @@ export class LeftPanel implements OnInit {
       this.isPanIndiaEnabled = false;
       this.WeatherService.setPanIndiaLocation('');
     }
-    this.weatherUpdateLog(payload);
+    this.updateWeatherLogTable(payload);
   }
   onUsageClick(): void {
     const payload = {
@@ -154,7 +164,7 @@ export class LeftPanel implements OnInit {
         usage_clicked: 'true',
       },
     };
-    this.weatherUpdateLog(payload);
+    this.updateWeatherLogTable(payload);
   }
   onTHVScoreClick(): void {
     const payload = {
@@ -164,7 +174,7 @@ export class LeftPanel implements OnInit {
         thvscore_clicked: 'true',
       },
     };
-    this.weatherUpdateLog(payload);
+    this.updateWeatherLogTable(payload);
   }
 
   logout(): void {
@@ -173,7 +183,7 @@ export class LeftPanel implements OnInit {
     };
 
     this.dataService
-      .postData('/user_logout', payload)
+      .postRequest('/user_logout', payload)
       .pipe(
         catchError((error) => {
           const errorMessage =
@@ -183,31 +193,25 @@ export class LeftPanel implements OnInit {
       )
       .subscribe((res: any) => {
         if (res?.status === 'success') {
+          this.loader.hide();
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          this.router.navigate(['/']);
-          return;
+          localStorage.removeItem('circleClicked');
+          localStorage.removeItem('logId');
+          this.router.navigate(['/']).then(() => {
+            window.location.reload();
+          });
+          // window.location.href = '/login';
         }
       });
   }
 
-  weatherUpdateLog(payload: object): void {
-    this.dataService
-      .sendWeatherUserLog(`weather_user_activity`, payload)
-      .pipe(
-        catchError((error) => {
-          const errorMessage =
-            error?.error?.message || 'User log insertion failed';
-          return throwError(() => `${error} \n ${errorMessage}`);
-        })
-      )
-      .subscribe((res: any) => {
-        if (res?.status === 'success') {
-          return;
-        }
-      });
+  updateWeatherLogTable(payload: Object) {
+    this.dataService.sendWeatherUserLog(payload).subscribe((res) => {
+      if (res?.status === 'success') {
+        console.log('Weather user activity logged.');
+      }
+    });
   }
 
   /* Change User Password  */

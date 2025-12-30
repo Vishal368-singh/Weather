@@ -97,8 +97,6 @@ export class Reports implements OnInit {
     this.barThickness();
   }
 
-
-
   public isBrowser = typeof window !== 'undefined';
   selectedPage = 'dashboard';
   showForecast = false;
@@ -106,6 +104,7 @@ export class Reports implements OnInit {
   atScrollEnd: boolean = false;
   current: any = null;
   location: any = null;
+  circleFullName: string = '';
   activeAccordion: string = '';
   currentTime: string = '';
   lastUpdatedTime: string = '';
@@ -229,12 +228,16 @@ export class Reports implements OnInit {
   weatherData: DailyWeather[] = [];
   mappedTowerData: any;
   activeTab: string = 'rainfall';
-  activeHazTab: string = 'Flood';
+  activeHazTab: string = 'Cyclone';
   hazardData: any[] = [];
   activeKPIUnit: string = ' °C';
   datesRange: string[] = [];
   datesRangeHaz: string[] = [];
   user: any = {};
+
+  get logId(): string | null {
+    return localStorage.getItem('logId');
+  }
 
   safeDetectChanges() {
     this.cdr.markForCheck();
@@ -247,10 +250,10 @@ export class Reports implements OnInit {
     accu_rainfall: 'Accumulated Rainfall Forecast - 3 Days (mm)',
     humidity: 'Humidity Forecast - 7 Days (%)',
     wind: 'Wind Forecast - 7 Days (kmph)',
-    visibility: 'Fog/Visibility Forecast - 7 Days (km)',
+    visibility: 'Visibility  Forecast - 7 Days (km)',
   };
 
-  /* Heading For 7 -dHfc table */
+  /* Heading For 7 -dhfc table */
   headingMapHaz: Record<string, string> = {
     Flood: 'Flood Forecast - 7 Days (Affected Area %)',
     Cyclone: 'Cyclone Forecast - 7 Days (Affected Area %)',
@@ -259,15 +262,16 @@ export class Reports implements OnInit {
     Cloudburst: 'Cloudburst Forecast - 7 Days (Affected Area %)',
     Lightning: 'Lightning Forecast - 7 Days (Affected Area %)',
     Landslide: 'Landslide Forecast - 7 Days (Affected Area %)',
+    Fog: 'Fog Forecast - 7 Days (Affected Area km)',
   };
 
   setActive(tab: string) {
     this.activeTab = tab;
-
+    this.updateWeatherForecastUserLog(tab);
     const unitMap: any = {
       temperature: ' °C',
       rainfall: ' mm',
-      wind: ' kph',
+      wind: ' kmph',
       humidity: ' %',
       visibility: ' km',
       accu_rainfall: ' mm',
@@ -287,16 +291,126 @@ export class Reports implements OnInit {
     this.getDateLabels();
   }
 
+  updateWeatherForecastUserLog(tab: any) {
+    let payload = {};
+    if (tab === 'rainfall') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Rainfall: 'true',
+        },
+      };
+    } else if (tab === 'accu_rainfall') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Accu_Rainfall: 'true',
+        },
+      };
+    } else if (tab === 'wind') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Wind: 'true',
+        },
+      };
+    } else if (tab === 'humidity') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Humidity: 'true',
+        },
+      };
+    } else if (tab === 'visibility') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Visibility: 'true',
+        },
+      };
+    } else if (tab === 'temperature') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_forecast_Temperature: 'true',
+        },
+      };
+    }
+    this.updateWeatherLogTable(payload);
+  }
+
   setActiveHaz(tab: string) {
     this.activeHazTab = tab;
+    this.updateWeatherHazardUserLog(tab);
+    this.getDateLabelshaz();
     this.fetchDistrictWiseHazardValues();
+  }
+
+  updateWeatherHazardUserLog(tab: any) {
+    let payload = {};
+    if (tab === 'Cyclone') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_cyclone: 'true',
+        },
+      };
+    } else if (tab === 'Lightning') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_lightning: 'true',
+        },
+      };
+    } else if (tab === 'Flood') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_flood: 'true',
+        },
+      };
+    } else if (tab === 'Avalanche') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_avalanche: 'true',
+        },
+      };
+    } else if (tab === 'Snowfall') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_snowfall: 'true',
+        },
+      };
+    } else if (tab === 'Fog') {
+      payload = {
+        type: 'update',
+        id: this.logId,
+        data: {
+          circle_weather_hazard_fog: 'true',
+        },
+      };
+    }
+    this.updateWeatherLogTable(payload);
   }
 
   selectTab(tabNumber: number) {
     this.selectedTab = tabNumber;
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     const { formattedDate } = this.dateTimeService.getCurrentDateTime();
     this.currentDate = formattedDate;
 
@@ -307,74 +421,115 @@ export class Reports implements OnInit {
     if (storedUser) {
       this.user = JSON.parse(storedUser);
 
-      // Set default location
-      if (
-        this.user.indus_circle === 'Upper North (HP)' ||
-        this.user.indus_circle === 'Upper North (JK)' ||
-        this.user.indus_circle === 'Upper North (HAR)' ||
-        this.user.indus_circle === 'Upper North (PUN)'
-      ) {
-        this.location = 'Upper North';
-      } else if (this.user.indus_circle === 'All Circle') {
+      if (this.user.indus_circle === 'All Circle' || this.user.circle === '') {
         this.location = 'M&G';
       } else {
         this.location = this.user.indus_circle;
       }
-
-      // If user has no circle
-      if (this.user.circle === '') {
-        this.location = 'M&G';
-        this.getUserCurrentLocation();
-        this.safeDetectChanges();
-      }
+    } else {
+      this.location = 'M&G';
     }
 
-    // Load dropdown (only once)
-    this.loadCircleListForDropdown();
+    await this.loadCircleListForDropdown();
 
-    // MAIN: Run all reports only when circle changes
-    this.WeatherService.circleChangedIs$.subscribe((circle: string) => {
-      if (!circle) return;
+    const selectedCircle = this.circleOptions.find(
+      (option: any) => option.label === this.location
+    );
 
-      if (
-        circle === 'Upper North (HP)' ||
-        circle === 'Upper North (JK)' ||
-        circle === 'Upper North (HAR)' ||
-        circle === 'Upper North (PUN)'
-      ) {
-        this.location = 'Upper North';
-      } else if (circle === 'All Circle') {
-        this.location = 'M&G';
-      } else {
-        this.location = circle;
-      }
+    this.circleFullName = selectedCircle.full_name;
 
-      // this.location = circle === 'All Circle' ? 'M&G' : circle;
+    this.WeatherService.circleChangedIs$.subscribe((circleArray) => {
+      if (!circleArray || circleArray.length === 0) return;
 
-      // All API calls ONCE
+      this.location =
+        circleArray[0]?.label === 'All Circle' ? 'M&G' : circleArray[0]?.label;
+      this.circleFullName = circleArray[0]?.full_name;
+
+      // Run ALL dependent APIs
       this.fetchWeatherData();
       this.fetchSeverityKPIRanges();
       this.fetch7daysForecastData();
       this.fetchlegend_with_color();
       this.fetchDistrictNamesHazardWise();
 
-      // Tabs refresh
+      // Refresh KPI tabs
       this.setActive(this.activeTab);
       this.setActiveHaz(this.activeHazTab);
 
       this.safeDetectChanges();
     });
 
-    this.setActive('rainfall');
-    this.setActiveHaz('Flood');
     this.fetchWeatherData();
     this.fetchSeverityKPIRanges();
     this.fetch7daysForecastData();
     this.fetchlegend_with_color();
     this.fetchDistrictNamesHazardWise();
-    // this.getDateLabels();
+
+    // Refresh KPI tabs
+    this.setActive(this.activeTab);
+    this.setActiveHaz(this.activeHazTab);
+
+    this.safeDetectChanges();
   }
 
+  onWPBDClick() {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: {
+        circle_weather_param_breakdown_view: 'true',
+      },
+    };
+    this.updateWeatherLogTable(payload);
+  }
+  onTRIDWPClick() {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: {
+        circle_today_risk_weather_view: 'true',
+      },
+    };
+    this.updateWeatherLogTable(payload);
+  }
+  onTRIDHZClick() {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: {
+        circle_today_risk_hazard_view: 'true',
+      },
+    };
+    this.updateWeatherLogTable(payload);
+  }
+  onWeatheForecastClick() {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: {
+        circle_weather_forecast_view: 'true',
+      },
+    };
+    this.updateWeatherLogTable(payload);
+  }
+  onHazardForecastClick() {
+    const payload = {
+      type: 'update',
+      id: this.logId,
+      data: {
+        circle_hazard_forecast_view: 'true',
+      },
+    };
+    this.updateWeatherLogTable(payload);
+  }
+
+  updateWeatherLogTable(payload: Object) {
+    this.dataService.sendWeatherUserLog(payload).subscribe((res) => {
+      if (res?.status === 'success') {
+        // console.log('Weather log updated');
+      }
+    });
+  }
   towerData: any = [];
   // in Reports class
   fetch7daysForecastData() {
@@ -431,7 +586,15 @@ export class Reports implements OnInit {
       .subscribe({
         next: (res: any) => {
           if (res?.status === 'success') {
+            res.data.fog = {
+              extreme: '<=0.05',
+              high: '0.05-0.3',
+              moderate: '0.3-1',
+              low: '>1',
+            };
+
             this.legendData = res.data;
+
             const color = res.data.color;
 
             if (color) {
@@ -500,7 +663,7 @@ export class Reports implements OnInit {
   fetchSeverityKPIRanges = () => {
     try {
       this.dataService
-        .postData('/fetch-kpi-range')
+        .postRequest('fetch-kpi-range')
         .pipe(
           catchError((error: any) => {
             const errorMessage =
@@ -544,7 +707,7 @@ export class Reports implements OnInit {
     try {
       const payload = { circle: this.location };
 
-      // 🚀 Run API + mapping outside Angular to avoid UI blocking
+      //  Run API + mapping outside Angular to avoid UI blocking
       this.ngZone.runOutsideAngular(() => {
         this.dataService
           .postRequest('/fetch_district_wise_KPI_values', payload)
@@ -678,7 +841,7 @@ export class Reports implements OnInit {
       const payload = { circle: this.location };
 
       this.dataService
-        .postRequest('/fetch_district_names_severity_wise', payload)
+        .postRequest('fetch_district_names_severity_wise', payload)
         .pipe(
           catchError((error: any) => {
             const errorMessage =
@@ -714,7 +877,7 @@ export class Reports implements OnInit {
       const payload = { circle: this.location };
 
       this.dataService
-        .postData('get-hazard-affected-district', payload)
+        .postRequest('get-hazard-affected-district', payload)
         .pipe(
           catchError((error: any) => {
             const errorMessage =
@@ -727,7 +890,6 @@ export class Reports implements OnInit {
           next: (response: any) => {
             if (response?.data) {
               const d = response.data[0];
-
               this.responseDataHazardWise = {
                 Avalanche: {
                   extreme: d.Avalanche?.Extreme || [],
@@ -765,12 +927,13 @@ export class Reports implements OnInit {
                   moderate: d.Snowfall?.Moderate || [],
                   low: d.Snowfall?.Low || [],
                 },
+                Fog: {
+                  extreme: d.Fog?.Extreme || [],
+                  high: d.Fog?.High || [],
+                  moderate: d.Fog?.Moderate || [],
+                  low: d.Fog?.Low || [],
+                },
               };
-
-              // console.log(
-              //   'Final hazard-wise severity:',
-              //   this.responseDataHazardWise
-              // );
             }
           },
 
@@ -786,34 +949,21 @@ export class Reports implements OnInit {
   /* Load Circle list dropdown */
   async loadCircleListForDropdown() {
     try {
-      const userRole = this.user.userrole;
-      const userCircle = this.user.indus_circle;
+      const isSuperUser = ['Admin', 'MLAdmin'].includes(this.user.userrole);
 
-      // If normal user → show only their circle, skip API
-      if (!['Admin', 'MLAdmin'].includes(userRole)) {
-        this.circleOptions = [
-          {
-            value: userCircle,
-            label: userCircle,
-          },
-        ];
-        this.safeDetectChanges();
-        return;
-      }
-
-      // Admin / MLAdmin → fetch full list
-      const apiPayload = { circle: 'All Circle' };
+      const apiPayload = { circle: isSuperUser ? 'All Circle' : this.location };
 
       const res: any = await this.dataService
-        .postData('get_circle_list', apiPayload)
+        .postRequest('get_circle_list', apiPayload)
         .toPromise();
 
       if (res?.status && Array.isArray(res?.data)) {
         this.circleOptions = res.data
-          .filter((item: any) => item.circle !== 'All Circle')
+          .filter((item: any) => item.label !== 'All Circle')
           .map((item: any) => ({
-            value: item.location,
-            label: item.circle,
+            value: item.value,
+            label: item.label,
+            full_name: item.full_name,
           }))
           .sort((a: any, b: any) => a.label.localeCompare(b.label));
       } else {
@@ -839,9 +989,10 @@ export class Reports implements OnInit {
     const payload = {
       circle: this.selectedPDFCircle,
     };
+
     let circle_pdf_url = '';
     this.dataService
-      .postData('/generate_pdf_link', payload)
+      .postRequest('/generate_pdf_link', payload)
       .pipe(
         catchError((error) => {
           const errorMessage = error?.error?.message || 'Internal Server Error';
@@ -1024,7 +1175,6 @@ export class Reports implements OnInit {
         .subscribe({
           next: (res: any) => {
             if (res.status !== 'success' || !res.data?.length) {
-              console.warn('No weather data found for circle:', location);
               this.loading = false;
               return;
             }
@@ -1054,8 +1204,8 @@ export class Reports implements OnInit {
               {
                 label: 'Wind',
                 icon: `<i class="fa-solid fa-compass"></i>`,
-                max: `${weather.wind_max} km/h`,
-                min: `${weather.wind_min} km/h`,
+                max: `${weather.wind_max} kmph`,
+                min: `${weather.wind_min} kmph`,
               },
               {
                 label: 'Visibility',
@@ -1065,7 +1215,7 @@ export class Reports implements OnInit {
               },
             ];
 
-            // 🔹 Handle optional timestamps gracefully
+            //  Handle optional timestamps gracefully
             const currentTime = res?.location?.localtime;
             const lastUpdated = res?.current?.last_updated;
             this.currentTime = this.formatDateTime(currentTime);
@@ -1107,7 +1257,7 @@ export class Reports implements OnInit {
     }
   };
 
-  // --- Helper: Determine UP or NE region tag
+  //  Helper: Determine UP or NE region tag
   getRegionTag(name: string, region: string): string | null {
     if (this.UP_West.includes(name) || this.UP_West.includes(region)) {
       return `${name}, UP West`;
@@ -1161,6 +1311,20 @@ export class Reports implements OnInit {
     }
 
     return this.datesRange;
+  }
+
+  getDateLabelshaz(): string[] {
+    const today = new Date();
+    this.datesRangeHaz = [];
+
+    // Normal single dates
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      this.datesRangeHaz.push(this.formatShortDate(d));
+    }
+
+    return this.datesRangeHaz;
   }
 
   formatShortDate(d: Date): string {
@@ -1528,7 +1692,6 @@ export class Reports implements OnInit {
       });
     });
     const yAxisMax = Math.max(...columnsSum);
-
     this.barChartData1 = {
       labels: labelsData,
       datasets: this.severityColorBarChart

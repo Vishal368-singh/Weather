@@ -51,7 +51,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       editMode: false,
     },
     {
-      name: 'Wind (km/h)',
+      name: 'Wind (kmph)',
       field: 'wind',
       extreme: '',
       high: '',
@@ -78,7 +78,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
       editMode: false,
     },
     {
-      name: 'Humidity',
+      name: 'Humidity (%)',
       field: 'humidity',
       extreme: '',
       high: '',
@@ -245,7 +245,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
   fetchKPIRanges = () => {
     try {
       this.dataService
-        .postData('/fetch-kpi-range')
+        .postRequest('/fetch-kpi-range')
         .pipe(
           catchError((error: any) => {
             const errorMessage = error?.error?.message || 'Internal Server';
@@ -276,26 +276,47 @@ export class SeverityRanges implements OnInit, AfterViewInit {
 
       // Fetch circle list from API
       const res: any = await this.dataService
-        .postData('get_circle_list', apiPayload)
+        .postRequest('get_circle_list', apiPayload)
         .toPromise();
 
       // Validate and map API response
-      if (res?.status && Array.isArray(res.data)) {
-        this.circles = res.data
-          .filter(
-            (item: { circle: string; location: string }) =>
-              item.circle !== 'All Circle'
-          )
-          .map((item: { circle: string; location: string }) => ({
-            value: item.circle,
-            location: item.location,
-          }))
-          .sort(
-            (
-              a: { value: string; location: string },
-              b: { value: string; location: string }
-            ) => a.value.localeCompare(b.value)
+      // Normalize server response to this.circles (backwards-compatible & robust)
+      if (res) {
+        // Prefer array at res.data if present
+        const items: any[] = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+          ? res
+          : [];
+
+        if (items.length) {
+          // map to uniform shape, filter out "All Circle", dedupe by label, then sort
+          const mapped = items
+            .map((it: any) => ({
+              value: it.label ?? it.circle ?? '',
+              location: it.value ?? it.location ?? '',
+              full_name: it.full_name ?? it.fullName ?? '',
+            }))
+            .filter((it: any) => (it.value ?? '').trim() !== 'All Circle');
+
+          // dedupe by value (label) keeping first occurrence
+          const seen = new Set<string>();
+          this.circles = mapped.filter((it: any) => {
+            const key = (it.value ?? '').trim();
+            if (!key) return false;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          // sort by label/value
+          this.circles.sort((a: any, b: any) =>
+            (a.value ?? '').localeCompare(b.value ?? '')
           );
+        } else {
+          // fallback to empty
+          this.circles = [];
+        }
       } else {
         console.error(
           '❌ Failed to load circle list: Invalid API response format'
@@ -466,7 +487,7 @@ export class SeverityRanges implements OnInit, AfterViewInit {
     );
 
     // Send API
-    this.dataService.postData('/update-kpi-range', payload).subscribe(
+    this.dataService.postRequest('/update-kpi-range', payload).subscribe(
       (response) => {
         if (response.status === 'success') {
           this.snackBar.open(response.message, 'X', {

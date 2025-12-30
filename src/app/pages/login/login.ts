@@ -5,17 +5,19 @@ import {
   ViewChild,
   ElementRef,
   HostListener,
+  Inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../data-service/data-service';
 import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { EMPTY, throwError } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { WeatherService } from '../../services/weather';
 import { DateTimeService } from '../../services/date-time';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-login',
@@ -35,22 +37,45 @@ export class Login implements AfterViewInit {
   isTablet: any = '';
   isDesktop: any = '';
   isLoading: boolean = false;
-
+  typeSelected = 'ball-spin-clockwise';
   private ctx!: CanvasRenderingContext2D;
   private width!: number;
   private height!: number;
   private dots: any[] = [];
   private config = { dotCount: 70, maxDistance: 150 };
+  openPopupModal: boolean = false;
+  alreadyLoggedUser: string = '';
+  alreadyLoggedDevice: string = '';
+  alreadyLogID: any;
+  alreadyLoggedUserID: string = '';
+  lastLoggedTime: string = '';
 
   constructor(
     private dataService: DataService,
     private router: Router,
     private deviceService: DeviceDetectorService,
-    private weatherService: WeatherService,
+    private WeatherService: WeatherService,
     private dateTimeService: DateTimeService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    let storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user.userrole === 'H_MGMT') {
+        this.router.navigate(['/hazards-feed'], {
+          queryParams: { from: 'login' },
+        });
+      } else {
+        this.router.navigate(['/dashboard'], {
+          queryParams: { from: 'login' },
+        });
+      }
+
+      return;
+    }
+  }
+  ngOnInit(): void {}
 
   ngAfterViewInit() {
     const canvas = this.canvasRef.nativeElement;
@@ -64,6 +89,32 @@ export class Login implements AfterViewInit {
   onResize() {
     this.resizeCanvas();
     this.createDots();
+  }
+
+  onCancel(): void {
+    this.openPopupModal = false; // user cancelled
+  }
+
+  /** Confirm force logout */
+  onForceLogout(): void {
+    const payload = {
+      userId: this.alreadyLoggedUserID,
+      logId: this.alreadyLogID,
+    };
+    this.dataService
+      .forceLogout('force-logout', payload)
+      .subscribe((res: any) => {
+        if (res.status === 'success') {
+          this.openPopupModal = false;
+          this.snackBar.open(res.msg, 'X', {
+            duration: 2000, // auto close after 3s
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['custom-success-snackbar'],
+          });
+        }
+        this.cdr.detectChanges();
+      });
   }
 
   private resizeCanvas() {
@@ -154,11 +205,24 @@ export class Login implements AfterViewInit {
     };
 
     this.dataService
-      .postData(`userLogin`, params)
+      .login(params)
       .pipe(
         catchError((error) => {
+          // Handle already logged-in case
+          if (error?.error?.status === 'already_logged_in') {
+            this.isLoading = false;
+            const data = error?.error?.data;
+            this.alreadyLoggedUser = data.name;
+            this.alreadyLoggedDevice = data.loggedin_device;
+            this.lastLoggedTime = data.login_time;
+            this.alreadyLogID = data.log_id;
+            this.alreadyLoggedUserID = data.userid;
+            this.openPopupModal = true;
+            this.cdr.detectChanges();
+            return EMPTY;
+          }
           const errorMessage =
-            error?.error?.message || 'Login failed. Please try again.';
+            error?.error?.msg || 'Login failed. Please try again.';
           this.snackBar.open(errorMessage, 'X', {
             duration: 2000, // auto close after 3s
             horizontalPosition: 'center',
@@ -171,64 +235,23 @@ export class Login implements AfterViewInit {
         })
       )
       .subscribe((res: any) => {
-        if (res?.token) {
-          localStorage.setItem('user', JSON.stringify(res.resultUser));
-          localStorage.setItem('token', res.token);
-
-          this.deviceInfo = this.deviceService.getDeviceInfo();
-          const Dev_Type = this.deviceInfo.deviceType;
-          const Dev_Os = this.deviceInfo.os;
-          const Dev_Brow = this.deviceInfo.browser;
-          const Dev_Os_ver = this.deviceInfo.os_version;
-
-          const { formattedDate, formattedTime } =
-            this.dateTimeService.getCurrentDateTime();
-
-          let payload = {
-            type: 'login',
-            data: {
-              userid: res.resultUser.userid,
-              username: res.resultUser.username,
-              loggedin_device: `${Dev_Type}-${Dev_Os}-${Dev_Brow}-${Dev_Os_ver}`,
-              login_time: `${formattedDate} ${formattedTime}`,
-            },
-          };
+        const data = res.data;
+        if (data?.token) {
+          localStorage.setItem('user', JSON.stringify(data.resultUser));
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('logId', data.logId);
           this.isLoading = false;
-          //  IMMEDIATE NAVIGATION (NO WAITING)
           // Immediately navigate user
-          if (res.resultUser.userrole === 'H_MGMT') {
+          if (data.resultUser.userrole === 'H_MGMT') {
             this.router.navigate(['/hazards-feed'], {
               queryParams: { from: 'login' },
             });
           } else {
+            this.WeatherService.setCircleLabelClicked(false);
             this.router.navigate(['/dashboard'], {
               queryParams: { from: 'login' },
             });
           }
-
-          // Fire user activity log in background (non-blocking)
-          setTimeout(() => {
-            this.dataService
-              .sendWeatherUserLog(`weather_user_activity`, payload)
-              .subscribe({
-                next: (res: any) => {
-                  if (res?.status === 'success') {
-                    localStorage.setItem('logId', res.id);
-                    this.weatherService.setWeatherLogId(res.id);
-                  }
-                },
-                error: () => {},
-              });
-          }, 0);
-          
-        } else {
-          this.isLoading = false;
-          this.snackBar.open('Invalid login response', 'X', {
-            duration: 2000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['custom-error-snackbar'],
-          });
         }
       });
   }

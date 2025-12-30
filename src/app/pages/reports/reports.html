@@ -7,7 +7,7 @@
             class="bg-light d-flex flex-column justify-content-between w-100"
           >
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="text-success mb-0">{{ location }}</h5>
+              <h5 class="text-success mb-0">{{ circleFullName }}</h5>
 
               <div class="dropdown circle-dropdown-map">
                 <button
@@ -31,6 +31,7 @@
                     [value]="selectedPDFCircle"
                     (change)="pdfdownload($event)"
                     size="6"
+                    [attr.size]="circleOptions.length > 6 ? 6 : circleOptions.length+1"
                   >
                     <ng-container *ngFor="let option of circleOptions">
                       <option [value]="option.value">{{ option.label }}</option>
@@ -88,6 +89,7 @@
               aria-expanded="true"
               aria-controls="barSection"
               style="font-size: 20px"
+              (click)="onWPBDClick(); $event.stopPropagation()"
             >
               Weather Parameter Breakdown
             </button>
@@ -191,7 +193,7 @@
                         <div class="weather-icon me-2">
                           <i class="fas fa-cloud-showers-heavy"></i>
                         </div>
-                        Rainfall
+                        Rainfall (mm)
                       </div>
                     </th>
 
@@ -203,7 +205,7 @@
                         <div class="weather-icon me-2">
                           <i class="fa-solid fa-wind"></i>
                         </div>
-                        Wind
+                        Wind (kmph)
                       </div>
                     </th>
 
@@ -215,7 +217,7 @@
                         <div class="weather-icon me-2">
                           <i class="fa-solid fa-droplet"></i>
                         </div>
-                        Humidity
+                        Humidity (%)
                       </div>
                     </th>
                     <th>
@@ -226,7 +228,7 @@
                         <div class="weather-icon me-2">
                           <i class="fas fa-solid fa-eye"></i>
                         </div>
-                        Visibility
+                        Visibility (km)
                       </div>
                     </th>
 
@@ -238,7 +240,7 @@
                         <div class="weather-icon me-2">
                           <i class="fa-solid fa-temperature-half"></i>
                         </div>
-                        Temp (max)
+                        Temp (max) (°C)
                       </div>
                     </th>
 
@@ -250,7 +252,7 @@
                         <div class="weather-icon me-2">
                           <i class="fa-solid fa-temperature-half"></i>
                         </div>
-                        Temp (min)
+                        Temp (min) (°C)
                       </div>
                     </th>
                   </tr>
@@ -298,6 +300,7 @@
               aria-expanded="false"
               aria-controls="collapseSeverity"
               style="font-size: 20px"
+              (click)="onTRIDWPClick(); $event.stopPropagation()"
             >
               Today's Risk Intensity of Districts for Weather Parameters
             </button>
@@ -335,6 +338,14 @@
                     <tbody>
                       <!-- RAINFALL -->
                       <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fas fa-cloud-showers-heavy"></i>
+                            </div>
+                            Rainfall
+                          </div>
+                        </td>
                         <td>
                           {{
                           responseDataSeverityWise?.Rainfall?.extreme_districts?.join(',
@@ -551,6 +562,7 @@
               aria-expanded="false"
               aria-controls="headinghazard"
               style="font-size: 20px"
+              (click)="onTRIDHZClick(); $event.stopPropagation()"
             >
               Today's Risk Intensity of Districts for Hazard
             </button>
@@ -584,34 +596,6 @@
 
                     <!-- TABLE BODY -->
                     <tbody>
-                      <!-- Flood -->
-                      <tr>
-                        <td>
-                          <div class="d-flex align-items-center gap-3">
-                            <div class="weather-icon">
-                              <i class="fas fa-water"></i>
-                            </div>
-                            <span>Flood</span>
-                          </div>
-                        </td>
-                        <td>
-                          {{responseDataHazardWise?.Flood?.extreme.join(', ') ||
-                          "Nil" }}
-                        </td>
-                        <td>
-                          {{ responseDataHazardWise?.Flood?.high.join(', ') ||
-                          "Nil" }}
-                        </td>
-                        <td>
-                          {{ responseDataHazardWise?.Flood?.moderate.join(', ')
-                          || "Nil" }}
-                        </td>
-                        <td>
-                          {{ responseDataHazardWise?.Flood?.low.join(', ') ||
-                          "Nil" }}
-                        </td>
-                      </tr>
-
                       <!-- Cyclone -->
                       <tr>
                         <td>
@@ -649,30 +633,58 @@
                         </td>
                       </tr>
 
-                      <!-- Snowfall -->
+                      <!-- Lightning -->
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
                             <div class="weather-icon">
-                              <i class="fa-solid fa-snowflake"></i>
+                              <i class="fa-solid fa-bolt-lightning"></i>
                             </div>
-                            Snowfall
+                            Lightning
                           </div>
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Snowfall?.extreme.join(',
+                          {{ responseDataHazardWise?.Lightning?.extreme.join(',
                           ') || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Snowfall?.high.join(', ')
+                          {{ responseDataHazardWise?.Lightning?.high.join(', ')
                           || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Snowfall?.moderate.join(',
+                          {{ responseDataHazardWise?.Lightning?.moderate.join(',
                           ') || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Snowfall?.low.join(', ') ||
+                          {{ responseDataHazardWise?.Lightning?.low.join(', ')
+                          || "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!-- Flood -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fas fa-water"></i>
+                            </div>
+                            <span>Flood</span>
+                          </div>
+                        </td>
+                        <td>
+                          {{responseDataHazardWise?.Flood?.extreme.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.high.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.moderate.join(', ')
+                          || "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Flood?.low.join(', ') ||
                           "Nil" }}
                         </td>
                       </tr>
@@ -705,31 +717,59 @@
                         </td>
                       </tr>
 
-                      <!-- Lightning -->
+                      <!-- Snowfall -->
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-3">
                             <div class="weather-icon">
-                              <i class="fa-solid fa-bolt-lightning"></i>
+                              <i class="fa-solid fa-snowflake"></i>
                             </div>
-                            Lightning
+                            Snowfall
                           </div>
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Lightning?.extreme.join(',
+                          {{ responseDataHazardWise?.Snowfall?.extreme.join(',
                           ') || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Lightning?.high.join(', ')
+                          {{ responseDataHazardWise?.Snowfall?.high.join(', ')
                           || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Lightning?.moderate.join(',
+                          {{ responseDataHazardWise?.Snowfall?.moderate.join(',
                           ') || "Nil" }}
                         </td>
                         <td>
-                          {{ responseDataHazardWise?.Lightning?.low.join(', ')
-                          || "Nil" }}
+                          {{ responseDataHazardWise?.Snowfall?.low.join(', ') ||
+                          "Nil" }}
+                        </td>
+                      </tr>
+
+                      <!-- Fog -->
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="weather-icon">
+                              <i class="fas fa-solid fa-smog"></i>
+                            </div>
+                            Fog
+                          </div>
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Fog?.extreme.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Fog?.high.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Fog?.moderate.join(', ') ||
+                          "Nil" }}
+                        </td>
+                        <td>
+                          {{ responseDataHazardWise?.Fog?.low.join(', ') ||
+                          "Nil" }}
                         </td>
                       </tr>
                     </tbody>
@@ -751,6 +791,7 @@
               aria-expanded="false"
               aria-controls="collapseForecast"
               style="font-size: 20px"
+              (click)="onWeatheForecastClick(); $event.stopPropagation()"
             >
               Weather Forecast
             </button>
@@ -914,107 +955,116 @@
                   </div>
 
                   <!-- TABLE -->
-                  <div class="tableoverflow">
-                    <table>
-                      <thead>
-                        <!-- DEFAULT HEADER -->
-                        <ng-container
-                          *ngIf="activeTab !== 'temperature' && activeTab !== 'accu_rainfall'"
-                        >
-                          <tr class="district">
-                            <th rowspan="3" class="text-start">Districts</th>
-                            <th colspan="3" class="group-header">
-                              Short Range Prediction
-                            </th>
-                            <th colspan="4" class="group-header">
-                              Long Range Prediction
-                            </th>
-                          </tr>
-
-                          <tr class="district">
-                            <th *ngFor="let d of datesRange">{{ d }}</th>
-                          </tr>
-                        </ng-container>
-
-                        <!-- ACCUMULATED RAINFALL HEADER -->
-                        <ng-container *ngIf="activeTab === 'accu_rainfall'">
-                          <tr class="district">
-                            <th class="text-start">Districts</th>
-                            <th *ngFor="let d of datesRange.slice(0,3)">
-                              {{ d }}
-                            </th>
-                          </tr>
-                        </ng-container>
-
-                        <!-- TEMPERATURE HEADER -->
-                        <ng-container *ngIf="activeTab === 'temperature'">
-                          <tr class="district">
-                            <th rowspan="3" style="width: 80px">Districts</th>
-                            <th colspan="6" class="short-range">
-                              Short Range Prediction
-                            </th>
-                            <th colspan="8" class="long-range">
-                              Long Range Prediction
-                            </th>
-                          </tr>
-
-                          <tr class="district">
-                            <ng-container *ngFor="let d of datesRange">
-                              <th colspan="2">{{ d }}</th>
-                            </ng-container>
-                          </tr>
-
-                          <tr class="district">
-                            <ng-container *ngFor="let d of datesRange">
-                              <th style="width: 30px">Min</th>
-                              <th style="width: 30px">Max</th>
-                            </ng-container>
-                          </tr>
-                        </ng-container>
-                      </thead>
-
-                      <tbody>
-                        <tr *ngFor="let rec of responseDataDistrictWise">
-                          <!-- DISTRICT NAME -->
-                          <td class="text-start">{{ rec.district }}</td>
-
-                          <!-- TEMPERATURE BODY -->
-                          <ng-container *ngIf="activeTab === 'temperature'">
-                            <ng-container *ngFor="let i of [1,2,3,4,5,6,7]">
-                              <td
-                                [ngClass]="'min' + rec['min' + i + '_severity']"
-                              >
-                                {{ rec['min' + i] }} {{ activeKPIUnit }}
-                              </td>
-
-                              <td [ngClass]="rec['day' + i + '_severity']">
-                                {{ rec['day' + i] }} {{ activeKPIUnit }}
-                              </td>
-                            </ng-container>
-                          </ng-container>
-
-                          <!-- ACCUMULATED RAINFALL BODY -->
-                          <ng-container *ngIf="activeTab === 'accu_rainfall'">
-                            <ng-container *ngFor="let i of [1,2,3]">
-                              <td [ngClass]="rec['day' + i + '_severity']">
-                                {{ rec['day' + i] }} {{ activeKPIUnit }}
-                              </td>
-                            </ng-container>
-                          </ng-container>
-
-                          <!-- DEFAULT KPI BODY -->
+                  <!-- <div class="tableoverflow"> -->
+                  <div class="table-wrapper">
+                    <div class="table-scroll">
+                      <table>
+                        <thead>
+                          <!-- DEFAULT HEADER -->
                           <ng-container
                             *ngIf="activeTab !== 'temperature' && activeTab !== 'accu_rainfall'"
                           >
-                            <ng-container *ngFor="let i of [1,2,3,4,5,6,7]">
-                              <td [ngClass]="rec['day' + i + '_severity']">
-                                {{ rec['day' + i] }} {{ activeKPIUnit }}
-                              </td>
-                            </ng-container>
+                            <tr class="district">
+                              <th rowspan="3" class="text-start">Districts</th>
+                              <th colspan="3" class="group-header">
+                                Short Range Prediction
+                              </th>
+                              <th colspan="4" class="group-header">
+                                Long Range Prediction
+                              </th>
+                            </tr>
+
+                            <tr class="district">
+                              <th *ngFor="let d of datesRange">{{ d }}</th>
+                            </tr>
                           </ng-container>
-                        </tr>
-                      </tbody>
-                    </table>
+
+                          <!-- ACCUMULATED RAINFALL HEADER -->
+                          <ng-container *ngIf="activeTab === 'accu_rainfall'">
+                            <tr class="district">
+                              <th class="text-start">Districts</th>
+                              <th *ngFor="let d of datesRange.slice(0,3)">
+                                {{ d }}
+                              </th>
+                            </tr>
+                          </ng-container>
+
+                          <!-- TEMPERATURE HEADER -->
+                          <ng-container *ngIf="activeTab === 'temperature'">
+                            <tr class="district">
+                              <th
+                                rowspan="3"
+                                style="width: 60px"
+                                class="text-start"
+                              >
+                                Districts
+                              </th>
+                              <th colspan="6" class="short-range">
+                                Short Range Prediction
+                              </th>
+                              <th colspan="8" class="long-range">
+                                Long Range Prediction
+                              </th>
+                            </tr>
+
+                            <tr class="district">
+                              <ng-container *ngFor="let d of datesRange">
+                                <th colspan="2">{{ d }}</th>
+                              </ng-container>
+                            </tr>
+
+                            <tr class="district">
+                              <ng-container *ngFor="let d of datesRange">
+                                <th style="width: 30px">Min</th>
+                                <th style="width: 30px">Max</th>
+                              </ng-container>
+                            </tr>
+                          </ng-container>
+                        </thead>
+
+                        <tbody>
+                          <tr *ngFor="let rec of responseDataDistrictWise">
+                            <!-- DISTRICT NAME -->
+                            <td class="text-start">{{ rec.district }}</td>
+
+                            <!-- TEMPERATURE BODY -->
+                            <ng-container *ngIf="activeTab === 'temperature'">
+                              <ng-container *ngFor="let i of [1,2,3,4,5,6,7]">
+                                <td
+                                  [ngClass]="'min' + rec['min' + i + '_severity']"
+                                >
+                                  {{ rec['min' + i] }} {{ activeKPIUnit }}
+                                </td>
+
+                                <td [ngClass]="rec['day' + i + '_severity']">
+                                  {{ rec['day' + i] }} {{ activeKPIUnit }}
+                                </td>
+                              </ng-container>
+                            </ng-container>
+
+                            <!-- ACCUMULATED RAINFALL BODY -->
+                            <ng-container *ngIf="activeTab === 'accu_rainfall'">
+                              <ng-container *ngFor="let i of [1,2,3]">
+                                <td [ngClass]="rec['day' + i + '_severity']">
+                                  {{ rec['day' + i] }} {{ activeKPIUnit }}
+                                </td>
+                              </ng-container>
+                            </ng-container>
+
+                            <!-- DEFAULT KPI BODY -->
+                            <ng-container
+                              *ngIf="activeTab !== 'temperature' && activeTab !== 'accu_rainfall'"
+                            >
+                              <ng-container *ngFor="let i of [1,2,3,4,5,6,7]">
+                                <td [ngClass]="rec['day' + i + '_severity']">
+                                  {{ rec['day' + i] }} {{ activeKPIUnit }}
+                                </td>
+                              </ng-container>
+                            </ng-container>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1033,6 +1083,7 @@
               aria-expanded="false"
               aria-controls="collapseHazard"
               style="font-size: 20px"
+              (click)="onHazardForecastClick(); $event.stopPropagation()"
             >
               Hazard Forecast
             </button>
@@ -1048,14 +1099,6 @@
               <div
                 class="summary-table-container d-flex flex-wrap gap-3 mb-4 mt-4"
               >
-                <button
-                  class="btn btn-outline-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2"
-                  [ngClass]="{ 'active': activeHazTab === 'Flood' }"
-                  (click)="setActiveHaz('Flood')"
-                >
-                  <i class="fas fa-water"></i> Flood
-                </button>
-
                 <button
                   class="btn btn-outline-success justify-content-center"
                   [ngClass]="{ 'active': activeHazTab === 'Cyclone' }"
@@ -1081,10 +1124,19 @@
 
                 <button
                   class="btn btn-outline-success"
-                  [ngClass]="{ 'active': activeHazTab === 'Snowfall' }"
-                  (click)="setActiveHaz('Snowfall')"
+                  [ngClass]="{ 'active': activeHazTab === 'Lightning' }"
+                  (click)="setActiveHaz('Lightning')"
                 >
-                  <i class="fa-solid fa-snowflake"></i> Snowfall
+                  <i class="fa-solid fa-bolt-lightning"></i>
+                  Lightning
+                </button>
+
+                <button
+                  class="btn btn-outline-success btn-sm px-2 py-1 text-nowrap d-flex align-items-center justify-content-center gap-2"
+                  [ngClass]="{ 'active': activeHazTab === 'Flood' }"
+                  (click)="setActiveHaz('Flood')"
+                >
+                  <i class="fas fa-water"></i> Flood
                 </button>
 
                 <button
@@ -1094,25 +1146,24 @@
                 >
                   <i class="fas fa-mountain"></i> Avalanche
                 </button>
+
                 <button
                   class="btn btn-outline-success"
-                  [ngClass]="{ 'active': activeHazTab === 'Lightning' }"
-                  (click)="setActiveHaz('Lightning')"
+                  [ngClass]="{ 'active': activeHazTab === 'Snowfall' }"
+                  (click)="setActiveHaz('Snowfall')"
                 >
-                  <i class="fa-solid fa-bolt-lightning"></i>
-                  Lightning
+                  <i class="fa-solid fa-snowflake"></i> Snowfall
                 </button>
 
-                <!-- 
                 <button
                   class="btn btn-outline-success"
-                  [ngClass]="{ 'active': activeHazTab === 'Landslide' }"
-                  (click)="setActiveHaz('Landslide')"
+                  [ngClass]="{ 'active': activeHazTab === 'Fog' }"
+                  (click)="setActiveHaz('Fog')"
                 >
-                  <i class="fa-solid fa-mountain-city"></i>
+                  <i class="fa-solid fa-smog"></i>
 
-                  Landslide
-                </button> -->
+                  Fog
+                </button>
 
                 <!-- <button
                   class="btn btn-outline-success"
@@ -1173,60 +1224,62 @@
                   </div>
 
                   <!-- TABLE -->
-                  <div>
-                    <table>
-                      <thead>
-                        <tr class="district">
-                          <th rowspan="2" class="text-start">Districts</th>
-                          <th colspan="3" class="group-header">
-                            Short Range Prediction
-                          </th>
-                          <th colspan="4" class="group-header">
-                            Long Range Prediction
-                          </th>
-                        </tr>
+                  <div class="table-wrapper">
+                    <div class="table-scroll">
+                      <table>
+                        <thead>
+                          <tr class="district">
+                            <th rowspan="2" class="text-start">Districts</th>
+                            <th colspan="3" class="group-header">
+                              Short Range Prediction
+                            </th>
+                            <th colspan="4" class="group-header">
+                              Long Range Prediction
+                            </th>
+                          </tr>
 
-                        <tr class="district">
-                          <th *ngFor="let d of datesRange">{{ d }}</th>
-                        </tr>
+                          <tr class="district">
+                            <th *ngFor="let d of datesRangeHaz">{{ d }}</th>
+                          </tr>
 
-                        <!-- <th rowspan="3" class="text-start">Districts</th>
+                          <!-- <th rowspan="3" class="text-start">Districts</th>
                         
                       </tr>
 
                       <tr class="district">
-                        <th *ngFor="let d of datesRange">{{ d }}</th>
+                        <th *ngFor="let d of datesRangeHaz">{{ d }}</th>
                       </tr> -->
-                      </thead>
+                        </thead>
 
-                      <tbody>
-                        <tr *ngFor="let haz of hazardData">
-                          <td class="text-start">{{ haz?.district }}</td>
+                        <tbody>
+                          <tr *ngFor="let haz of hazardData">
+                            <td class="text-start">{{ haz?.district }}</td>
 
-                          <td [ngClass]="haz?.Day1?.for_color">
-                            {{ haz?.Day1?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day2?.for_color">
-                            {{ haz?.Day2?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day3?.for_color">
-                            {{ haz?.Day3?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day4?.for_color">
-                            {{ haz?.Day4?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day5?.for_color">
-                            {{ haz?.Day5?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day6?.for_color">
-                            {{ haz?.Day6?.severity }}
-                          </td>
-                          <td [ngClass]="haz?.Day7?.for_color">
-                            {{ haz?.Day7?.severity }}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                            <td [ngClass]="haz?.Day1?.for_color">
+                              {{ haz?.Day1?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day2?.for_color">
+                              {{ haz?.Day2?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day3?.for_color">
+                              {{ haz?.Day3?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day4?.for_color">
+                              {{ haz?.Day4?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day5?.for_color">
+                              {{ haz?.Day5?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day6?.for_color">
+                              {{ haz?.Day6?.severity }}
+                            </td>
+                            <td [ngClass]="haz?.Day7?.for_color">
+                              {{ haz?.Day7?.severity }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>

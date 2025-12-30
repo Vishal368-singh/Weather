@@ -1,5 +1,5 @@
 <div
-  class="sidebar d-flex flex-column justify-content-between p-3 align-items-center"
+  class="sidebar d-flex flex-column justify-content-between p-1 align-items-center"
 >
   <!-- Top Content -->
   <div class="w-100 mobile-screen-bottom-panel">
@@ -14,11 +14,32 @@
         routerLinkActive="active"
       >
         <img src="assets/icons/dashboardIcon.svg" alt="Real-Time" />
-        <div class="menu-text">REAL-TIME</div>
+        <div class="menu-text">
+          <span>REAL-TIME</span>
+          <span>&nbsp;</span>
+        </div>
       </a>
     </div>
 
     <hr class="w-100 my-2" />
+
+    <!-- DISTRICT -->
+    <div class="menu-section-report text-center" *ngIf="userRole === 'MLAdmin'">
+      <div class="menu-title text-success fw-bold">DISTRICT</div>
+      <a
+        class="menu-item d-block"
+        routerLink="/district"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/District.svg" alt="District" />
+        <div class="menu-text">
+          <span>REAL-TIME</span>
+          <span>/HOURLY</span>
+        </div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" *ngIf="userRole === 'MLAdmin'" />
 
     <!-- REPORTS -->
     <div class="menu-section-report text-center">
@@ -32,20 +53,11 @@
         routerLinkActive="active"
       >
         <img src="assets/icons/circleLevelReports.svg" alt="CIRCLE LEVEL" />
-        <div class="menu-text">{{indus_circle}} CIRCLE</div>
+        <div class="menu-text">
+          <span>{{indus_circle}} Circle</span>
+          <span>&nbsp;</span>
+        </div>
       </a>
-
-      <!-- <a
-        class="menu-item d-block"
-        (click)="onPanIndiaClick()"
-        [class.isPanIndiaActive]="isPanIndiaEnabled"
-        [class.disabled]="!['Admin','MlAdmin'].includes(user.userrole)"
-        (click)="$event.preventDefault()"
-        title="Pan India Report"
-      >
-        <img src="assets/icons/PanIndia.svg" alt="PAN INDIA" />
-        <div class="menu-text">PAN INDIA</div>
-      </a> -->
 
       <a
         *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
@@ -58,56 +70,56 @@
         <img src="assets/icons/reports.svg" alt="USAGE" />
         <div class="menu-text">USAGE</div>
       </a>
+
+      <a
+        class="menu-item d-block"
+        routerLink="/cyclone"
+        routerLinkActive="active"
+        *ngIf="userRole === 'MLAdmin'"
+      >
+        <img src="assets/icons/cyclone2.svg" alt="Cyclone" />
+        <div class="menu-text">
+          <span>CYCLONE</span>
+          <span>&nbsp;</span>
+        </div>
+      </a>
     </div>
 
     <hr class="w-100 my-2" />
 
-    <!-- THVS -->
-    <!-- <div class="menu-section text-center">
-      <div class="menu-title text-success fw-bold">THVS</div>
-      <a
-        class="menu-item"
-        [class.disabled]="isTHVSDisabled"
-        (click)="onTHVScoreClick()"
-        [attr.title]="isTHVSDisabled ? 'Tower Hazard Vulnerability Score' : ''"
-        [routerLink]="isTHVSDisabled ? null : '/THVS'"
-        (click)="isTHVSDisabled ? $event.preventDefault() : null"
-      >
-        <img src="assets/icons/towerPanel.svg" alt="THV SCORE" />
-        <div class="menu-text">THV SCORE</div>
-      </a>
-    </div>
-
-    <hr class="w-100 my-2" /> -->
-
-    <!-- Profile -->
+    <!-- MANAGE -->
     <div
       *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
-      class="menu-section text-center"
+      class="menu-section-manage text-center"
     >
-      <div class="menu-title text-success fw-bold">MANAGE</div>
-      <!-- (click)="onProfileClick()" -->
+      <div class="menu-title text-success manage fw-bold">MANAGE</div>
+
       <a
         class="menu-item d-block"
         routerLink="/profile"
         routerLinkActive="active"
       >
-        <img src="assets/icons/users.svg" alt="Real-Time" />
-        <div class="menu-text">USERS</div>
+        <img src="assets/icons/users.svg" alt="Users" />
+        <div class="menu-text">
+          <span>USERS</span>
+          <span>&nbsp;</span>
+        </div>
       </a>
-      <!-- (click)="onSeverityRangesClick()" -->
 
       <a
-        class="menu-item d-block mt-2"
+        class="menu-item d-block"
         routerLink="/severity-ranges"
         routerLinkActive="active"
       >
         <img
           src="assets/icons/severity.svg"
-          alt="Real-Time"
-          style="width: 22px; height: 22px"
+          alt="Severity"
+          style="width: 20px; height: 20px"
         />
-        <div class="menu-text">EDIT KPI SEVERITY</div>
+        <div class="menu-text">
+          <span>EDIT KPI</span>
+          <span>SEVERITY</span>
+        </div>
       </a>
     </div>
   </div>
@@ -129,7 +141,7 @@
       *ngIf="showDropdown"
       appClickOutside
       (appClickOutside)="showDropdown = false"
-      class="profileDropdown position-absolute start-0 translate-middle-x mt-2 p-3 bg-white border rounded shadow dropdown-animate"
+      class="profileDropdown position-absolute start-0 translate-middlep-x mt-2 -3 bg-white border rounded shadow dropdown-animate"
       style="z-index: 10; min-width: 140px; bottom: 50px; margin-left: 24px"
     >
       <div class="user-name fw-bold text-success m-1 text-center">
