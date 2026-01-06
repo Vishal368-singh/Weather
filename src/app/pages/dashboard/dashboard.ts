@@ -169,6 +169,25 @@ export class Dashboard implements OnInit, AfterViewInit {
   ];
 
   alertMessages: string[] = [];
+
+  @ViewChild('ticker') ticker!: ElementRef<HTMLDivElement>;
+
+  private SPEED_PX_PER_SEC = 130; // constant speed
+  
+  private setMarqueeSpeed(): void {
+    if (!this.ticker) return;
+
+    const contentWidth = this.ticker.nativeElement.scrollWidth / 2;
+    const duration = contentWidth / this.SPEED_PX_PER_SEC;
+
+    this.ticker.nativeElement.style.setProperty(
+      '--marquee-duration',
+      `${duration}s`
+    );
+
+    this.safeDetectChanges();
+  }
+
   selectedSource = 'weather_api';
   uniqueConditionsWithIcons: any[] = [
     {
@@ -1493,9 +1512,13 @@ export class Dashboard implements OnInit, AfterViewInit {
     this.alertMessages = [];
     this.dataService.postRequest('get-earthquake', {}).subscribe((res: any) => {
       const data = res.data;
+
       data.forEach((alert: any) => {
-        this.alertMessages.push(`${alert.title} - ${alert.time}`);
+        this.alertMessages.push(`${alert.warning_message}`);
       });
+
+      this.safeDetectChanges();
+      setTimeout(() => this.setMarqueeSpeed(), 0);
     });
   };
 

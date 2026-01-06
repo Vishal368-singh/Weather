@@ -1835,6 +1835,7 @@ export class MapWeather implements AfterViewInit {
         // ---- Compute min/max ----
         this.minTemp = Math.min(...data.map((x: any) => +x.temp_c));
         this.maxTemp = Math.max(...data.map((x: any) => +x.temp_c));
+        let absTmin = Math.abs(this.minTemp);
 
         this.minRain = Math.min(...data.map((x: any) => +x.chance_of_rain));
         this.maxRain = Math.max(...data.map((x: any) => +x.chance_of_rain));
@@ -1866,11 +1867,13 @@ export class MapWeather implements AfterViewInit {
           this.vectorSourceTemp.addFeature(
             new ol.Feature({
               geometry: new ol.geom.Point(coord3857),
-              total: item.temp_c,
-              count: Math.ceil((item.temp_c / this.maxTemp) * 100),
+              total: item.temp_c + absTmin,
+              count: Math.ceil(
+                ((item.temp_c + absTmin) / (this.maxTemp + absTmin)) * 100
+              ),
             })
           );
-
+          
           this.vectorSourceRain.addFeature(
             new ol.Feature({
               geometry: new ol.geom.Point(coord3857),

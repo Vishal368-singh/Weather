@@ -3,7 +3,7 @@
   <div class="news-ticker-wrapper" *ngIf="alertMessages.length > 0">
     <div class="ticker-label">Recent Update's</div>
     <div class="news-ticker">
-      <div class="ticker-content">
+      <div #ticker class="ticker-content">
         <!-- First set -->
         <span *ngFor="let msg of alertMessages">
           {{ msg }} <span class="spacer"></span>
@@ -574,7 +574,6 @@
       </div>
     </div>
   </div>
-  
 </div>
 
 <!--Bad Hazard hazard-map.component.html popup model-->

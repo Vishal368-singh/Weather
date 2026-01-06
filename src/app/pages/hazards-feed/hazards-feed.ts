@@ -1,3 +1,4 @@
+import { DataService } from './../../data-service/data-service';
 import { circle } from '@turf/turf';
 import {
   Component,
@@ -10,7 +11,6 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DataService } from '../../data-service/data-service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { forkJoin } from 'rxjs';
@@ -170,12 +170,14 @@ export class HazardsFeed implements OnInit, AfterViewInit {
     }
     this.loadCircleListForDropdown();
     this.loadDivisionListForDropdown();
+    this.currentHazardData();
   }
 
   async ngAfterViewInit(): Promise<void> {}
 
   //Layer of Circle
   async setActive(tab: string) {
+    this.formReset();
     this.form = {
       circle: '',
       division: '',
@@ -189,9 +191,10 @@ export class HazardsFeed implements OnInit, AfterViewInit {
     };
     this.activeHazardTab = tab;
     this.tableData = [];
-    this.currenttableData = this.hazardWiseTableData[tab] || [];
+    // this.currenttableData = this.hazardWiseTableData[tab] || [];
     this.loadCircleListForDropdown();
     this.loadDivisionListForDropdown();
+    await this.currentHazardData();
   }
 
   toggleDistrict(district: string, event: any) {
@@ -323,7 +326,7 @@ export class HazardsFeed implements OnInit, AfterViewInit {
         description: this.form.description,
       };
       this.editingIndex = null;
-    } else {
+    } else if (this.activeHazardTab === 'Snowfall') {
       // Add new row
       days.forEach((day: string) => {
         this.tableData.push({
@@ -341,12 +344,25 @@ export class HazardsFeed implements OnInit, AfterViewInit {
           description: this.form.description,
         });
       });
+    } else {
+      this.tableData.push({
+        tab: this.activeHazardTab,
+        circle: this.selectedCircle,
+        districts: [...this.form.districts],
+        severity: this.form.severity,
+        day: this.form.day,
+        date: this.selectedDayDate,
+        hazardValue: this.form.hazardValue,
+        description: this.form.description,
+      });
     }
 
     this.selectedSeverity = this.form.severity;
     // this.selectedDay = this.form.day;
     this.getAvailableSeverities(this.selectedDays);
-    this.getAvailableDaysForDivision(this.selectedCircle);
+    this.activeHazardTab === 'Snowfall'
+      ? this.getAvailableDaysForDivision(this.selectedCircle)
+      : '';
     this.removeDistrictsForDropodwn(this.tableData);
 
     // Reset form
@@ -465,6 +481,25 @@ export class HazardsFeed implements OnInit, AfterViewInit {
     return `${dd}-${mm}-${yyyy}`;
   }
 
+  // selectedDay: any = '';/
+  getDateFromSelectedDayForOtherHaz = (day: any) => {
+    this.selectedDays = day;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayNum = parseInt(day.replace('Day', '').trim(), 10);
+    const recordDate = new Date(today);
+    recordDate.setDate(today.getDate() + (dayNum - 1));
+    const dd = String(recordDate.getDate()).padStart(2, '0');
+    const mm = String(recordDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = recordDate.getFullYear();
+
+    const recordDateStr = `${dd}-${mm}-${yyyy}`;
+    this.selectedDayDate = recordDateStr;
+    this.getAvailableSeverities(day);
+    this.getAvailableDistricts(day);
+    // console.log(this.tableData);
+  };
+
   changeDateFormat = (dateStr: any) => {
     const date = new Date(dateStr);
     const dd = String(date.getDate()).padStart(2, '0');
@@ -506,6 +541,37 @@ export class HazardsFeed implements OnInit, AfterViewInit {
               this.snowfallDistrictList.push(item.district);
             }
           });
+          this.cdr.markForCheck();
+        } else {
+          console.error(
+            'Failed to load district list: Invalid API response format'
+          );
+          this.snowfallDistrictList = [];
+          this.cdr.markForCheck();
+        }
+      });
+    } catch (error) {
+      console.error('Failed to load district list from API:', error);
+      this.ngZone.run(() => {
+        this.snowfallDistrictList = [];
+        this.filteredDistrictList = [];
+        this.cdr.markForCheck();
+      });
+    }
+  }
+
+  async currentHazardData() {
+    try {
+      this.currenttableData = [];
+      const res: any = await this.dataService
+        .postRequest('get-hazards', {
+          hazard: this.activeHazardTab,
+        })
+        .toPromise();
+      this.ngZone.run(() => {
+        if (res?.status && Array.isArray(res.data)) {
+          this.currenttableData = res.data;
+          console.log(res.data);
           this.cdr.markForCheck();
         } else {
           console.error(
@@ -606,8 +672,12 @@ export class HazardsFeed implements OnInit, AfterViewInit {
       // API returns items like: { value, label, full_name }
       // Remove the "All Circle" label first
       let circles = circleList.data.filter(
-        (c: any) => c.label !== 'All Circle'
+        (c: any) => c.label === 'UN-JK' || c.label === 'UN-HP'
       );
+
+      if (this.activeHazardTab === 'Avalanche') {
+        circles = circles.filter();
+      }
 
       // inserted likely contains { indus_circle: 'AP' } etc. Compare against label
       const usedCircle = Array.isArray(inserted)

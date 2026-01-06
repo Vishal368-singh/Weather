@@ -859,10 +859,20 @@ input:checked + .slider:before {
   overflow: hidden;
   white-space: nowrap;
 }
-
 .ticker-content {
   display: inline-block;
-  animation: marquee 1500s linear infinite;
+  white-space: nowrap;
+  animation: marquee linear infinite;
+  animation-duration: var(--marquee-duration, 40s);
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .spacer {

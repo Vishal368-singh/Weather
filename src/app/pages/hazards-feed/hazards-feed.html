@@ -10,6 +10,15 @@
     >
       <i class="fa-solid fa-snowflake"></i> Snowfall
     </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Avalanche' }"
+      (click)="setActive('Avalanche')"
+    >
+      <i class="fas fa-mountain"></i> Avalanche
+    </button>
+
     <button
       class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Flood' }"
@@ -39,13 +48,6 @@
       Cyclone
     </button>
 
-    <button
-      class="btn btn-outline-success disabled"
-      [ngClass]="{ 'active': activeHazardTab === 'Avalanche' }"
-      (click)="setActive('Avalanche')"
-    >
-      <i class="fas fa-mountain"></i> Avalanche
-    </button>
     <button
       class="btn btn-outline-success disabled"
       [ngClass]="{ 'active': activeHazardTab === 'Lightning' }"
@@ -121,8 +123,8 @@
         <div *ngIf="isLoadingCircle" class="select-loader spinner"></div>
       </div>
 
-      <!-- DAYS -->
-      <div class="custom-col mb-3">
+      <!-- DAYS For Snowfall -->
+      <div class="custom-col mb-3" *ngIf="activeHazardTab==='Snowfall'" >
         <label>Days</label>
 
         <div class="dropdown w-100" data-bs-auto-close="outside">
@@ -154,6 +156,20 @@
         </div>
       </div>
 
+      <!-- DAYS For Other hazard -->
+      <div class="custom-col mb-3" *ngIf="activeHazardTab!=='Snowfall'" >
+        <label>Days</label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.day"
+          (change)="getDateFromSelectedDayForOtherHaz(form.day)"
+          [disabled]="selectedCircle == ''"
+        >
+          <option value="" disabled>Select Day</option>
+          <option *ngFor="let d of days" [value]="d">{{d}}</option>
+        </select>
+      </div>
+
       <!-- DISTRICT CHECKBOX -->
       <div class="custom-col mb-3" *ngIf="!(activeHazardTab === 'Snowfall')">
         <label>District</label>
@@ -169,7 +185,7 @@
             class="form-select"
             type="button"
             data-bs-toggle="dropdown"
-            [disabled]="selectedDay == ''"
+            [disabled]="selectedDays == ''"
           >
             {{ form.districts.length > 0 ? form.districts.join(', ') : 'Select
             Districts' }}
@@ -327,10 +343,10 @@
                 <tbody>
                   <tr *ngFor="let row of currenttableData; let i = index">
                     <td>{{ i + 1 }}</td>
-                    <td>{{ row.tab }}</td>
-                    <td>{{ row.circle }}</td>
-                    <td>{{ row.day }}</td>
-                    <td>{{ row.districts }}</td>
+                    <td>{{ activeHazardTab }}</td>
+                    <td>{{ row.indus_circle}}</td>
+                    <td>{{ row.days }}</td>
+                    <td>{{ row.district }}</td>
                     <td>{{ row.severity }}</td>
 
                     <td>{{ row.date }}</td>
