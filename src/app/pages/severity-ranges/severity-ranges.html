@@ -1,0 +1,265 @@
+<div class="container-fluid">
+  <div class="row">
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center p-3 text-success fw-bold w-100 gap-3"
+    >
+      <!-- Heading -->
+      <h3 class="mb-0 text-center text-md-start">
+        Configure KPI Severity Ranges
+      </h3>
+
+      <!-- Controls -->
+      <div
+        class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end gap-2"
+      >
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+          <label
+            for="circleSelect"
+            class="form-label mb-0 text-success fw-bold no-wrap"
+          >
+            Select Circle
+          </label>
+
+          <select
+            id="circleSelect"
+            class="form-select"
+            [(ngModel)]="selectedCircle"
+            (change)="onCircleChange(selectedCircle)"
+          >
+            <option *ngFor="let circle of circles" [value]="circle.value">
+              {{ circle.value }}
+            </option>
+            <option value="Pan India">PAN INDIA</option>
+          </select>
+        </div>
+
+        <button class="btn btn-outline-primary" (click)="handleUpdate()">
+          History Log
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row severity-row">
+    <!-- Full Width Severity Table -->
+    <div class="col-12">
+      <table
+        class="table-severity table table-bordered align-start text-center w-100"
+      >
+        <thead class="table-light">
+          <tr>
+            <th>KPI</th>
+            <th>Extreme</th>
+            <th>High</th>
+            <th>Moderate</th>
+            <th>Low</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let kpi of kpiList; let i = index">
+            <td class="align-middle">{{ kpi.name }}</td>
+
+            <!-- Extreme -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.extreme }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.extreme"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.extreme"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.extreme"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- High -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.high }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.high"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.high"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.high"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Moderate -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.moderate }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.moderate"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.moderate"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.moderate"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Low -->
+            <td *ngIf="kpi.field !== 'severity' && kpi.field !== 'min_color'">
+              <span *ngIf="!kpi.editMode">{{ kpi.low }}</span>
+              <input
+                *ngIf="kpi.editMode"
+                type="text"
+                [(ngModel)]="kpi.low"
+                class="form-control form-control-sm text-left fixed-input"
+              />
+            </td>
+            <td *ngIf="kpi.field === 'severity' || kpi.field === 'min_color'">
+              <div
+                *ngIf="!kpi.editMode"
+                [style.backgroundColor]="kpi.low"
+                class="color-box"
+              ></div>
+              <input
+                *ngIf="kpi.editMode"
+                type="color"
+                [(ngModel)]="kpi.low"
+                class="form-control form-control-color color-edit"
+              />
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <button
+                *ngIf="!kpi.editMode"
+                [disabled]="!['MLAdmin', 'Admin'].includes(userRole)"
+                class="btn btn-sm btn-success"
+                (click)="editRow(i)"
+              >
+                Edit
+              </button>
+              <button
+                *ngIf="kpi.editMode"
+                class="btn btn-sm btn-success me-2"
+                (click)="saveRow(i)"
+              >
+                Save
+              </button>
+              <button
+                *ngIf="kpi.editMode"
+                class="btn btn-sm btn-secondary"
+                (click)="cancelEdit(i)"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade show d-block"
+  *ngIf="updateModalhistory"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.5)"
+>
+  <div class="modal-dialog modal-dialog-centered History">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header d-flex align-items-center">
+        <h5 class="modal-title me-auto">History Details</h5>
+
+        <div class="History-button d-flex align-items-center">
+          <button
+            class="btn btn-outline-primary me-2"
+            (click)="downloadHistoryCSV()"
+          >
+            Export
+          </button>
+
+          <button
+            type="button"
+            class="btn-close"
+            (click)="cancelHistoryModal()"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-2">
+        <div class="table-responsive history-table-wrapper">
+          <table class="table table-bordered table-hover mb-0 history-table">
+            <thead class="table-light">
+              <tr>
+                <th>S.No</th>
+                <th>KPI Name</th>
+                <th>Circle</th>
+                <th>Action On</th>
+                <th>Previous Value</th>
+                <th>New Value</th>
+                <th>Modified By</th>
+                <th>Modifier Role</th>
+                <th>Modified On</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <!-- id, kpi_name,action_on old_value, new_value, indus_circle, modified_by, modifier_role, modified_on,  -->
+              <tr *ngFor="let row of historyData; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ row.kpi_name }}</td>
+                <td>{{ row.indus_circle }}</td>
+                <td>{{ row.action_on }}</td>
+                <td>{{ row.old_value }}</td>
+                <td>{{ row.new_value }}</td>
+                <td>{{ row.modified_by }}</td>
+                <td>{{ row.modifier_role }}</td>
+                <td>
+                  {{ row.modified_on |date:'dd MMM yyyy, hh:mm:ss a':'UTC'}}
+                </td>
+              </tr>
+
+              <tr *ngIf="!historyData?.length">
+                <td colspan="15" class="text-center text-muted">
+                  No update history data available
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

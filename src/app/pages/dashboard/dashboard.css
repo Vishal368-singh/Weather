@@ -1,0 +1,1352 @@
+/* =========================
+   Base Layout
+   ========================= */
+html,
+body {
+  height: 100%;
+}
+
+.full-height-container {
+  height: 100%;
+}
+
+.equal-height-panel {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+img {
+  object-fit: contain;
+  max-height: 450px;
+}
+
+button.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.text-success {
+  font-size: 20px;
+}
+
+/* =========================
+   Weather Summary
+   ========================= */
+.weather-detail {
+  width: 37%;
+  line-height: 2;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.weather-station {
+  font-size: 18px;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* =========================
+   Filter Buttons
+   ========================= */
+.weather-filters-button .btn.active {
+  background-color: #114c95 !important;
+  border-color: #03254e !important;
+  color: #fff;
+}
+
+.responsive-button-group button {
+  font-size: 0.75rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.responsive-button-group i {
+  font-size: 1rem;
+}
+
+.filter-btn {
+  background-color: #d4ddd7;
+  color: black;
+}
+
+.filter-btn:hover {
+  background-color: #a7ada2;
+  color: black;
+}
+
+.filter-btn:hover:focus {
+  background-color: rgb(194, 199, 199);
+  color: black;
+}
+
+/* =========================
+   Accordion
+   ========================= */
+.accordion-button {
+  font-weight: bold;
+  background-color: #f0fdf4;
+  color: #14532d;
+  font-size: 21px;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #157347;
+  color: white;
+  font-size: 21px;
+}
+
+/* =========================
+   Generic Panel Tables
+   ========================= */
+.panel .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.panel select {
+  padding: 4px 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1.8px solid #1ba031;
+  width: 100%;
+  max-width: 350px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.panel select:hover {
+  border-color: #0056b3;
+}
+
+.panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+}
+
+.panel th,
+.panel td {
+  text-align: left;
+  padding: 6px 6px;
+  border: 1px solid #2b6642;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.panel th {
+  background-color: #87d193;
+  color: #000000;
+}
+
+.panel tr:hover {
+  border: 2px solid #000000;
+}
+
+/* =========================
+   Hazard Table
+   ========================= */
+.table-container {
+  height: 27rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  background: inherit;
+  box-sizing: border-box;
+}
+
+.hazard-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+
+.hazard-table:hover {
+  border: none;
+}
+
+.table-container.panel .hazard-table th:nth-child(1),
+.table-container.panel .hazard-table td:nth-child(1) {
+  width: 4%;
+}
+
+.table-container.panel .hazard-table th:nth-child(2),
+.table-container.panel .hazard-table td:nth-child(2) {
+  width: 10%;
+}
+
+.table-container.panel .hazard-table th:nth-child(3),
+.table-container.panel .hazard-table td:nth-child(3) {
+  width: 8%;
+}
+
+.table-container.panel .hazard-table th:nth-child(4),
+.table-container.panel .hazard-table td:nth-child(4) {
+  width: 6%;
+}
+
+.table-container.panel .hazard-table th:nth-child(5),
+.table-container.panel .hazard-table td:nth-child(5) {
+  width: 6%;
+}
+
+.table-container.panel .hazard-table th:nth-child(6),
+.table-container.panel .hazard-table td:nth-child(6) {
+  width: 8%;
+}
+
+.table-container.panel .hazard-table th:nth-child(7),
+.table-container.panel .hazard-table td:nth-child(7) {
+  width: 13%;
+}
+
+.table-container.panel .hazard-table th:nth-child(8),
+.table-container.panel .hazard-table td:nth-child(8) {
+  width: 13%;
+}
+
+.table-container.panel .hazard-table th:nth-child(9),
+.table-container.panel .hazard-table td:nth-child(9) {
+  width: 28%;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.table-container.panel .hazard-table th:nth-child(10),
+.table-container.panel .hazard-table td:nth-child(10) {
+  width: 6%;
+}
+
+.table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+}
+
+.table-scroll-wrapper table {
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+/* =========================
+   Scrollbars
+   ========================= */
+.table-wrapper,
+.table-container {
+  scrollbar-color: #188754 #e8f5e9 !important;
+}
+
+.table-wrapper::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+  width: 7px !important;
+  height: 7px !important;
+}
+
+.table-wrapper::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+  background: #e8f5e9 !important;
+  border-radius: 999px !important;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+  background: #188754 !important;
+  border-radius: 999px !important;
+  border: 3px solid #e8f5e9 !important;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #146c43 !important;
+}
+
+/* =========================
+   Hazard Controls
+   ========================= */
+.dashboard-hazard-filter-row {
+  display: grid;
+  grid-template-columns: minmax(132px, auto) minmax(240px, 365px) minmax(
+      210px,
+      260px
+    );
+  grid-template-areas: "hazard severity actions";
+  gap: 18px;
+  align-items: end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.hazard-tabs {
+  grid-area: hazard;
+  min-width: 0;
+  width: 132px;
+  max-width: 552px;
+}
+
+.hazard-tabs:has(.tab-buttons > button:nth-child(2)) {
+  width: 272px;
+}
+
+.hazard-tabs:has(.tab-buttons > button:nth-child(3)) {
+  width: 412px;
+}
+
+.hazard-tabs:has(.tab-buttons > button:nth-child(4)) {
+  width: 552px;
+}
+
+.hazard-tabs .tab-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 132px));
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.tab-buttons > button {
+  width: 132px;
+  max-width: 100%;
+  min-height: 35px;
+  padding: 4px 8px;
+  border: 1px solid #188754;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #188754;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tab-buttons > button:hover {
+  color: white;
+  background: #188754;
+}
+
+.tab-buttons > button.active {
+  background: #188754;
+  color: white;
+  border-color: #188754;
+}
+
+.hazard-severity-filter {
+  grid-area: severity;
+  min-width: 0;
+}
+
+.hazard-actions {
+  grid-area: actions;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 14px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.hazard-map-toggle {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hazard-map-toggle > span {
+  line-height: 1.2;
+}
+
+.hazard-export-actions {
+  display: grid;
+  grid-template-columns: 124px;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  width: 124px;
+  margin-top: 20px;
+}
+
+.hazard-export-actions > button {
+  width: 100%;
+  min-width: 160px;
+  white-space: nowrap;
+}
+
+.hazard-fa-icon {
+  margin-right: 2px;
+  color: #188754;
+}
+
+.tab-buttons > button:hover .hazard-fa-icon {
+  color: white;
+}
+
+.icon-active {
+  color: white;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 26px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #157347;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* =========================
+   Hazard Severity
+   ========================= */
+.severity-extreme,
+.Extreme {
+  background-color: var(--extreme-color);
+}
+
+.severity-high,
+.High {
+  background-color: var(--high-color);
+}
+
+.severity-moderate,
+.Moderate {
+  background-color: var(--moderate-color);
+}
+
+.severity-low,
+.Low {
+  background-color: #eeedf5;
+}
+
+/* =========================
+   Hazard Modal And Map
+   ========================= */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 10px 20px 10px 20px;
+  border-radius: 10px;
+  width: 78%;
+  height: 78%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-hazard-details {
+  width: 100%;
+  height: 200px;
+}
+
+.close {
+  align-self: flex-end;
+  font-size: 16px;
+  cursor: pointer;
+  border: 1px solid silver;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+}
+
+.map-container {
+  flex: 1;
+  height: 100%;
+}
+
+.map-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+.map-icon {
+  width: 34px;
+  height: 34px;
+  display: block;
+  object-fit: contain;
+}
+
+.ol-hazard-popup {
+  position: absolute;
+  background-color: white;
+  padding: 15px;
+  border: 1px solid #ccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+.ol-hazard-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+}
+
+.ol-hazard-popup-closer:after {
+  content: "x";
+  font-size: 14px;
+}
+
+/* =========================
+   Loading And Map Containers
+   ========================= */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(172, 172, 172, 0.8);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.85);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+#map-container {
+  position: relative;
+  height: calc(100% - 120px);
+  overflow: hidden;
+}
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map-only-loader {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-text {
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #3498db;
+}
+
+.dot {
+  opacity: 0;
+  animation: blink 1.5s infinite;
+  font-size: 24px;
+}
+
+.dot1 {
+  font-size: 30px;
+  color: red;
+  animation-delay: 0s;
+}
+
+.dot2 {
+  font-size: 30px;
+  color: blue;
+  animation-delay: 0.3s;
+}
+
+.dot3 {
+  font-size: 30px;
+  color: green;
+  animation-delay: 0.6s;
+}
+
+/* =========================
+   Forecast Cards
+   ========================= */
+.hourly-card {
+  transition: 0.25s ease;
+  cursor: pointer;
+}
+
+.hourly-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.seven-day-container {
+  transition: 0.25s ease;
+  cursor: pointer;
+  width: 20% !important;
+}
+
+.seven-day-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.current-hour {
+  border: 2px solid #157347 !important;
+  background-color: #eaf7ec !important;
+}
+
+/* =========================
+   News Ticker
+   ========================= */
+.news-ticker-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #084670;
+  border: 1px solid rgb(5, 117, 24);
+  font-family: Arial, sans-serif;
+  color: white;
+  font-size: 15px;
+  overflow: hidden;
+  padding: 0px 0;
+  margin-bottom: 8px;
+}
+
+.ticker-label {
+  background-color: red;
+  font-weight: bold;
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 30px;
+}
+
+.news-ticker {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee linear infinite;
+  animation-duration: var(--marquee-duration, 40s);
+}
+
+.spacer {
+  display: inline-block;
+  width: 150px;
+}
+
+/* =========================
+   Legacy Shared Helpers
+   ========================= */
+.source-div-css {
+  background-color: #dcf8e7;
+  height: 38px;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  box-shadow:
+    0 0px 0px rgba(0, 0, 0, 0.08),
+    0 1px 0px rgba(0, 0, 0, 0.06);
+  padding: 6px 0px 6px 33px;
+  border-radius: 8px;
+  border: 1px solid #e1e1e1;
+  margin: 0px 0px 14px 0px !important;
+}
+
+/* =========================
+   Animations
+   ========================= */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* =========================
+   Responsive Breakpoints
+   ========================= */
+@media (max-width: 600px) {
+  .dashboard-hazard-filter-row,
+  .dashboard-hazard-filter-row .hazard-tabs,
+  .dashboard-hazard-filter-row .hazard-severity-filter,
+  .dashboard-hazard-filter-row .hazard-actions {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dashboard-hazard-filter-row {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hazard"
+      "severity"
+      "actions";
+    gap: 12px;
+  }
+
+  .dashboard-hazard-filter-row .hazard-tabs {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dashboard-hazard-filter-row .hazard-tabs .tab-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  #districtSelect {
+    width: 100%;
+  }
+
+  .dashboard-hazard-filter-row .hazard-tabs .tab-buttons > button,
+  .dashboard-hazard-filter-row .hazard-export-actions > button {
+    width: 100%;
+  }
+  .hazard-tabs .tab-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 132px));
+    gap: 8px;
+    align-items: center;
+    width: 55%;
+    /* max-width: 100%; */
+  }
+
+  .dashboard-hazard-filter-row .hazard-tabs .tab-buttons > button {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dashboard-hazard-filter-row .hazard-actions {
+    justify-content: flex-start;
+    align-items: flex-end;
+    gap: 24px;
+  }
+
+  .dashboard-hazard-filter-row .hazard-export-actions {
+    width: 124px;
+  }
+
+  .panel th,
+  .panel td {
+    width: 33%;
+    padding: 10px 8px;
+    font-size: 8.9px;
+  }
+
+  .panel select {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 200px) and (max-width: 510px) {
+  .text-success {
+    font-size: 12px;
+  }
+
+  .dashboard-hazard-filter-row,
+  .dashboard-hazard-filter-row .hazard-tabs,
+  .dashboard-hazard-filter-row .hazard-severity-filter,
+  .dashboard-hazard-filter-row .hazard-actions {
+    min-width: 0;
+    max-width: 90%;
+  }
+
+  .dashboard-hazard-filter-row .hazard-export-actions {
+    width: 105px;
+  }
+
+  .equal-height-panel .text-success {
+    font-size: 17px;
+  }
+
+  .weather-info-card {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .accordion-button,
+  .accordion-button:not(.collapsed) {
+    font-size: 14px;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    line-height: 2;
+    font-size: 15px;
+    justify-content: space-between;
+    font-weight: 400;
+  }
+
+  .weather-detail > span {
+    width: 37%;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .weather-detail > strong {
+    width: 37%;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    text-align: start;
+    background-color: #157347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 17px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .weather-panel,
+  .map-panel {
+    width: 100%;
+  }
+
+  .accordion {
+    padding-right: 0px;
+    margin: 0px 11px;
+    margin-bottom: 40%;
+  }
+
+  .heatindex {
+    padding-left: 4px;
+  }
+
+  .seven-day-container {
+    width: 70% !important;
+  }
+  .dashboard-hazard-filter-row .hazard-tabs .tab-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 80%;
+  }
+  .hazard-tabs {
+    overflow: hidden;
+  }
+  #districtSelect {
+    width: 75%;
+  }
+}
+
+@media (min-width: 510px) and (max-width: 768px) {
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    line-height: 3;
+    font-size: 14px;
+    padding: 0px;
+    font-weight: 500;
+  }
+
+  .weather-detail > span {
+    width: 41%;
+    margin-left: 7px;
+    text-wrap: nowrap;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .weather-detail > strong {
+    width: 37%;
+    text-wrap: nowrap;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    text-align: start;
+    background-color: #157347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 18px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .arrow-btn {
+    display: none;
+  }
+
+  .hourly-data-container {
+    width: 48%;
+  }
+
+  .seven-day-weather-data {
+    width: 100%;
+  }
+
+  .seven-day-container {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1050px) {
+  .dashboard-hazard-filter-row {
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 260px);
+    grid-template-areas:
+      "hazard hazard"
+      "severity actions";
+    gap: 14px;
+  }
+
+  .dashboard-hazard-filter-row .hazard-tabs {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dashboard-hazard-filter-row .tab-buttons {
+    max-width: 100%;
+  }
+
+  .dashboard-hazard-filter-row .hazard-severity-filter {
+    max-width: 365px;
+  }
+
+  .hazard-actions {
+    justify-content: flex-start !important;
+    align-items: flex-end;
+    gap: 24px;
+  }
+
+  .hazard-map-toggle {
+    min-width: 90px;
+  }
+
+  .hazard-export-actions {
+    margin-top: 0;
+  }
+
+  .weather-info-card {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 35%;
+    line-height: 3;
+    font-size: 15px;
+    padding: 0;
+    font-weight: 400;
+    gap: 5px;
+  }
+
+  .weather-detail > span {
+    width: 39%;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left: 7px;
+    text-wrap: nowrap;
+  }
+
+  .weather-detail > strong {
+    width: 45%;
+    text-wrap: nowrap;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    text-align: start;
+    background-color: #157347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 20px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .weather-panel,
+  .map-panel {
+    width: 100%;
+  }
+
+  .heatindex {
+    padding-left: 4px;
+  }
+
+  .weather-filters-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .data-map-div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .accordion {
+    padding-right: 0px;
+    margin: 0px 10px;
+    margin-bottom: 2%;
+  }
+
+  .seven-day-container {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 758px) and (max-width: 1024px) {
+  /* .hazard-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  } */
+
+  /* .hazard-map-toggle {
+    width: 100%;
+  } */
+
+  /* .hazard-export-actions {
+    width: 100%;
+  } */
+
+  .hazard-export-actions button {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1051px) and (max-width: 1350px) {
+  .weather-info-card {
+    display: flex;
+    width: 100%;
+  }
+
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 45%;
+    line-height: 3;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .weather-detail > span {
+    width: 40%;
+    font-size: 11px;
+    margin-left: 7px;
+    text-wrap: nowrap;
+    font-weight: 700;
+  }
+
+  .weather-detail > strong {
+    width: 37%;
+    text-wrap: nowrap;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    padding: 4px;
+    background-color: #157347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 18px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .weather-panel {
+    width: 45%;
+  }
+
+  .map-panel {
+    width: 55%;
+  }
+
+  .equal-height-panel {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  .equal-height-panel > h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .weather-filters-button {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .data-map-div {
+    display: flex;
+    width: 100%;
+  }
+
+  .accordion {
+    padding-right: 25px;
+    margin: 0px 11px;
+    margin-bottom: 2%;
+  }
+}
+
+@media (min-width: 1351px) and (max-width: 1750px) {
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    line-height: 3;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .weather-detail > span {
+    width: 47%;
+    font-size: 13px;
+    margin-left: 7px;
+    font-weight: bold;
+    text-wrap: nowrap;
+  }
+
+  .weather-detail > strong {
+    width: 37%;
+    text-wrap: nowrap;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 38px;
+    height: 40px;
+    object-fit: contain;
+    background-color: #157347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 21px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .heatindex {
+    padding-left: 7px;
+  }
+
+  .accordion {
+    margin: 0px 11px;
+  }
+}
+
+@media (min-width: 1750px) {
+  .weather-detail {
+    display: flex;
+    align-items: center;
+    width: 55%;
+    line-height: 3;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .weather-detail > span {
+    margin-left: 7px;
+    width: 40%;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .weather-detail > strong {
+    width: 25%;
+    text-align: start;
+  }
+
+  .weather-icon {
+    width: 35px;
+    height: 35px;
+    background-color: #157347;
+    object-fit: contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .weather-icon > i {
+    font-size: 20px;
+    padding: 2px;
+    color: whitesmoke;
+  }
+
+  .accordion {
+    padding-right: 0px;
+    margin: 0px 11px;
+    margin-bottom: 2%;
+  }
+}

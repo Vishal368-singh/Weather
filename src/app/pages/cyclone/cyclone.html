@@ -1,0 +1,954 @@
+<!-- Full screen map viewer -->
+<div class="cyclone-map-container">
+  <div class="fullscreen-map" id="mapWrapper">
+    <div id="map" class="mapDiv"></div>
+  </div>
+
+  <!-- Loader Overlay -->
+  <div class="map-loader" *ngIf="isHazardDataInserting">
+    <div class="spinner"></div>
+    <p class="m-2">Loading....</p>
+  </div>
+
+  <!-- RIGHT SLIDING PANEL -->
+  <div
+    class="right-panel-map"
+    [class.open]="isRightPanelOpen"
+    (transitionend)="onPanelTransitionEnd()"
+  >
+    <!-- TOGGLE BUTTON (attached outside) -->
+    <div class="right-panel-btn">
+      <button
+        *ngIf="isRightPanelOpen"
+        class="btn border-0 d-flex justify-content-center align-items-center"
+        (click)="handleRightPanelOpenClose()"
+        aria-label="Close right panel"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          style="display: block"
+        >
+          <path
+            d="M8 5l5 5-5 5"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <button
+        *ngIf="!isRightPanelOpen"
+        class="btn border-0 d-flex justify-content-center align-items-center"
+        (click)="handleRightPanelOpenClose()"
+        aria-label="Open right panel"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          style="display: block"
+        >
+          <path
+            d="M12 5l-5 5 5 5"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="content-panel">
+      <div
+        *ngIf="showRightPanelContent"
+        class="d-flex flex-column justify-content-center align-items-center"
+      >
+        <!-- HEADER -->
+        <div
+          class="info-tab-header d-flex justify-content-start w-100 align-items-center p-2 border-bottom sticky-top z-index-10002"
+        >
+          <span class="fw-bold">Info Tab</span>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="banner-div my-2 shadow-lg">
+          <div
+            class="d-flex justify-content-between align-items-center p-2 border-bottom"
+            style="width: 400px"
+          >
+            <span class="fw-bold">Last Updated</span>
+            <div class="panel-btn p-0" style="background: #32bb16">
+              <!-- ▼ Arrow when CLOSED -->
+              <button
+                *ngIf="!isCycloneRiskPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneRiskOpenClose(); $event.stopPropagation()"
+                aria-label="Open right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <!-- ▲ Arrow when OPEN -->
+              <button
+                *ngIf="isCycloneRiskPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center fw-bold"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneRiskOpenClose()"
+                aria-label="Close right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M15 12l-5-5-5 5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="isCycloneRiskPanelOpen" class="cyclone-body-div">
+            <div class="cyclone-date-div mt-3">
+              <div class="small" style="width: 90%; margin: auto">
+                @if (cycloneLastUploadedDateTime) {
+
+                <table
+                  class="table table-bordered text-black"
+                  style="text-align: center"
+                >
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Date</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td><b>Uploaded</b></td>
+                      <td>{{ uploadedDate }}</td>
+                      <td>{{ uploadedTime }}</td>
+                    </tr>
+
+                    <tr>
+                      <td
+                        rowspan="2"
+                        style="text-align: center; vertical-align: middle"
+                      >
+                        <b>Valid Upto</b>
+                      </td>
+                      <td>{{ validStartDate }}</td>
+                      <td>{{ validStartTime }}</td>
+                    </tr>
+
+                    <tr>
+                      <td>{{ validEndDate }}</td>
+                      <td>{{ validEndTime }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div
+                  class="d-flex align-items-center mt-2 w-100"
+                  *ngIf="userRole === 'Admin'"
+                >
+                  <button
+                    class="btn btn-outline-success btn-sm m-3 px-3 py-1 fw-bold"
+                    (click)="downloadLastGeneratedPDF()"
+                  >
+                    Download Last Report
+                  </button>
+                </div>
+                } @else {
+                <span class="text-black m-3">
+                  No Cyclone Risk in the Next 7 Days
+                </span>
+                }
+              </div>
+            </div>
+            <div
+              class="d-flex align-items-center mt-2 w-100"
+              *ngIf="userRole === 'MLAdmin'"
+            >
+              <div *ngIf="cycloneLastUploadedDateTime">
+                <!-- Step 1: Show View button -->
+                <button
+                  class="btn btn-outline-success btn-sm m-3 px-3 py-1 fw-bold"
+                  *ngIf="!showViewSend"
+                  (click)="generateCycloneImpactPDF()"
+                  [disabled]="isLoading"
+                >
+                  <span *ngIf="!isLoading"> Generate </span>
+                  <span *ngIf="isLoading" class="d-flex align-items-center">
+                    Generating
+                    <span class="dot dot1">.</span>
+                    <span class="dot dot2">.</span>
+                    <span class="dot dot3">.</span>
+                  </span>
+                </button>
+                <div class="view-send-button mt-1" *ngIf="showViewSend">
+                  <button
+                    class="btn btn-outline-success small btn-sm m-3 px-3 py-1 fw-bold"
+                    (click)="onViewClick()"
+                  >
+                    View PDF
+                  </button>
+                  <button
+                    class="btn btn-outline-success small btn-sm m-3 px-3 py-1 fw-bold"
+                    (click)="sendCycloneAlert()"
+                  >
+                    Send PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DropDown with the date time list -->
+        <div
+          *ngIf="userRole === 'MLAdmin'"
+          class="date-time-select-box my-2 shadow-lg bg-white"
+        >
+          <div
+            class="d-flex justify-content-between align-items-center p-2 border-bottom"
+            style="width: 400px"
+          >
+            <span class="fw-bold">Previous Data</span>
+            <div class="panel-btn p-0" style="background: #32bb16">
+              <button
+                *ngIf="!isCycloneUploadedDatePanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneUploadedDateOpenClose(); $event.stopPropagation()"
+                aria-label="Open right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <button
+                *ngIf="isCycloneUploadedDatePanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center fw-bold"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneUploadedDateOpenClose()"
+                aria-label="Close right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M15 12l-5-5-5 5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            *ngIf="isCycloneUploadedDatePanelOpen"
+            class="d-flex align-items-center my-2 p-2"
+          >
+            <span class="ms-2 text-black small"> Uploaded Date : </span>
+            <!-- <select
+              class="form-select form-select-sm small  upload-select border border-success text-success border-1 mx-2  my-2 ps-1"
+              [(ngModel)]="selectedUploadTime" (change)="onUploadTimeChange($event)" style="max-width: 165px;">
+              <option value="" disabled selected>Select Datetime</option>
+              <option class="small  ms-4" *ngFor="let time of allUploadedDateTime" [value]="time">
+                {{ time }}
+              </option>
+            </select> -->
+            <div class="custom-select-wrapper">
+              <div class="custom-select" (click)="toggleDropdown()">
+                {{ selectedUploadTime || 'Select Datetime' }}
+                <!-- <span class="arrow">
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 5L5 1L9 5" stroke="#32bb16" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                </span> -->
+              </div>
+
+              <div class="custom-options" *ngIf="isDropdownOpen">
+                <div
+                  class="custom-option"
+                  *ngFor="let time of allUploadedDateTime"
+                  (click)="selectUploadTime(time)"
+                >
+                  {{ time }}
+                </div>
+              </div>
+            </div>
+            <button
+              class="clear_layer_btn"
+              (click)="ClearLayerOfPreviousData()"
+            >
+              Clear Layer
+            </button>
+          </div>
+        </div>
+
+        <!-- File Uploading  -->
+        <div
+          *ngIf="userRole === 'MLAdmin'"
+          class="file-upload-div my-2 shadow-lg bg-white"
+        >
+          <div
+            class="d-flex justify-content-between align-items-center p-2 border-bottom"
+            style="width: 400px"
+          >
+            <span class="fw-bold">Upload File</span>
+            <div class="panel-btn p-0" style="background: #32bb16">
+              <!-- ▼ Arrow when CLOSED -->
+              <button
+                *ngIf="!isCycloneInputPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneInputPanelOpenClose(); $event.stopPropagation()"
+                aria-label="Open right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <!-- ▲ Arrow when OPEN -->
+              <button
+                *ngIf="isCycloneInputPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center fw-bold"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneInputPanelOpenClose()"
+                aria-label="Close right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M15 12l-5-5-5 5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="isCycloneInputPanelOpen">
+            <div class="card shadow border-0" class="m-3">
+              <div class="col-10 my-1">
+                <div
+                  class="w-auto d-flex justify-content-between align-items-center my-1"
+                >
+                  <label class="text-black">Point file Instruction :</label>
+                  <button
+                    class="col-6 h-auto px-2 my-1 border-0 text-white bg-success shadow-sm cursor-pointer btn btn-sm"
+                    (click)="downloadInstructions()"
+                    style="width: 95px"
+                  >
+                    Instruction
+                  </button>
+                </div>
+                <div
+                  class="col-12 d-flex justify-content-between align-items-center mb-1"
+                >
+                  <label class="form-label col-6 my-1 text-black"
+                    >Point File</label
+                  >
+                  <button
+                    class="col-6 w-auto h-auto px-2 my-1 border-0 text-white bg-success shadow-sm cursor-pointer btn btn-sm"
+                    (click)="downloadPointSampleData(); $event.stopPropagation()"
+                  >
+                    Sample Data
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  data-type="point"
+                  class="form-control form-control-sm cyclone-file-input border-secondary"
+                  accept=".json,.geojson,.shp"
+                  (change)="onFileSelected($event, 'point')"
+                />
+              </div>
+              <div class="col-10 my-1">
+                <div
+                  class="col-12 d-flex justify-content-between align-items-center my-1"
+                >
+                  <label class="form-label col-6 my-1 text-black"
+                    >Cone File</label
+                  >
+                  <button
+                    class="col-6 w-auto h-auto px-2 my-1 border-0 text-white bg-success shadow-sm cursor-pointer btn btn-sm"
+                    (click)="downloadConeSampleData(); $event.stopPropagation()"
+                  >
+                    Sample Data
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  data-type="cone"
+                  class="form-control form-control-sm cyclone-file-input border-secondary"
+                  accept=".json,.geojson,.shp"
+                  (change)="onFileSelected($event, 'cone')"
+                />
+              </div>
+
+              <!-- FOOTER (collapsible) -->
+              <div
+                class="card-footer d-flex justify-content-center align-items-center bg-white my-2"
+              >
+                <button
+                  class="btn btn-secondary small me-4 py-1 px-6 mb-2"
+                  (click)="ClearLayer()"
+                >
+                  Clear
+                </button>
+                <button
+                  class="btn btn-success small ms-4 py-1 px-6 mb-2"
+                  (click)="submitUploadedFile()"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer legend -->
+        <div class="hazard-layer-legend my-2 shadow-lg bg-white">
+          <div
+            class="d-flex justify-content-between align-items-center p-2 border-bottom"
+            style="width: 400px"
+          >
+            <span class="fw-bold text-black">Layer List</span>
+            <div class="panel-btn p-0" style="background: #32bb16">
+              <!-- ▼ Arrow when CLOSED -->
+              <button
+                *ngIf="!isMapLegendPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleMapLegendOpenClose(); $event.stopPropagation()"
+                aria-label="Open right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <!-- ▲ Arrow when OPEN -->
+              <button
+                *ngIf="isMapLegendPanelOpen "
+                class="btn border-0 d-flex justify-content-center align-items-center fw-bold"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleMapLegendOpenClose()"
+                aria-label="Close right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M15 12l-5-5-5 5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="isMapLegendPanelOpen" class="mb-2 h-100">
+            <!-- Layer legend -->
+            <div id="hazard-layer-legend" class="hazard-layer-legend ps-3 my-2">
+              <span style="font-size: 16px">Map Layers</span>
+              <ul
+                id="hazard-legend-list"
+                style="font-size: 14px"
+                class="my-2 pb-1"
+              ></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cyclone / Districts Legend -->
+        <div class="districts-legend-container my-2 shadow-lg bg-white">
+          <div
+            class="d-flex justify-content-between align-items-center p-2 border-bottom"
+            style="width: 400px"
+          >
+            <span class="fw-bold text-black">Legend</span>
+            <div class="panel-btn p-0" style="background: #32bb16">
+              <!-- ▼ Arrow when CLOSED -->
+              <button
+                *ngIf="!isCycloneDistrictPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneDistrictPanelOpenClose(); $event.stopPropagation()"
+                aria-label="Open right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M5 8l5 5 5-5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <!-- ▲ Arrow when OPEN -->
+              <button
+                *ngIf="isCycloneDistrictPanelOpen"
+                class="btn border-0 d-flex justify-content-center align-items-center fw-bold"
+                style="
+                  width: 25px;
+                  height: 25px;
+                  background: #32bb16;
+                  color: #fff;
+                  border-radius: 5px;
+                  font-size: 20px;
+                  padding: 0;
+                "
+                (click)="handleCycloneDistrictPanelOpenClose()"
+                aria-label="Close right panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M15 12l-5-5-5 5"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <!-- Collapsible content -->
+          <div *ngIf="isCycloneDistrictPanelOpen" class="py-2 px-2">
+            <!-- YOUR EXISTING CONTENT (UNCHANGED) -->
+            <div *ngIf="pointDataUploaded" class="cyclone_classification mb-2">
+              <label class="mb-2 text-black">Cyclone Classifications</label>
+              <!-- 🔹 Dynamic cyclone categories -->
+              <div
+                *ngFor="let cat of visibleCategories"
+                class="d-flex align-items-center mb-2 ps-2"
+              >
+                <img
+                  class="me-2 svg-shadow"
+                  style="width: 30px; height: 30px"
+                  [src]="cat.imagePath"
+                  [alt]="cat.alt"
+                />
+                <label class="mb-0 districts-legend-text">
+                  {{ cat.name }}
+                </label>
+              </div>
+              <!-- 🔹 Static path legends -->
+              <div class="d-flex align-items-center mb-2 ps-2">
+                <span
+                  class="d-inline-block me-2 bg-dark"
+                  style="width: 22px; height: 4px"
+                ></span>
+                <label class="mb-0 districts-legend-text">Observed Path</label>
+              </div>
+              <div class="d-flex align-items-center mb-2 ps-2">
+                <span
+                  class="d-inline-block me-2 bg-danger"
+                  style="width: 22px; height: 4px"
+                ></span>
+                <label class="mb-0 districts-legend-text"
+                  >Forecasted Path</label
+                >
+              </div>
+            </div>
+            <div class="district_warning">
+              <label class="mb-1 text-black"
+                >District Impact Severity/Warning</label
+              >
+              <div class="districts-legend-item mb-1 ps-2">
+                <span
+                  class="districts-legend-color me-2"
+                  [style.background-color]="kpiColor.extreme"
+                ></span>
+                <span class="districts-legend-text text-black"
+                  >Warning (Take Action)</span
+                >
+              </div>
+              <div class="districts-legend-item mb-1 ps-2">
+                <span
+                  class="districts-legend-color me-2 border"
+                  [style.background-color]="kpiColor.high"
+                ></span>
+                <span class="districts-legend-text text-black"
+                  >Alert (Be Prepared)</span
+                >
+              </div>
+              <div class="districts-legend-item mb-1 ps-2">
+                <span
+                  class="districts-legend-color me-2"
+                  [style.background-color]="kpiColor.moderate"
+                ></span>
+                <span class="districts-legend-text text-black"
+                  >Watch (Be Updated)</span
+                >
+              </div>
+              <div class="districts-legend-item ps-2">
+                <span
+                  class="districts-legend-color me-2"
+                  [style.background-color]="kpiColor.low"
+                ></span>
+                <span class="districts-legend-text text-black"
+                  >No Warning (No Action)</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEFT PANEL FOR TAABLE CONTAINING CYCLONE REPORT DISTRICT DATA -->
+  <div
+    class="left-panel"
+    [class.open]="isCycloneReportTableOpen"
+    *ngIf="cyclone_hazard_report_data?.length"
+  >
+    <div class="left-panel-btn">
+      <button
+        *ngIf="isCycloneReportTableOpen"
+        class="btn border-0 d-flex justify-content-center align-items-center"
+        (click)="handleCycloneReportTableOpenClose()"
+        aria-label="Close right panel"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M5 8l5 5 5-5"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      <button
+        *ngIf="!isCycloneReportTableOpen"
+        class="btn border-0 d-flex justify-content-center align-items-center"
+        (click)="handleCycloneReportTableOpenClose()"
+        aria-label="Open right panel"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M5 12l5-5 5 5"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="left-panel-header sticky-top" style="z-index: 1">
+      <span class="fw-bold text-black">Cyclone Report</span>
+      <button class="btn btn-sm btn-success" (click)="exportToExcel()">
+        Export Excel
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container-div">
+      <table
+        class="table table-bordered table-sm small"
+        style="width: 97%; margin: 10px auto 10px auto"
+      >
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <!-- <th>Day</th> -->
+            <th>Indus Circle</th>
+            <th>Hazard Type</th>
+            <th>District</th>
+            <!-- <th>Severity</th> -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of cyclone_hazard_report_data">
+            <td
+              width="10%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.date | date: 'dd-MMM-yyyy' }}
+            </td>
+            <!-- <td
+              width="6%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.days }}
+            </td> -->
+            <td
+              width="6%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.indus_circle }}
+            </td>
+            <td
+              width="20%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.description }}
+            </td>
+            <td
+              width="20%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.district }}
+            </td>
+            <!-- <td
+              width="10%"
+              [style.background-color]="kpiColor[row.severity?.toLowerCase()]"
+            >
+              {{ row.severity }}
+            </td> -->
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="isIDWLayer" class="hazard-legend-container">
+    <ng-container *ngIf="isRainIDWLayer; else otherLegend">
+      <div class="hazard-label-gradient">
+        <span>100%</span>
+        <span>75%</span>
+        <span>50%</span>
+        <span>25%</span>
+        <span>0%</span>
+      </div>
+    </ng-container>
+
+    <ng-template #otherLegend>
+      <div class="hazard-label-gradient">
+        <span>{{ maxRange }}</span>
+        <span>{{ minRange }}</span>
+      </div>
+    </ng-template>
+
+    <div class="hazard-color-gradient"></div>
+  </div>
+
+  <!-- Select Impacted Circles -->
+  <div
+    class="modal fade"
+    id="impactedCircleModal"
+    tabindex="-1"
+    aria-labelledby="impactedCircleModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="impactedCircleModalLabel">
+            Select Impacted Circles
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <form #userForm="ngForm">
+            <div class="col-md-6">
+              <label class="form-label">Circle List</label>
+
+              <!-- Dropdown -->
+              <div class="dropdown w-100">
+                <button
+                  class="form-select text-start"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
+                >
+                  {{ getSelectedImpactedCircles() || '-- Select Circles --' }}
+                </button>
+
+                <ul
+                  class="dropdown-menu w-100 p-2"
+                  style="max-height: 200px; overflow-y: auto"
+                  (click)="$event.stopPropagation()"
+                >
+                  <!-- Select All -->
+                  <li class="form-check">
+                    <label class="form-check-label">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="selectExportAll"
+                        name="selectExportAll"
+                        (change)="toggleSelectCircle()"
+                      />
+                      Select All
+                    </label>
+                  </li>
+
+                  <li>
+                    <hr class="dropdown-divider" />
+                  </li>
+
+                  <!-- Circles -->
+                  <li
+                    *ngFor="let circle of circleOptions"
+                    class="form-check ms-2"
+                  >
+                    <label class="form-check-label">
+                      <input
+                        class="form-check-input green-checkbox"
+                        type="checkbox"
+                        [(ngModel)]="circle.checked"
+                        name="circle_{{ circle.id }}"
+                        (change)="updateSelectedCircle()"
+                      />
+                      {{ circle.name }}
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer d-flex justify-content-between">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            (click)="cancelCircleUpload"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="saveImpactedCircleToDB()"
+          >
+            Save to DB
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

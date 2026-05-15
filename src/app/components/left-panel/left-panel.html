@@ -1,0 +1,248 @@
+<div
+  class="sidebar d-flex flex-column justify-content-between p-1 align-items-center"
+>
+  <!-- Top Content -->
+  <div class="w-100 mobile-screen-bottom-panel">
+    <!-- DASHBOARD -->
+    <div class="menu-section-report text-center">
+      <div class="menu-title text-success fw-bold">DISTRICT</div>
+      <a
+        class="menu-item d-block"
+        routerLink="/district"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/District.svg" alt="District" />
+        <div class="menu-text">
+          <span>REAL-TIME</span>
+          <span>/HOURLY</span>
+        </div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" />
+
+    <!-- DISTRICT -->
+    <div class="menu-section text-center">
+      <div class="menu-title text-success fw-bold">DASHBOARD</div>
+      <a
+        [class.disabled]="['H_MGMT'].includes(user.userrole)"
+        class="menu-item d-block"
+        (click)="onDashboardClick()"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/dashboardIcon.svg" alt="Real-Time" />
+        <div class="menu-text">
+          <span>REAL-TIME</span>
+          <span>&nbsp;</span>
+        </div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" *ngIf="userRole === 'MLAdmin'" />
+
+    <!-- REPORTS -->
+    <div class="menu-section-report text-center">
+      <div class="menu-title text-success fw-bold">REPORTS</div>
+
+      <a
+        class="menu-item d-block"
+        [class.disabled]="['H_MGMT'].includes(user.userrole)"
+        (click)="onCircleLevelClick()"
+        routerLink="/reports/circle-level"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/circleLevelReports.svg" alt="CIRCLE LEVEL" />
+        <div class="menu-text">
+          <span>{{indus_circle}} Circle</span>
+          <span>&nbsp;</span>
+        </div>
+      </a>
+
+      <a
+        *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
+        class="menu-item d-block"
+        (click)="onUsageClick(); $event.stopPropagation()"
+        routerLink="/reports/usage"
+        routerLinkActive="active"
+        title="Usage Report"
+      >
+        <img src="assets/icons/reports.svg" alt="USAGE" />
+        <div class="menu-text">USAGE</div>
+      </a>
+
+      <a
+        class="menu-item d-block"
+        routerLink="/cyclone"
+        routerLinkActive="active"
+        *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
+      >
+        <img src="assets/icons/cyclone2.svg" alt="Cyclone" />
+        <div class="menu-text">
+          <span>CYCLONE</span>
+          <span>&nbsp;</span>
+        </div>
+      </a>
+    </div>
+
+    <hr class="w-100 my-2" />
+
+    <!-- MANAGE -->
+    <div
+      *ngIf="userRole === 'Admin' || userRole === 'MLAdmin'"
+      class="menu-section-manage text-center"
+    >
+      <div class="menu-title text-success manage fw-bold">MANAGE</div>
+
+      <a
+        class="menu-item d-block"
+        routerLink="/profile"
+        routerLinkActive="active"
+      >
+        <img src="assets/icons/users.svg" alt="Users" />
+        <div class="menu-text">
+          <span>USERS</span>
+          <span>&nbsp;</span>
+        </div>
+      </a>
+
+      <a
+        class="menu-item d-block"
+        routerLink="/severity-ranges"
+        routerLinkActive="active"
+      >
+        <img
+          src="assets/icons/severity.svg"
+          alt="Severity"
+          style="width: 20px; height: 20px"
+        />
+        <div class="menu-text">
+          <span>EDIT KPI</span>&nbsp;
+          <span>SEVERITY</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Bottom: Profile -->
+  <div
+    (click)="toggleDropdown()"
+    class="profile-area position-relative mt-3"
+    title="Profile"
+    style="cursor: pointer"
+  >
+    <img
+      class="profileImg fancy-profile"
+      src="assets/icons/profile.svg"
+      alt="Profile"
+    />
+
+    <div
+      *ngIf="showDropdown"
+      appClickOutside
+      (appClickOutside)="showDropdown = false"
+      class="profileDropdown position-absolute start-0 translate-middlep-x mt-2 -3 bg-white border rounded shadow dropdown-animate"
+      style="z-index: 10; min-width: 140px; bottom: 50px; margin-left: 24px"
+    >
+      <div class="user-name fw-bold text-success m-1 text-center">
+        {{userName}}
+      </div>
+      <div class="profile-div">
+        <button
+          (click)="changePassword()"
+          class="btn-change-pass fw-bold text-success"
+        >
+          Password
+        </button>
+      </div>
+      <div class="profile-div">
+        <button
+          *ngIf="userRole === 'H_MGMT' || userRole === 'MLAdmin'"
+          class="btn-change-pass fw-bold text-success"
+          routerLink="/hazards-feed"
+        >
+          Hazard
+        </button>
+      </div>
+      <div
+        (click)="logout()"
+        class="logoutBtn logout-hover m-1 text-center"
+        style="cursor: pointer"
+      >
+        Logout
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div
+  id="leftPanelChangePasswordModal"
+  class="modal change-password-modal bg-dark bg-opacity-50 w-100 h-100"
+  style="display: none"
+>
+  <div
+    class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg"
+    style="width: 400px"
+  >
+    <div class="modal-content rounded-3 shadow">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Change Password</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeChangePasswordModal()"
+        ></button>
+      </div>
+
+      <!-- Form -->
+      <form
+        #passwordForm="ngForm"
+        (ngSubmit)="submitChangePassword(passwordForm)"
+      >
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="oldPassword"
+              ngModel
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="newPassword"
+              ngModel
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="confirmPassword"
+              ngModel
+            />
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeChangePasswordModal()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

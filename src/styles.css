@@ -1,0 +1,71 @@
+:root {
+  --extreme-color: #ff0000;
+  --high-color: #ffa500;
+  --moderate-color: #ffff00;
+  --low-color: #e6ffe6;
+  --other-color: #fff;
+  --ndma-hazard-low: #9b99a7;
+
+  --min-extreme-color: #ff6666;
+  --min-high-color: #ffc266;
+  --min-moderate-color: #ffff99;
+  --min-low-color: #99ff99;
+  --min-other-color: #fff;
+}
+
+.main-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header-wrapper {
+  width: 100%;
+  z-index: 10;
+}
+
+.change-password-modal {
+  position: fixed !important;
+  inset: 0;
+  z-index: 2147483647 !important;
+}
+
+body {
+  overflow: hidden !important;
+}
+
+.content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  height: calc(100vh - 70px);
+}
+
+.sidebar {
+  /* width: 250px; */
+  background-color: #e4e7eb;
+  /* or your preferred color */
+  border-right: 1px solid #ddd;
+}
+
+.page-body {
+  background-color: #ffffff;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cdk-live-announcer-element {
+  position: fixed !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  height: 1px !important;
+  width: 1px !important;
+  overflow: hidden !important;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

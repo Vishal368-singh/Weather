@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "27/11/25 1000",
+        "latitude": 8.1,
+        "longitude": 81.2,
+        "max_wind_speed": "65-75 gusting 85",
+        "category": "Cyclonic Storm",
+        "PointType": "Observed"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [81.2, 8.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "28/11/25 0000",
+        "latitude": 8.4,
+        "longitude": 81.1,
+        "max_wind_speed": "70-80 gusting 90",
+        "category": "Cyclonic Storm",
+        "PointType": "Observed"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [81.1, 8.4]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "28/11/25 0600",
+        "latitude": 8.9,
+        "longitude": 80.9,
+        "max_wind_speed": "70-80 gusting 90",
+        "category": "Cyclonic Storm",
+        "PointType": "Observed"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.9, 8.9]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "28/11/25 1200",
+        "latitude": 9.7,
+        "longitude": 80.8,
+        "max_wind_speed": "75-85 gusting 95",
+        "category": "Cyclonic Storm",
+        "PointType": "Forecast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.8, 9.7]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "28/11/25 1800",
+        "latitude": 10.6,
+        "longitude": 80.5,
+        "max_wind_speed": "80-90 gusting 100",
+        "category": "Cyclonic Storm",
+        "PointType": "Forecast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.5, 10.6]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "29/11/25 0000",
+        "latitude": 11.4,
+        "longitude": 80.4,
+        "max_wind_speed": "70-80 gusting 90",
+        "category": "Cyclonic Storm",
+        "PointType": "Forecast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.4, 11.4]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "30/11/25 0000",
+        "latitude": 12.0,
+        "longitude": 80.3,
+        "max_wind_speed": "65-75 gusting 85",
+        "category": "Cyclonic Storm",
+        "PointType": "Forecast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.3, 12.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "forecast_time": "01/12/25 0800",
+        "latitude": 13.4,
+        "longitude": 80.5,
+        "max_wind_speed": "55-65 gusting 75",
+        "category": "Deep Depression",
+        "PointType": "Forecast"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [80.5, 13.4]
+      }
+    }
+  ]
+}

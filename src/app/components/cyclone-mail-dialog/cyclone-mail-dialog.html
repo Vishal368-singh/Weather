@@ -1,0 +1,73 @@
+<h2 mat-dialog-title class="dialog-header">
+    Select Cyclone Impacted Circle with Users
+</h2>
+
+<mat-dialog-content class="dialog-body">
+
+    <form #userForm="ngForm">
+
+        <div class="row">
+
+            <!-- Circle List -->
+            <div class="col-md-6">
+
+                <label class="form-label">Circle List</label>
+
+                <mat-form-field appearance="outline" class="w-100">
+
+                    <mat-select multiple placeholder="--Select Circles--" [(ngModel)]="selectedCycloneCircles"
+                        name="circles" (selectionChange)="onCircleChange()">
+
+                        <!-- <mat-select-trigger>
+                            {{ selectedCycloneCircles?.length ? getSelectedCirclesName() : '--Select Circles--' }}
+                        </mat-select-trigger> -->
+
+                        <mat-option *ngFor="let circle of cycloneCircleOptions" [value]="circle.value">
+                            {{ circle.name }}
+                        </mat-option>
+
+                    </mat-select>
+
+                </mat-form-field>
+
+            </div>
+
+
+            <!-- User List -->
+            <div class="col-md-6">
+
+                <label class="form-label">User List</label>
+
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-select multiple [(ngModel)]="selectedCycloneUsers" placeholder="--Select Users--" name="users">
+
+                        <!-- <mat-select-trigger>
+                            {{ selectedCycloneUsers?.length ? getSelectedUsersName() : '--Select Users--' }}
+                        </mat-select-trigger> -->
+
+                        <mat-option *ngFor="let user of cycloneMailUsers" [value]="user.mail">
+                            {{ user.name }}
+                        </mat-option>
+
+                    </mat-select>
+                </mat-form-field>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-footer">
+
+    <button mat-button class="green-outline-btn" style="color: #198754;;" (click)="closeDialog()">
+        Cancel
+    </button>
+
+    <button mat-button class="green-outline-btn" style="color: #198754;;" (click)="sendMail()">
+        Send Mail
+    </button>
+
+</mat-dialog-actions>

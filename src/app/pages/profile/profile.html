@@ -1,0 +1,1652 @@
+<div class="profile-container">
+  <div class="profile-container-1">
+    <div class="profile-container-1-div1">
+      <div class="container-1-div1-heading">
+        <h5>Profile Details</h5>
+        <div class="user-details">
+          <span class="mr-4"><b>Name :</b> {{user.name}}</span>
+          <span class="mx-4"><b>Role :</b> {{user.role}}</span>
+          <span class="mx-4"><b>Status :</b> {{user.status}}</span>
+          <span class="mx-4"><b>Mobile :</b> {{user.mobile}}</span>
+          <span class="mx-4"><b>Email :</b> {{user.mail}}</span>
+        </div>
+      </div>
+      <div class="container-1-div1-body">
+        <div class="user-license" *ngIf="userRole === 'MLAdmin'">
+          <span class="user-license-text">
+            <b>User License :</b> {{userLicense}}
+          </span>
+          <button (click)="editUserLicense()" class="edit-license-btn fw-bold">
+            Edit
+          </button>
+        </div>
+        <div
+          class="change-pass-div"
+          *ngIf="['MLAdmin','Admin'].includes(userRole)"
+        >
+          <button class="fw-bold" (click)="changePassword()">
+            Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="profile-container-1-div2">
+      <div class="container-1-div2-heading">
+        <span
+          class="user_list_tab"
+          [ngClass]="{ 'active_user_list_tab': activeTab === 'activeUserList' }"
+          (click)="handleActiveTab('activeUserList')"
+        >
+          Dashboard User List
+        </span>
+        <span
+          class="user_list_tab"
+          [ngClass]="{ 'active_user_list_tab': activeTab === 'deActiveUserList'}"
+          (click)="handleActiveTab('deActiveUserList')"
+          >Report Distribution List</span
+        >
+      </div>
+      <div class="container-1-div2-table">
+        <div class="table-responsive">
+          <table
+            *ngIf="activeTab === 'activeUserList'"
+            class="userTable table table-striped table-bordered align-middle text-center"
+          >
+            <thead class="sticky-header">
+              <tr>
+                <th>S.No.</th>
+                <th class="text-start">Name</th>
+                <th>Role</th>
+                <th>Circle</th>
+                <th>Category</th>
+                <th>Mobile</th>
+                <th class="email-header">
+                  <div class="email-header-wrapper">
+                    <span>Email-Id</span>
+                    <input
+                     #emailInput
+                      type="text"
+                      class="email-filter-input"
+                      placeholder="Filter..."
+                      [(ngModel)]="emailFilter"
+                      (input)="applyDashbaordListEmailFilter()"
+                    />
+                  </div>
+                </th>
+                <th>Status</th>
+                <th>Activation Date</th>
+                <th>DeActivation Date</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let user of userList ; let i = index"
+                class="table-body-row"
+              >
+                <td class="text-dark">{{i+1}}</td>
+                <td class="text-dark text-start">{{ user.name }}</td>
+                <td class="text-dark">{{ user.role }}</td>
+                <td class="text-dark">{{ user.indus_circle}}</td>
+                <td class="texr-dark">{{ user.category}}</td>
+                <td class="text-dark">{{ user.mobile }}</td>
+                <td class="text-dark">{{ user.mail }}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input green-checkbox"
+                    [checked]="user.status === 'active'"
+                    [disabled]="!['MLAdmin','Admin'].includes(userRole)"
+                    (click)="openConfirmDialog($event, user)"
+                  />
+                </td>
+                <td class="text-dark">{{ user.activationDate}}</td>
+                <td class="text-dark">{{ user.deactivationDate }}</td>
+                <td>
+                  <button
+                    [disabled]="!['MLAdmin','Admin'].includes(userRole)"
+                    class="btn btn-sm btn-success"
+                    (click)="onEdit(user)"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table
+            *ngIf="activeTab === 'deActiveUserList'"
+            class="userTable table table-striped table-bordered align-middle text-center"
+          >
+            <thead class="sticky-header">
+              <tr>
+                <th>S.No.</th>
+                <th class="text-start">Name</th>
+                <th>Circle</th>
+                <th>Mobile</th>
+                <th class="email-header">
+                  <div class="email-header-wrapper">
+                    <span>Email-Id</span>
+                    <input
+                      #reportFilter
+                      type="text"
+                      class="email-filter-input"
+                      placeholder="Filter..."
+                      [(ngModel)]="reportEmailFilter"
+                      (input)="applyReportEmailFilter()"
+                    />
+                  </div>
+                </th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let user of reportUserList ; let i = index"
+                class="table-body-row"
+              >
+                <td class="text-dark">{{i+1}}</td>
+                <td class="text-dark text-start">{{ user.name }}</td>
+                <td class="text-dark">{{ user.indus_circle }}</td>
+                <td class="text-dark">{{ user.mobile }}</td>
+                <td class="text-dark">{{ user.mail }}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input green-checkbox"
+                    [checked]="user.status === 'active'"
+                    [disabled]="!['MLAdmin','Admin'].includes(userRole)"
+                    (click)="openReportUserConfirmDialog($event, user)"
+                  />
+                </td>
+                <td class="text-dark">{{ user.category}}</td>
+                <td>
+                  <button
+                    [disabled]="!['MLAdmin','Admin'].includes(userRole)"
+                    class="btn btn-sm btn-success"
+                    (click)="onReportUserEdit(user)"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="add-user-div" *ngIf="['MLAdmin','Admin'].includes(userRole)">
+        <button class="fw-bold my-2 mx-2" (click)="handleAdd()">
+          Add User
+        </button>
+        <button class="fw-bold my-2 mx-2" (click)="handleUpdate()">
+          History Log
+        </button>
+        <button class="fw-bold my-2 mx-2" (click)="downloadUserCSV()">
+          Export List
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Licensed User Status Confirmation Modal -->
+<div
+  class="modal fade"
+  id="confirmModal"
+  tabindex="-1"
+  aria-labelledby="confirmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered confirm-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">User Status</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        This action will {{isCheckboxChecked ? 'activate' : 'deactivate'}} the
+        user. Do you want to proceed?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          No
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="confirmStatusChange()"
+        >
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Licensed User Edit Modal (Dashboard User List) -->
+<div
+  class="modal-backdrop d-flex justify-content-center align-items-center"
+  *ngIf="isEditModalOpen"
+>
+  <div
+    class="modal-dialog add-user-model-content modal-dialog-centered modal-md"
+  >
+    <div class="modal-content bg-white p-3">
+      <div class="modal-header mb-2">
+        <h5 class="modal-title">Edit User</h5>
+        <button
+          type="button"
+          class="btn-close border border-black d-flex justify-content-center align-items-center p-1"
+          aria-label="Close"
+          (click)="closeEditModal()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form class="row g-3">
+          <!-- Name -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Name<span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedUser.name"
+              name="name"
+              (ngModelChange)="validateEditField(selectedUser, 'name', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('name', validateEditUser) }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('name', validateEditUser)"
+            >
+              Name must contain only letters and at least 2 characters.
+            </small>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Email<span class="text-danger">*</span></label
+            >
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="selectedUser.mail"
+              name="mail"
+              (ngModelChange)="validateEditField(selectedUser, 'mail', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('mail', validateEditUser) }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('mail', validateEditUser)"
+            >
+              Enter a valid email address.
+            </small>
+          </div>
+
+          <!-- Mobile -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Mobile (+91)<span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedUser.mobile"
+              name="mobile"
+              (ngModelChange)="validateEditField(selectedUser, 'mobile', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('mobile', validateEditUser) }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('mobile', validateEditUser)"
+            >
+              Enter a valid 10-digit mobile number.
+            </small>
+          </div>
+
+          <!-- Role -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Role<span class="text-danger">*</span></label
+            >
+            <select
+              class="form-select fixed-select"
+              [(ngModel)]="selectedUser.role"
+              name="role"
+              (ngModelChange)="validateEditField(selectedUser, 'role', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('role', validateEditUser) }"
+            >
+              <option value="">-- Select Role --</option>
+              <option *ngFor="let role of roles" [value]="role">
+                {{ role }}
+              </option>
+            </select>
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('role', validateEditUser)"
+            >
+              Please select a role.
+            </small>
+          </div>
+
+          <!-- Circle -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Circle<span class="text-danger">*</span></label
+            >
+            <select
+              class="form-select fixed-select"
+              [(ngModel)]="selectedUser.indus_circle"
+              name="indus_circle"
+              (ngModelChange)="validateEditField(selectedUser, 'indus_circle', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('indus_circle', validateEditUser) }"
+            >
+              <option value="">-- Select Circle --</option>
+              <option *ngFor="let circle of circleList" [value]="circle.label">
+                {{ circle.label }}
+              </option>
+            </select>
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('indus_circle', validateEditUser)"
+            >
+              Please select a circle.
+            </small>
+          </div>
+
+          <!-- Category -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Category<span class="text-danger">*</span></label
+            >
+            <select
+              class="form-select"
+              [(ngModel)]="selectedUser.category"
+              name="category"
+              (ngModelChange)="validateEditField(selectedUser, 'category', $event, validateEditUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('category', validateEditUser) }"
+            >
+              <option value="">-- Select Category --</option>
+              <option *ngFor="let category of categorylist" [value]="category">
+                {{ category }}
+              </option>
+            </select>
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('category', validateEditUser)"
+            >
+              Please select a category.
+            </small>
+          </div>
+
+          <!-- If check report distribution  -->
+          <div class="col-md-12" *ngIf="addReportDistribution">
+            <div class="form-check reportlabel">
+              <input
+                type="checkbox"
+                class="form-check-input green-checkbox"
+                id="addReportDistribution"
+                name="addReportDistribution"
+                [(ngModel)]="editReportDistribution"
+              />
+              <label class="form-check-label" for="addReportDistribution">
+                Edit Report Distribution List
+              </label>
+            </div>
+          </div>
+
+          <!-- Indus Circle -->
+          <div
+            #circleDropdownWrapper
+            class="col-md-6 position-relative"
+            *ngIf="editReportDistribution"
+          >
+            <label class="form-label fixed-label">
+              Circle (Report Distribution)<span class="text-danger">*</span
+              ><span class="text-danger">*</span>
+            </label>
+            &nbsp;
+            <span class="text-danger" *ngIf="isCircleExistReport"
+              >(No circle selected, user removed from All Circle.)</span
+            >
+            <!-- Dropdown trigger -->
+            <div
+              class="form-control fixed-select d-flex justify-content-between align-items-center"
+              (click)="toggleCircleDropdown()"
+              style="cursor: pointer"
+              [ngStyle]="{
+                'border-color': validatedFields.includes('indus_circle') ? 'red' : '',
+                'border-width': validatedFields.includes('indus_circle') ? '2px' : ''
+              }"
+            >
+              <span *ngIf="!selectedReportUser.indus_circle" class="text-muted">
+                -- Select Circle --
+              </span>
+              <span *ngIf="selectedReportUser.indus_circle">
+                {{ selectedReportUser.indus_circle }}
+              </span>
+
+              <!-- Clear Dropdown Indicator -->
+              <button
+                type="button"
+                class="btn btn-sm p-0 border-0"
+                (click)="toggleCircleDropdown(); $event.stopPropagation()"
+                style="font-size: 18px"
+              >
+                <span style="font-size: 16px">
+                  {{ isCircleDropdownOpen ? '▲' : '▼' }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Dropdown panel -->
+            <div
+              *ngIf="isCircleDropdownOpen"
+              class="border rounded bg-white shadow-sm position-absolute w-100 mt-1 p-2"
+              style="z-index: 1050; max-height: 140px; overflow-y: auto"
+            >
+              <div class="form-check" *ngFor="let circle of circleListReport">
+                <input
+                  class="form-check-input green-checkbox"
+                  type="checkbox"
+                  [id]="circle.name"
+                  [(ngModel)]="circle.checked"
+                  [name]="circle.name"
+                  (change)="UpdateOnEditCircle()"
+                  (click)="$event.stopPropagation()"
+                />
+                <label class="form-check-label" [for]="circle.name">
+                  {{ circle.name }}
+                </label>
+              </div>
+            </div>
+
+            <!-- Validation message -->
+            <small
+              class="text-danger"
+              *ngIf="validatedFields.includes('indus_circle')"
+            >
+              Please select at least one Indus Circle
+            </small>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer my-2 flex-column">
+        <!-- Confirmation Section -->
+        <div
+          *ngIf="isCircleExistReport && showDeactivateConfirm"
+          class="w-100 p-3 mb-3 border rounded bg-light shadow-sm text-center"
+        >
+          <p class="mb-3">
+            This action will deactivate the user from Report Distribution List.
+            Do you want to proceed?
+          </p>
+
+          <button
+            class="btn btn-outline-danger mx-2"
+            (click)="confirmDeactivate(true)"
+          >
+            Yes
+          </button>
+
+          <button
+            class="btn btn-outline-secondary mx-2"
+            (click)="confirmDeactivate(false)"
+          >
+            No
+          </button>
+        </div>
+
+        <!-- Normal Buttons -->
+        <div class="d-flex justify-content-end w-100">
+          <button class="btn btn-secondary mx-2" (click)="closeEditModal()">
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-success mx-2"
+            (click)="handleSaveClick()"
+            *ngIf="!showDeactivateConfirm"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Licensed User Modal -->
+<div
+  class="modal fade"
+  id="addNewUserModal"
+  tabindex="-1"
+  aria-labelledby="addNewUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addNewUserModalLabel">
+          Add New User (Dashboard Access)
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          (click)="onCancel()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <div class="row g-3">
+            <!-- Name -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Name<span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newUser.name"
+                name="name"
+                placeholder="Enter full name"
+                (ngModelChange)="clearValidation('name')"
+              />
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('name')"
+              >
+                Name is required (letters and spaces only)
+              </small>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Email-Id<span class="text-danger">*</span></label
+              >
+              <input
+                type="email"
+                class="form-control"
+                [(ngModel)]="newUser.mail"
+                name="mail"
+                placeholder="example@domain.com"
+                (ngModelChange)="onEmailChange($event)"
+                (ngModelChange)="clearValidation('mail')"
+              />
+
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('mail')"
+              >
+                Enter a valid email address
+              </small>
+            </div>
+
+            <!-- Username -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Username<span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newUser.username"
+                name="username"
+                placeholder="Alphanumeric only"
+                (input)="onUsernameInput()"
+                (ngModelChange)="clearValidation('username')"
+              />
+
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('username')"
+              >
+                Username must be alphanumeric
+              </small>
+            </div>
+
+            <!-- Password -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Password<span class="text-danger">*</span></label
+              >
+              <input
+                type="password"
+                class="form-control"
+                placeholder="Enter Password"
+                [(ngModel)]="newUser.password"
+                name="password"
+                [ngClass]="{ 'is-invalid': hasError('password') }"
+                (ngModelChange)="clearValidation('password')"
+              />
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('password')"
+              >
+                Password must be at least 6 characters.
+              </small>
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Category<span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="newUser.category"
+                name="category"
+                [ngClass]="{ 'is-invalid': hasError('category') }"
+                (ngModelChange)="clearValidation('category')"
+              >
+                <option value="">-- Select Category --</option>
+                <option
+                  *ngFor="let category of categorylist"
+                  [value]="category"
+                >
+                  {{ category }}
+                </option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('category')"
+              >
+                Category is required
+              </small>
+            </div>
+
+            <!-- Role -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Dashbaord Role<span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="newUser.role"
+                name="role"
+                (ngModelChange)="clearValidation('role')"
+              >
+                <option value="">-- Select Role --</option>
+                <option *ngFor="let role of roles" [value]="role">
+                  {{ role }}
+                </option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('role')"
+              >
+                Role is required
+              </small>
+            </div>
+
+            <!-- Mobile -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Mobile (+91)<span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newUser.mobile"
+                name="mobile"
+                maxlength="10"
+                placeholder="10 digit mobile number"
+                (ngModelChange)="clearValidation('mobile')"
+              />
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('mobile')"
+              >
+                Mobile number must be exactly 10 digits
+              </small>
+            </div>
+
+            <!-- Circle (Dashboard Access) -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Circle<span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="newUser.indus_circle"
+                name="indus_circle"
+                (ngModelChange)="clearValidation('indus_circle')"
+              >
+                <option value="">-- Select Circle --</option>
+                <option
+                  *ngFor="let circle of circleList"
+                  [value]="circle.label"
+                >
+                  {{ circle.label }}
+                </option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFieldsDash.includes('indus_circle')"
+              >
+                At least one circle is required
+              </small>
+            </div>
+
+            <!-- If check report distribution  -->
+            <div class="col-md-12">
+              <div class="form-check mt-4 reportlabel">
+                <input
+                  type="checkbox"
+                  class="form-check-input green-checkbox"
+                  id="addReportDistribution"
+                  name="addReportDistribution"
+                  [(ngModel)]="addReportDistribution"
+                />
+                <label
+                  class="form-check-label"
+                  for="addReportDistribution"
+                  onchange="onDistributionChange()"
+                >
+                  Add in Report Distribution List
+                </label>
+              </div>
+            </div>
+
+            <!-- Indus Circle -->
+            <div
+              #circleDropdownWrapper
+              class="col-md-6 position-relative"
+              *ngIf="addReportDistribution"
+            >
+              <label class="form-label fixed-label">
+                Circle (Report Distribution)<span class="text-danger">*</span>
+              </label>
+
+              <!-- Dropdown trigger -->
+              <div
+                class="form-control fixed-select d-flex justify-content-between align-items-center"
+                (click)="toggleCircleDropdown()"
+                style="cursor: pointer"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('indus_circle') ? 'red' : '',
+                  'border-width': validatedFields.includes('indus_circle') ? '2px' : ''
+                }"
+              >
+                <span
+                  *ngIf="!newReportUser.indus_circle.length"
+                  class="text-muted"
+                >
+                  -- Select Circle --
+                </span>
+                <span *ngIf="newReportUser.indus_circle.length">
+                  {{ newReportUser.indus_circle.join(', ') }}
+                </span>
+
+                <!-- Clear Dropdown Indicator -->
+                <button
+                  type="button"
+                  class="btn btn-sm p-0 border-0"
+                  (click)="toggleCircleDropdown(); $event.stopPropagation()"
+                  style="font-size: 18px"
+                >
+                  <span style="font-size: 16px">
+                    {{ isCircleDropdownOpen ? '▲' : '▼' }}
+                  </span>
+                </button>
+              </div>
+
+              <!-- Dropdown panel -->
+              <div
+                *ngIf="isCircleDropdownOpen"
+                class="border rounded bg-white shadow-sm position-absolute w-100 mt-1 p-2"
+                style="z-index: 1050; max-height: 140px; overflow-y: auto"
+              >
+                <div class="form-check" *ngFor="let circle of circleListReport">
+                  <input
+                    class="form-check-input green-checkbox"
+                    type="checkbox"
+                    [id]="circle.name"
+                    [(ngModel)]="circle.checked"
+                    [name]="circle.name"
+                    (change)="updateSelectAllCircle()"
+                    (ngModelChange)="clearValidationReportCircle('indus_circle')"
+                    (click)="$event.stopPropagation()"
+                  />
+                  <label class="form-check-label" [for]="circle.name">
+                    {{ circle.name }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Validation message -->
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('indus_circle')"
+              >
+                Please select at least one Indus Circle
+              </small>
+            </div>
+
+            <!-- To / CC -->
+            <div class="col-md-6" *ngIf="addReportDistribution">
+              <label class="form-label"
+                >To / CC<span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="newReportUser.to_cc"
+                name="to_cc"
+                (ngModelChange)="clearValidation('to_cc')"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('to_cc') ? 'red' : '',
+                  'border-width': validatedFields.includes('to_cc') ? '2px' : ''
+                }"
+              >
+                <option value="">-- Select To/CC --</option>
+                <option value="to">To</option>
+                <option value="cc">CC</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('to_cc')"
+              >
+                Please choose To or CC
+              </small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          (click)="onCancel()"
+        >
+          Cancel
+        </button>
+        <button type="button" class="btn btn-success" (click)="syncToAddUser()">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User License Modal -->
+<div
+  id="editLicenseModal"
+  class="modal bg-dark w-100 h-100 bg-opacity-50"
+  tabindex="-1"
+  style="display: none"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3 rounded">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit User License</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeUserLicenseModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+              <label class="form-label mb-0">User License :</label>
+            </div>
+            <div class="col-md-8">
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="editedLicense"
+                name="userLicense"
+                placeholder="Enter license"
+                required
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeUserLicenseModal()"
+        >
+          Cancel
+        </button>
+        <button type="button" class="btn btn-success" (click)="submitLicense()">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div
+  id="changePasswordModal"
+  class="modal bg-dark bg-opacity-50 w-100 h-100"
+  style="display: none; z-index: 9999"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3 rounded">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Password</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closePasswordModal()"
+        ></button>
+      </div>
+
+      <form #passwordForm="ngForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">E-mail ID</label>
+            <input
+              type="email"
+              class="form-control"
+              name="email"
+              ngModel
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              ngModel
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="confirmPassword"
+              ngModel
+              required
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closePasswordModal()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Report User Status Confirmation Modal -->
+<div
+  class="modal fade"
+  id="reportUserConfirmModal"
+  tabindex="-1"
+  aria-labelledby="reportUserConfirmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered confirm-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reportUserConfirmModalLabel">
+          User Status
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        This action will {{isReportStatusCheckboxChecked ? 'activate' :
+        'deactivate'}} the user. Do you want to proceed?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          No
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="confirmReportUserStatusChange()"
+        >
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report User Edit Modal (Report Distribution List) -->
+<div
+  class="modal-backdrop d-flex justify-content-center align-items-center"
+  *ngIf="isReportUserEditModalOpen"
+>
+  <div
+    class="modal-dialog add-user-model-content modal-dialog-centered modal-md"
+  >
+    <div class="modal-content bg-white p-3">
+      <div class="modal-header mb-2">
+        <h5 class="modal-title">Edit User</h5>
+        <button
+          type="button"
+          class="btn-close border border-black d-flex justify-content-center align-items-center p-1"
+          aria-label="Close"
+          (click)="closeReportUserEditModal()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form class="row g-3">
+          <!-- Name -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Name<span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.name"
+              name="report_name"
+              (ngModelChange)="validateEditField(
+                selectedReportUser,
+                'name',
+                $event,
+                validateEditReportUser
+              )"
+              [ngClass]="{
+                'is-invalid': hasErrorEdit('name', validateEditReportUser)
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('name', validateEditReportUser)"
+            >
+              Name must contain only letters and at least 2 characters.
+            </small>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Email<span class="text-danger">*</span></label
+            >
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.mail"
+              name="report_mail"
+              (ngModelChange)="validateEditField(
+                selectedReportUser,
+                'mail',
+                $event,
+                validateEditReportUser
+              )"
+              [ngClass]="{
+                'is-invalid': hasErrorEdit('mail', validateEditReportUser)
+              }"
+            />
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('mail', validateEditReportUser)"
+            >
+              Enter a valid email address.
+            </small>
+          </div>
+
+          <!-- Mobile -->
+          <div class="col-md-6">
+            <label class="form-label">Mobile</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedReportUser.mobile"
+              name="report_mobile"
+            />
+          </div>
+
+          <!-- Indus Circle -->
+          <div class="col-md-6 position-relative" #circleDropdownWrapper>
+            <label class="form-label fixed-label">
+              Circle <span class="text-danger">*</span>
+            </label>
+            &nbsp;
+            <span class="text-danger" *ngIf="isCircleExistReport"
+              >(No circle selected, user removed from all circle.)</span
+            >
+
+            <!-- Dropdown trigger -->
+            <div
+              class="form-control fixed-select d-flex justify-content-between align-items-center"
+              (click)="toggleCircleDropdown()"
+              style="cursor: pointer"
+              [ngStyle]="{
+                'border-color': validatedFields.includes('indus_circle') ? 'red' : '',
+                'border-width': validatedFields.includes('indus_circle') ? '2px' : ''
+              }"
+            >
+              <span
+                *ngIf="!this.selectedReportUser.indus_circle.length"
+                class="text-muted"
+              >
+                -- Select Circle --
+              </span>
+              <span *ngIf="this.selectedReportUser.indus_circle">
+                {{ this.selectedReportUser.indus_circle }}
+              </span>
+
+              <!-- Clear Dropdown Indicator -->
+              <button
+                type="button"
+                class="btn btn-sm p-0 border-0"
+                (click)="toggleCircleDropdown(); $event.stopPropagation()"
+                style="font-size: 18px"
+              >
+                <span style="font-size: 16px">
+                  {{ isCircleDropdownOpen ? '▲' : '▼' }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Dropdown panel -->
+            <div
+              *ngIf="isCircleDropdownOpen"
+              class="border rounded bg-white shadow-sm position-absolute w-100 mt-1 p-2"
+              style="z-index: 1050; max-height: 140px; overflow-y: auto"
+            >
+              <div class="form-check" *ngFor="let circle of circleListReport">
+                <input
+                  class="form-check-input green-checkbox"
+                  type="checkbox"
+                  [id]="circle.name"
+                  [(ngModel)]="circle.checked"
+                  [name]="circle.name"
+                  (ngModelChange)="clearValidation('indus_circle')"
+                  (change)="UpdateOnEditCircle()"
+                  (click)="$event.stopPropagation()"
+                />
+                <label class="form-check-label" [for]="circle.name">
+                  {{ circle.name }}
+                </label>
+              </div>
+            </div>
+
+            <!-- Validation message -->
+            <small
+              class="text-danger"
+              *ngIf="validatedFields.includes('indus_circle')"
+            >
+              Please select at least one Indus Circle
+            </small>
+          </div>
+
+          <!-- Category -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Category<span class="text-danger">*</span></label
+            >
+            <select
+              class="form-select"
+              [(ngModel)]="selectedReportUser.category"
+              name="category"
+              (ngModelChange)="validateEditField(selectedReportUser, 'category', $event, validateEditReportUser)"
+              [ngClass]="{ 'is-invalid': hasErrorEdit('category', validateEditReportUser) }"
+            >
+              <option value="">-- Select Category --</option>
+              <option *ngFor="let category of categorylist" [value]="category">
+                {{ category }}
+              </option>
+            </select>
+            <small
+              class="text-danger"
+              *ngIf="hasErrorEdit('category', validateEditReportUser)"
+            >
+              Please select a category.
+            </small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer my-2 flex-column">
+        <!-- Confirmation Section -->
+        <div
+          *ngIf="isCircleExistReport && showDeactivateConfirm"
+          class="w-100 p-3 mb-3 border rounded bg-light shadow-sm text-center"
+        >
+          <p class="mb-3">
+            This action will deactivate the user. Do you want to proceed?
+          </p>
+
+          <button
+            class="btn btn-outline-danger mx-2"
+            (click)="confirmDeactivate(true)"
+          >
+            Yes
+          </button>
+
+          <button
+            class="btn btn-outline-secondary mx-2"
+            (click)="confirmDeactivate(false)"
+          >
+            No
+          </button>
+        </div>
+
+        <!-- Normal Buttons -->
+        <div class="d-flex justify-content-end w-100">
+          <button
+            class="btn btn-secondary mx-2"
+            (click)="closeReportUserEditModal()"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-success mx-2"
+            (click)="handleSaveClick()"
+            *ngIf="!showDeactivateConfirm"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Licensed User Modal -->
+<div
+  class="modal fade"
+  id="addNewReportUserModal"
+  tabindex="-1"
+  aria-labelledby="addNewReportUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addNewReportUserModalLabel">
+          Add New User (Report Distribution)
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          (click)="onCancel()"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form #userForm="ngForm">
+          <div class="row g-3">
+            <!-- Name -->
+            <div class="col-md-6" #circleDropdown>
+              <label class="form-label"
+                >Name<span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.name"
+                name="name"
+                required
+                placeholder="Enter full name"
+                (ngModelChange)="clearValidation('name')"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('name') ? 'red' : '',
+                  'border-width': validatedFields.includes('name') ? '2px' : ''
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('name')"
+              >
+                Enter a valid name (letters and spaces only)
+              </small>
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-6">
+              <label class="form-label">Category</label>
+              <select
+                class="form-select"
+                [(ngModel)]="newReportUser.category"
+                name="category"
+                (ngModelChange)="clearValidation('category')"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('category') ? 'red' : '',
+                  'border-width': validatedFields.includes('category') ? '2px' : ''
+                }"
+              >
+                <option value="">-- Select Category --</option>
+                <option
+                  *ngFor="let category of categorylist"
+                  [value]="category"
+                >
+                  {{ category }}
+                </option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('category')"
+              >
+                Please select a category.
+              </small>
+            </div>
+
+            <!-- To / CC -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >To / CC<span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select"
+                [(ngModel)]="newReportUser.to_cc"
+                name="to_cc"
+                (ngModelChange)="clearValidation('to_cc')"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('to_cc') ? 'red' : '',
+                  'border-width': validatedFields.includes('to_cc') ? '2px' : ''
+                }"
+              >
+                <option value="">-- Select To/CC --</option>
+                <option value="to">To</option>
+                <option value="cc">CC</option>
+              </select>
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('to_cc')"
+              >
+                Please choose To or CC
+              </small>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6">
+              <label class="form-label"
+                >Email-Id<span class="text-danger">*</span></label
+              >
+              <input
+                type="email"
+                class="form-control"
+                [(ngModel)]="newReportUser.mail"
+                name="mail"
+                required
+                placeholder="example@domain.com"
+                (ngModelChange)="clearValidation('mail')"
+                [ngStyle]="{
+                  'border-color': validatedFields.includes('mail') ? 'red' : '',
+                  'border-width': validatedFields.includes('mail') ? '2px' : ''
+                }"
+              />
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('mail')"
+              >
+                Enter a valid email address (example@domain.com)
+              </small>
+            </div>
+
+            <!-- Mobile -->
+            <div class="col-md-6">
+              <label class="form-label">Mobile (+91)</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newReportUser.mobile"
+                name="mobile"
+                maxlength="10"
+                placeholder="10 digit mobile number"
+              />
+            </div>
+
+            <!-- Indus Circle -->
+            <div class="col-md-6 position-relative" #circleDropdownWrapper>
+              <label class="form-label fixed-label">
+                Circle (Report Distribution)<span class="text-danger">*</span>
+              </label>
+
+              <!-- Dropdown trigger -->
+              <div
+                class="form-control fixed-select d-flex justify-content-between align-items-center"
+                (click)="toggleCircleDropdown()"
+                style="cursor: pointer"
+                [ngStyle]="{
+                'border-color': validatedFields.includes('indus_circle') ? 'red' : '',
+                'border-width': validatedFields.includes('indus_circle') ? '2px' : ''
+              }"
+              >
+                <span
+                  *ngIf="!newReportUser.indus_circle.length"
+                  class="text-muted"
+                >
+                  -- Select Circle --
+                </span>
+                <span *ngIf="newReportUser.indus_circle.length">
+                  {{ newReportUser.indus_circle.join(', ') }}
+                </span>
+
+                <!-- Clear Dropdown Indicator -->
+                <button
+                  type="button"
+                  class="btn btn-sm p-0 border-0"
+                  (click)="toggleCircleDropdown(); $event.stopPropagation()"
+                  style="font-size: 18px"
+                >
+                  <span style="font-size: 16px">
+                    {{ isCircleDropdownOpen ? '▲' : '▼' }}
+                  </span>
+                </button>
+              </div>
+
+              <!-- Dropdown panel -->
+              <div
+                *ngIf="isCircleDropdownOpen"
+                class="border rounded bg-white shadow-sm position-absolute w-100 mt-1 p-2"
+                style="z-index: 1050; max-height: 140px; overflow-y: auto"
+              >
+                <div class="form-check" *ngFor="let circle of circleListReport">
+                  <input
+                    class="form-check-input green-checkbox"
+                    type="checkbox"
+                    [id]="circle.name"
+                    (ngModelChange)="clearValidationReportCircle('indus_circle')"
+                    [(ngModel)]="circle.checked"
+                    [name]="circle.name"
+                    (change)="updateSelectAllCircle()"
+                    (click)="$event.stopPropagation()"
+                  />
+                  <label class="form-check-label" [for]="circle.name">
+                    {{ circle.name }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Validation message -->
+              <small
+                class="text-danger"
+                *ngIf="validatedFields.includes('indus_circle')"
+              >
+                Please select at least one Indus Circle
+              </small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          (click)="onCancel()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="submitNewReportUser()"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update User History Tab Wise Modal -->
+<div
+  class="modal fade show d-block"
+  *ngIf="updateModalhistory"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.5)"
+>
+  <div class="modal-dialog modal-dialog-centered History">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header d-flex align-items-center">
+        <h5 class="modal-title me-auto">
+          History Details (<span>{{ activeTabLabel }} </span>
+          )
+        </h5>
+
+        <div class="History-button">
+          <button
+            class="btn btn-outline-primary me-2"
+            (click)="downloadHistoryCSV()"
+          >
+            Export
+          </button>
+
+          <button
+            type="button"
+            class="btn-close"
+            (click)="cancelHistoryModal()"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-0">
+        <div class="table-responsive p-1">
+          <table class="table table-bordered table-hover mb-0 trigger-table">
+            <thead class="table-light sticky-header">
+              <tr>
+                <th>S.No.</th>
+                <th>User ID</th>
+                <th>Action On</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+
+                <th>Modified By</th>
+                <th>Modifier Role</th>
+                <th>Modified On</th>
+                <th *ngIf="activeTab==='deActiveUserList'">
+                  Restore (Last Modified)
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let row of historyData; let i = index">
+                <td style="text-align: center">{{ i + 1 }}</td>
+                <td style="text-align: center">{{ row.userid }}</td>
+                <td style="text-align: center">{{ row.action_on }}</td>
+                <td style="text-align: center">{{ row?.old_value }}</td>
+                <td style="text-align: center">{{ row?.new_value }}</td>
+
+                <td style="text-align: center">{{ row.modified_by }}</td>
+                <td style="text-align: center">{{ row.modifier_role }}</td>
+                <td style="text-align: center">
+                  {{ row.modified_on | date:'dd MMM yyyy, hh:mm:ss a':this.timeZone }}
+                </td>
+                <td
+                  style="text-align: center"
+                  *ngIf="activeTab==='deActiveUserList'"
+                >
+                  <button
+                    *ngIf="row.restore"
+                    [disabled]="!['MLAdmin','Admin'].includes(userRole)"
+                    class="btn btn-sm btn-success"
+                    (click)="openRestoreModal(row)"
+                  >
+                    <i class="fa-solid fa-trash-can-arrow-up"></i>
+                  </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="!historyData?.length">
+                <td colspan="12" class="text-center text-muted">
+                  No history data available
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restore Resport User Status Confirmation Modal -->
+<div class="modal-backdrop" *ngIf="isRestore" style="z-index: 9999">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5>User Restore</h5>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="closeRestoreModal()"
+      ></button>
+    </div>
+
+    <div class="modal-body">
+      This action will activate the user. Do you want to proceed?
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="closeRestoreModal()"
+      >
+        No
+      </button>
+
+      <button type="button" class="btn btn-success" (click)="onRestore()">
+        Yes
+      </button>
+    </div>
+  </div>
+</div>

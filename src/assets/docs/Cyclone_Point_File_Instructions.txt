@@ -1,0 +1,113 @@
+CYCLONE POINT FILE GENERATION – USER INSTRUCTIONS
+
+Every point feature MUST follow the exact structure and standards
+described below. Any deviation in field names, spelling, time format, or
+values will be considered invalid.
+
+  -------------------------------------------------
+  1. TIME STANDARD (MANDATORY)
+  -------------------------------------------------
+  • All times MUST be in IST (Indian Standard Time). 
+  • Time format must be: DD/MM/YY HHMM
+  Example: 27/11/25 1000 • The time must be stored
+  in the field: “forecast_time”
+
+  -------------------------------------------------
+
+2. REQUIRED FIELDS (EXACT NAMES & SPELLING)
+
+Each Feature MUST contain these fields inside “properties”:
+
+• “forecast_time” 
+• “latitude” 
+• “longitude” 
+• “max_wind_speed” 
+• “category” 
+• “PointType”
+
+And geometry must be:
+
+• “type”: “Point” 
+• “coordinates”: [longitude, latitude]
+
+  -------------------------------------------------
+  3. CATEGORY STANDARDISATION (MANDATORY)
+  -------------------------------------------------
+  The “category” value MUST be exactly one of the
+  following names (no short forms, no brackets, no
+  spelling changes):
+
+  • Super Cyclonic Storm 
+  • Extremely Severe
+  • Cyclonic Storm 
+  • Very Severe Cyclonic Storm 
+  • Severe Cyclonic Storm 
+  • Cyclonic Storm 
+  • Deep Depression 
+  • Depression 
+  • Low Pressure Area
+
+  Example: “category”: “Cyclonic Storm”
+  -------------------------------------------------
+
+4. POINT TYPE STANDARDISATION (MANDATORY)
+
+The “PointType” value MUST be exactly one of the following:
+
+• Observed 
+• Forecast
+
+Rules: 
+• If the point time represents an already occurred position → use
+“Observed” 
+• If the point time represents a future position → use
+“Forecast”
+
+Example: “PointType”: “Observed”
+
+  -------------------------
+  5. SAMPLE VALID FEATURE
+  -------------------------
+
+{ 
+  “type”: “Feature”, 
+  “properties”: { 
+    “forecast_time”: “27/11/25 1000”,
+    “latitude”: 8.1, 
+    “longitude”: 81.2, 
+    “max_wind_speed”: “65-75 gusting 85”, 
+    “category”: “Cyclonic Storm”, 
+    “PointType”: “Observed” 
+    },
+  “geometry”: { 
+    “type”: “Point”, 
+    “coordinates”: [81.2, 8.1] 
+    } 
+}
+
+  -------------------------------------------------
+  6. STRICT VALIDATION RULES
+  -------------------------------------------------
+  • Do NOT change field names. 
+  • Do NOT add extra fields. 
+  • Do NOT use short forms (CS, VSCS, etc).
+  • Do NOT use UTC or any other time standard. 
+  • Do NOT change spelling or capitalization. 
+  • Category MUST be from the approved list only. 
+  • PointType MUST be either “Observed” or “Forecast” only.
+
+  -------------------------------------------------
+
+7. FILE REJECTION CONDITIONS
+
+Your file will be rejected if:
+
+• Any field is missing 
+• Any field name is misspelled 
+• Category is not from the approved list 
+• PointType is not “Observed” or “Forecast” 
+• Time is not in IST or not in correct format
+
+  --------------------------------------------------------
+  FOLLOW THESE RULES STRICTLY FOR SUCCESSFUL CONVERSION.
+  --------------------------------------------------------

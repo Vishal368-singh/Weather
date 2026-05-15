@@ -1,0 +1,48 @@
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden !important;
+}
+
+app-header {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.main-content {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden !important;
+}
+
+app-left-panel {
+  width: 250px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  height: 100%;
+}
+
+.page-body {
+  flex-grow: 1;
+  overflow: hidden;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  margin-bottom: 20px;
+}
+
+
+@media(min-width:320px) and (max-width: 768px) {
+  .page-body {
+    padding: 0px !important;
+  }
+
+  .content-wrapper {
+    flex-grow: 0 !important;
+  }
+
+  .main-content {
+    flex-grow: 0 !important;
+  }
+}

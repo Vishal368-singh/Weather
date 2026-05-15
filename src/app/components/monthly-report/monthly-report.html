@@ -1,0 +1,182 @@
+<div class="monthly-report-page">
+  <div class="monthly-report-card shadow-sm">
+    <div class="text-center">
+      <h2 class="report-title text-success">Accuracy Monthly Report</h2>
+      <p class="report-subtitle mb-0">
+        Upload the monthly Excel sheet to review raw observations and forecast
+        accuracy.
+      </p>
+    </div>
+    <div class="report-header d-flex align-items-center flex-wrap">
+      <!-- LEFT: Upload Panel  -->
+      <div class="upload-panel">
+        <label class="upload-label" for="accuracyMonthlyFile">
+          Upload Report File
+        </label>
+
+        <div class="upload-control">
+          <input
+            #fileInput
+            id="accuracyMonthlyFile"
+            type="file"
+            accept=".xlsx, .xls"
+            (change)="onFileSelected($event)"
+          />
+
+          <button
+            (click)="uploadFileData()"
+            [disabled]="!formData"
+            class="tab-btn"
+          >
+            Upload
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Tabs + Dropdown -->
+      <div class="tabs d-flex gap-2 align-items-center flex-wrap">
+        <!-- Tabs -->
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'raw'"
+          (click)="activeTab = 'raw'"
+        >
+          Raw Data
+        </button>
+
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'accuracy'"
+          (click)="activeTab = 'accuracy'"
+        >
+          Forecast Accuracy
+        </button>
+
+        <!-- Month-Year Dropdown -->
+        <div
+          class="month-dropdown"
+          [class.open]="isMonthDropdownOpen"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            class="month-dropdown-toggle"
+            (click)="toggleMonthDropdown()"
+            [attr.aria-expanded]="isMonthDropdownOpen"
+          >
+            <span>{{ selectedMonthYearLabel }}</span>
+            <span class="month-dropdown-arrow">v</span>
+          </button>
+
+          <div class="month-dropdown-menu" *ngIf="isMonthDropdownOpen">
+            <button
+              type="button"
+              class="month-dropdown-option"
+              *ngFor="let item of monthYearList"
+              [class.selected]="item === selectedMonthYear"
+              (click)="selectMonthYear(item)"
+            >
+              {{ item}}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="month-dropdown-backdrop"
+  *ngIf="isMonthDropdownOpen"
+  (click)="closeMonthDropdown()"
+></div>
+
+<!-- RAW DATA TAB -->
+<div class="report-section" *ngIf="activeTab === 'raw'">
+  <h5 class="section-title">Raw Observation Data</h5>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover table-sm">
+      <thead>
+        <tr>
+          <th>Circle Name</th>
+          <th>District</th>
+          <th>Date</th>
+          <th>T_Max_Obs</th>
+          <th>T_Min_Obs</th>
+          <th>H_Avg_Obs</th>
+          <th>Win_M_Obs</th>
+          <th>Rain_T_Obs</th>
+          <th>V_Avg_Obs</th>
+          <th>T_Max_Fst</th>
+          <th>T_Min_Fst</th>
+          <th>H_Avg_Fst</th>
+          <th>Win_M_Fst</th>
+          <th>Rain_T_Fst</th>
+          <th>V_Avg_Fst</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="!records || records.length === 0">
+          <td colspan="15" class="no-data">No Data Available</td>
+        </tr>
+
+        <tr *ngFor="let row of records">
+          <td>{{ row.circle }}</td>
+          <td>{{ row.district }}</td>
+          <td>{{ row.date | date:'dd-MM-yyyy' }}</td>
+          <td>{{ row.t_max_obs }}</td>
+          <td>{{ row.t_min_obs }}</td>
+          <td>{{ row.h_avg_obs }}</td>
+          <td>{{ row.win_m_obs }}</td>
+          <td>{{ row.rain_t_obs }}</td>
+          <td>{{ row.v_avg_obs }}</td>
+          <td>{{ row.t_max_fst }}</td>
+          <td>{{ row.t_min_fst }}</td>
+          <td>{{ row.h_avg_fst }}</td>
+          <td>{{ row.win_m_fst }}</td>
+          <td>{{ row.rain_t_fst }}</td>
+          <td>{{ row.v_avg_fst }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ACCURACY TAB -->
+<div class="report-section" *ngIf="activeTab === 'accuracy'">
+  <h5 class="section-title">Forecast Accuracy</h5>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Variable</th>
+          <th>MAE</th>
+          <th>RMSE</th>
+          <th>MAPE</th>
+          <th>Accuracy %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="!accuracyRows || accuracyRows.length === 0">
+          <td colspan="6" class="no-data">No Data Available</td>
+        </tr>
+        <tr *ngFor="let row of accuracyRows">
+          <td>{{ row.parameter }}</td>
+          <td><strong>{{ row.variable }}</strong></td>
+          <td>{{ row.mae | number:'1.7-7' }}</td>
+          <td>{{ row.rmse | number:'1.7-7' }}</td>
+          <td>{{ row.mape | number:'1.7-7' }}</td>
+          <td><strong>{{ row.accuracy_perc | number:'1.7-7' }}</strong></td>
+        </tr>
+
+        <tr class="avgvalue">
+          <td colspan="5"><strong>Average Accuracy</strong></td>
+          <td><strong>{{ averageAccuracy | number:'1.7-7' }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

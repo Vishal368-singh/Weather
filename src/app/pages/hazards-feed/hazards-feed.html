@@ -1,0 +1,578 @@
+<div class="main-container">
+  <h3>Hazards Feed</h3>
+
+  <!-- ====== TABS SECTION ====== -->
+  <div class="summary-table-container d-flex flex-wrap gap-3 mb-3 mt-3">
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Snowfall' }"
+      (click)="setActive('Snowfall')"
+    >
+      <i class="fa-solid fa-snowflake"></i> Snowfall
+    </button>
+
+    <button
+      class="btn btn-outline-success"
+      [ngClass]="{ 'active': activeHazardTab === 'Avalanche' }"
+      (click)="setActive('Avalanche')"
+    >
+      <i class="fas fa-mountain"></i> Avalanche
+    </button>
+
+    <button
+      class="btn btn-outline-success disabled"
+      [ngClass]="{ 'active': activeHazardTab === 'Flood' }"
+      (click)="setActive('Flood')"
+    >
+      <i class="fas fa-water"></i> Flood
+    </button>
+
+    <button
+      class="btn btn-outline-success justify-content-center disabled"
+      [ngClass]="{ 'active': activeHazardTab === 'Cyclone' }"
+      (click)="setActive('Cyclone')"
+      onmouseout="if(!this.classList.contains('active')) this.querySelector('img').style.filter='invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg) brightness(80%) contrast(100%)'"
+    >
+      <img
+        src="assets/icons/cyclone.svg"
+        alt=""
+        width="20"
+        style="
+          /* Default filter that approximates Bootstrap's success green */
+          filter: invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg)
+            brightness(80%) contrast(100%);
+          transition: 0.2s;
+        "
+        [style.filter]="activeHazardTab === 'Cyclone' ? 'brightness(0) invert(1)' : 'invert(42%) sepia(85%) saturate(300%) hue-rotate(90deg) brightness(80%) contrast(100%)'"
+      />
+      Cyclone
+    </button>
+
+    <button
+      class="btn btn-outline-success disabled"
+      [ngClass]="{ 'active': activeHazardTab === 'Lightning' }"
+      (click)="setActive('Lightning')"
+    >
+      <i class="fa-solid fa-bolt-lightning"></i>
+      Lightning
+    </button>
+
+    <button
+      class="btn btn-outline-success disabled"
+      [ngClass]="{ 'active': activeHazardTab === 'Landslide' }"
+      (click)="setActive('Landslide')"
+    >
+      <i class="fa-solid fa-mountain-city"></i>
+
+      Landslide
+    </button>
+
+    <button
+      class="btn btn-outline-success disabled"
+      [ngClass]="{ 'active': activeHazardTab === 'Cloudburst' }"
+      (click)="setActive('Cloudburst')"
+    >
+      <i class="fas fa-cloud-bolt"></i> Cloudburst
+    </button>
+
+    <button class="btn btn-outline-success" (click)="getTriggersLog()">
+      Triggers Log
+    </button>
+
+    <button
+    class="btn btn-outline-success"
+    (click)="requestToSwitchAPI()"
+  >
+    <i class="fa-solid fa-bolt-lightning"></i>
+    Switch API
+  </button>
+  </div>
+
+  <!-- ====== FORM APPEAR AFTER TAB CLICK ====== -->
+  <div *ngIf="activeHazardTab" class="card p-3">
+    <div class="row">
+      <!-- Division / Region DROPDOWN -->
+
+      <div class="custom-col mb-3 position-relative">
+        <label>
+          {{ activeHazardTab === 'Snowfall' ? 'Snowfall Division/Region' :
+          'Circle' }}
+        </label>
+
+        <!-- Snowfall -->
+        <select
+          *ngIf="activeHazardTab === 'Snowfall'"
+          class="form-select"
+          [(ngModel)]="selectedDivision"
+          (change)="onCircleChange()"
+          [disabled]="!!selectedDivision"
+        >
+          <option value="" disabled selected>
+            {{ isLoadingCircle ? 'Loading...' : 'Select Division/Region' }}
+          </option>
+          <option *ngFor="let c of snowfallCircleList" [value]="c.division">
+            {{ c.division }}
+          </option>
+        </select>
+
+        <!-- Non-Snowfall -->
+        <select
+          *ngIf="activeHazardTab !== 'Snowfall'"
+          class="form-select"
+          [(ngModel)]="selectedCircle"
+          (change)="onCircleChange()"
+          [disabled]="!!selectedCircle"
+        >
+          <option value="" disabled selected>
+            {{ isLoadingCircle ? 'Loading...' : 'Select Circle' }}
+          </option>
+          <option *ngFor="let c of circleList" [value]="c.label">
+            {{ c.label }}
+          </option>
+        </select>
+
+        <!-- Loader -->
+        <div *ngIf="isLoadingCircle" class="select-loader spinner"></div>
+      </div>
+
+      <!-- DAYS For Snowfall -->
+      <div class="custom-col mb-3" *ngIf="activeHazardTab==='Snowfall'">
+        <label>Days</label>
+
+        <div class="dropdown w-100" data-bs-auto-close="outside">
+          <button
+            class="form-select text-start"
+            type="button"
+            data-bs-toggle="dropdown"
+            [disabled]="selectedCircle === ''"
+          >
+            {{ this.selectedDays.length > 0 ? this.selectedDays.join(', ') :
+            'Select Days' }}
+          </button>
+
+          <ul
+            class="dropdown-menu w-100 p-2"
+            style="max-height: 200px; overflow-y: auto"
+            (click)="$event.stopPropagation()"
+          >
+            <li *ngFor="let day of availableDays" class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [checked]="selectedDays.includes(day)"
+                (change)="onDayToggle(day, $event)"
+              />
+              <label class="form-check-label"> {{ day }} </label>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- DAYS For Other hazard -->
+      <div class="custom-col mb-3" *ngIf="activeHazardTab!=='Snowfall'">
+        <label>Days</label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.day"
+          (change)="getDateFromSelectedDayForOtherHaz(form.day)"
+          [disabled]="selectedCircle == ''"
+        >
+          <option value="" disabled>Select Day</option>
+          <option *ngFor="let d of days" [value]="d">{{d}}</option>
+        </select>
+      </div>
+
+      <!-- DISTRICT CHECKBOX -->
+      <div class="custom-col mb-3" *ngIf="!(activeHazardTab === 'Snowfall')">
+        <label>District</label>
+
+        <div class="dropdown custom-dropdown">
+          <button
+            style="
+              text-align: left;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            "
+            class="form-select"
+            type="button"
+            data-bs-toggle="dropdown"
+            [disabled]="selectedDays == ''"
+          >
+            {{ form.districts.length > 0 ? form.districts.join(', ') : 'Select Districts' }}
+          </button>
+
+          <ul
+            class="dropdown-menu p-2"
+            style="max-height: 200px; overflow-y: auto"
+          >
+            <input
+              type="text"
+              class="form-control mb-2"
+              placeholder="Search district..."
+              [(ngModel)]="districtSearch"
+              (input)="onDistrictSearch()"
+            />
+            <li
+              class="dropdown-item d-flex align-items-center"
+              *ngFor="let d of filteredDistrictList"
+              (click)="$event.stopPropagation()"
+            >
+              <input
+                [id]="d.district"
+                type="checkbox"
+                class="form-check-input"
+                [checked]="form.districts.includes(d.district)"
+                (change)="toggleDistrict(d.district, $event)"
+              />
+
+              <label [for]="d.district" class="ms-2">{{ d.district }}</label>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="custom-col mb-3">
+        <label>Severity</label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.severity"
+          [disabled]="selectedDays.length === 0"
+        >
+          <option value="" disabled>Select Severity</option>
+          <option *ngFor="let s of severityList" [value]="s">{{s}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <!-- RANGE -->
+      <div class="col-md-6 mb-3">
+        <label>{{activeHazardTab}}</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.hazardValue"
+          placeholder="Enter the value"
+        />
+      </div>
+      <!-- DESCRIPTION -->
+      <div class="col-md-6 mb-3">
+        <label>Description</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.description"
+          placeholder="Enter description"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="d-flex gap-3 mt-3">
+    <button
+      *ngIf="selectedCircle !== ''"
+      class="btn btn-success"
+      (click)="addNewRecord()"
+    >
+      {{ editingIndex !== null ? 'Update' : 'Add New' }}
+    </button>
+
+    <button
+      *ngIf="selectedCircle !== ''"
+      class="btn btn-success"
+      (click)="formReset()"
+    >
+      Reset
+    </button>
+  </div>
+
+  <div
+    class="accordion mt-4"
+    id="importantLinksAccordion"
+    *ngIf="activeHazardTab"
+  >
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingImportantLinks">
+        <button
+          class="accordion-button collapsed"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseImportantLinks"
+          aria-expanded="false"
+          aria-controls="collapseImportantLinks"
+          style="font-size: 20px"
+        >
+          Sources of Information & Data for {{ activeHazardTab | titlecase }}
+        </button>
+      </h2>
+
+      <div
+        id="collapseImportantLinks"
+        class="accordion-collapse collapse"
+        aria-labelledby="headingImportantLinks"
+        data-bs-parent="#importantLinksAccordion"
+      >
+        <div class="accordion-body">
+          <ul class="list-group">
+            <ng-container
+              *ngIf="linksData[activeHazardTab]?.length > 0; else noLinks"
+            >
+              <li
+                class="list-group-item"
+                *ngFor="let link of linksData[activeHazardTab]; let i = index"
+              >
+                <a [href]="link.url" target="_blank"> {{ link.name }} </a>
+                <p>{{ link.description }}</p>
+              </li>
+            </ng-container>
+          </ul>
+
+          <!-- SHOW NOTHING IF LENGTH IS 0 (No message, no value) -->
+          <ng-template #noLinks>
+            <h5>No Sources are available.</h5>
+          </ng-template>
+
+          <div class="table-box">
+            <div class="table-container mt-4 mb-2">
+              <table class="table table-bordered mt-4">
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Tab</th>
+                    <th>Circle</th>
+                    <th>Day</th>
+                    <th>Districts</th>
+                    <th>Severity</th>
+
+                    <th>Date</th>
+                    <th>{{activeHazardTab}}</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr *ngFor="let row of currenttableData; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ activeHazardTab }}</td>
+                    <td>{{ row.indus_circle}}</td>
+                    <td>{{ row.days }}</td>
+                    <td>{{ row.district }}</td>
+                    <td>{{ row.severity }}</td>
+
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.hazardValue }}</td>
+                    <td>{{ row.description }}</td>
+                  </tr>
+
+                  <tr *ngIf="currenttableData.length === 0">
+                    <td colspan="9" class="text-center text-danger fw-bold">
+                      No Data Available
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- <div style="text-align: center">
+              <button class="btn btn-success" (click)="onSubmitClick()">Submit</button>
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TABLE SHOW AFTER ADD NEW ====== -->
+  <div class="table-box" *ngIf="tableData.length > 0">
+    <div class="table-container mt-4 mb-2">
+      <table *ngIf="tableData.length > 0" class="table table-bordered mt-4">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Tab</th>
+            <th *ngIf="activeHazardTab === 'Snowfall'">Division</th>
+            <th>Circle</th>
+            <th>Districts</th>
+            <th>Severity</th>
+            <th>Day</th>
+            <th>Date</th>
+            <th>{{activeHazardTab}}</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of tableData; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ row.tab }}</td>
+            <td *ngIf="activeHazardTab === 'Snowfall'">{{ row.division }}</td>
+            <td>{{ row.circle }}</td>
+            <td>{{ row.districts.join(', ') }}</td>
+            <td>{{ row.severity }}</td>
+            <td>{{ row.day }}</td>
+            <td>{{ row.date }}</td>
+            <td>{{ row.hazardValue }}</td>
+            <td>{{ row.description }}</td>
+
+            <!-- EDIT BUTTON -->
+            <td class="d-flex spacebetween gap-2">
+              <button
+                class="btn btn-success btn-sm"
+                (click)="editTableRecords(i)"
+                [disabled]="editingIndex !== null"
+              >
+                Edit
+              </button>
+              <button
+                class="btn btn-success btn-sm"
+                (click)="deleteSelectedRow(i)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align: center">
+      <button class="btn btn-success" (click)="onSubmitClick()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trigger Popup Modal -->
+<div
+  class="modal fade show d-block"
+  *ngIf="triggerPopupModel"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.5)"
+>
+<div class="modal-dialog modal-trigger-xl modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Trigger Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeTriggerModal()"
+        ></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-0">
+        <div class="table-responsive p-1">
+          <table class="table table-bordered table-hover mb-0 trigger-table">
+            <thead class="table-light">
+              <tr>
+                <th>S.N</th>
+                <th>Trigger Name</th>
+                <th>Purpose</th>
+                <th>Type</th>
+                <th>ORG</th>
+                <th>AWS</th>
+                <th>BIZ</th>
+                <th>Status</th>
+                <th>Execution Time</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let row of triggerData; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ row.trigger_name }}</td>
+                <td>{{ row.trigger_purpose }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{'bg-primary': row.internal_external === 'Internal','bg-secondary': row.internal_external === 'External',
+                    'bg-success':row.internal_external === 'External-Report'}"
+                  >
+                    {{ row.internal_external }}
+                  </span>
+                </td>
+
+                <td>{{ row.org }}</td>
+                <td>{{ row.aws }}</td>
+                <td>{{ row.biz }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{'bg-success': row.execution_status === 'SUCCESS',
+                      'bg-danger': row.execution_status === 'FAILED',
+                      'bg-warning text-dark': row.execution_status === 'PENDING',
+                      'bg-info text-dark': row.execution_status === 'RUNNING'}"
+                  >
+                    {{ row.execution_status }}
+                  </span>
+                </td>
+                <td>{{ row.execution_time }}</td>
+                <td>
+                  {{ row.last_update |date:'dd MMM yyyy, hh:mm:ss a':'IST'}}
+                </td>
+              </tr>
+
+              <tr *ngIf="!triggerData?.length">
+                <td colspan="9" class="text-center text-muted">
+                  No trigger data available
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ........ Switch API Toggle ..................  -->
+<div
+  class="modal fade show d-block"
+  *ngIf="isSwitch"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.5)"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Switch API</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="confirmDeactivate(false)"
+        ></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <p>
+          Do you want to switch the API from {{currentAPI}} to {{switchAPI}}?
+        </p>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button
+          class="btn btn-success"
+          (click)="SwitchApiToggle()"
+        >
+          Yes
+        </button>
+
+        <button
+          class="btn btn-secondary"
+          (click)="confirmDeactivate(false)"
+        >
+          No
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

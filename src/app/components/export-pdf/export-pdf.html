@@ -1,0 +1,13 @@
+<div class="pdf_Container">
+    <p class="text-black mb-0 mt-0 ml-2  d-flex justify-content-center align-items-center" 
+    style="height: 50px; font-size: 18px; font-weight: bold; width: max-content;">
+       Date : {{ today | date: 'dd MMMM yyyy' }}
+    </p>
+    <button id="export_btn" (click)="exportPDF()" class="btn m-2" title="Export_As_PDF"
+        style="height: auto; background: silver; ">
+        <img src="/assets/icons/download-pdf.png" alt="Download PDF" style="height: 95%;" />
+    </button>
+</div>
+<div *ngIf="loading" id="loader" class="loader-overlay no-export">
+    <div class="spinner"></div>
+</div>

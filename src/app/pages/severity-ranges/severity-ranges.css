@@ -1,0 +1,217 @@
+* {
+  scrollbar-color: #188754 #e8f5e9 !important;
+}
+.no-wrap {
+  white-space: nowrap;
+}
+
+.fixed-input {
+  height: 100%;
+  min-height: 28px;
+  box-sizing: border-box;
+}
+
+table.table,
+.table-severity {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Dropdown focus styling */
+select.form-select:focus {
+  box-shadow: none !important;
+  outline: rgb(155, 236, 155) !important;
+  border-color: inherit !important;
+}
+
+/* Dropdown option list styling */
+::ng-deep #circleSelect > option {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Color display box */
+.color-box {
+  width: 60px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin: auto;
+}
+
+/* Color input field */
+.color-edit {
+  width: 60px;
+  height: 30px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 425px) {
+  .table-severity {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%; /* ensures table scrolls within full width */
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container-fluid {
+    margin-bottom: 35%;
+  }
+  .table-severity {
+    width: 100%;
+  }
+  .history-table-wrapper {
+    max-height: 60vh !important;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  .severity-row {
+    height: 60vh !important;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .table-severity {
+    width: 100%;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .table-severity {
+    width: 100%;
+  }
+
+  .table-severity th,
+  .table-severity td {
+    font-size: 16px;
+  }
+}
+
+button {
+  background-color: #ffffff;
+  border: 1px solid #198754;
+  color: #198754;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+button:hover {
+  background-color: #198754;
+  border: 1px solid #198754;
+  color: #ffffff;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+/* Modal width */
+
+.History {
+  max-width: 90vw;
+}
+
+.history-table-wrapper {
+  max-height: 70vh;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.history-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 1400px;
+}
+
+.history-table th,
+.history-table td {
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+/* S.No */
+.history-table th:nth-child(1),
+.history-table td:nth-child(1) {
+  width: 4%;
+}
+
+/* KPI Name */
+.history-table th:nth-child(2),
+.history-table td:nth-child(2) {
+  width: 15%;
+}
+
+/* Action On */
+.history-table th:nth-child(3),
+.history-table td:nth-child(3) {
+  width: 7%;
+}
+
+/* Modifier Role */
+.history-table th:nth-child(4),
+.history-table td:nth-child(4),
+.history-table th:nth-child(5),
+.history-table td:nth-child(5),
+.history-table th:nth-child(6),
+.history-table td:nth-child(6) {
+  width: 12%;
+}
+
+.history-table th:nth-child(7),
+.history-table td:nth-child(7),
+.history-table th:nth-child(8),
+.history-table td:nth-child(8) {
+  width: 8%;
+}
+.history-table th:nth-child(9),
+.history-table td:nth-child(9) {
+  width: 22%;
+}
+
+thead tr th,
+tbody tr td {
+  padding: 2px 2px;
+  vertical-align: middle;
+}
+
+.history-table thead th,
+.table-severity thead tr th {
+  background-color: #bcf1d1;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+@media (max-width: 768px) {
+  .History {
+    max-width: 98vw;
+    width: 98vw;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 4px;
+  }
+}

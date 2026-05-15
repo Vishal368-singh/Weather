@@ -1,0 +1,92 @@
+/* dialog container */
+.cyclone-mail-dialog .mat-mdc-dialog-container {
+    padding: 0;
+    border-radius: 1px;
+}
+
+/* header */
+.dialog-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* body */
+.dialog-body {
+    padding: 20px 24px;
+}
+
+/* footer */
+.dialog-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* label same as bootstrap */
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* spacing between fields */
+.row {
+    display: flex;
+    gap: 20px;
+}
+
+.col-md-6 {
+    flex: 1;
+}
+
+.green-outline-btn {
+    border: 1px solid #198754;
+    color: #198754;
+    background: transparent;
+    border-radius: 5px;
+    padding: 6px 20px;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__leading,
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__notch,
+::ng-deep .mat-mdc-form-field .mdc-notched-outline__trailing {
+    border-color: #198754 !important;
+}
+
+::ng-deep .mat-mdc-select-arrow {
+    color: #198754;
+}
+
+::ng-deep .mat-mdc-checkbox.mat-accent .mdc-checkbox__background {
+    border-color: #198754 !important;
+}
+
+::ng-deep .mat-mdc-checkbox.mat-mdc-checkbox-checked .mdc-checkbox__background {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+    color: #198754 !important;
+}
+
+::ng-deep .mat-mdc-option.mdc-list-item--selected .mat-pseudo-checkbox-checked {
+    background-color: #198754 !important;
+    /* your green */
+    border-color: #198754 !important;
+}
+
+::ng-deep .mat-pseudo-checkbox-checked::after {
+    color: white !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-select-arrow {
+    color: #198754 !important;
+}
